@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json({ limit: '10mb' }));
 
+//console.log("THE APP IS READING THIS LINK:", process.env.MONGO_URI);
+
 // MongoDB Atlas Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Atlas connected successfully'))
