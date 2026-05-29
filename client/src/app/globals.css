@@ -1,1 +1,14 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom View Transition for Dark Mode Ripple */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Ensure dark mode has smooth background transitions */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

@@ -1,146 +1,97 @@
-import Navbar from "@/components/Navbar";
 import CategoryMenu from "@/components/CategoryMenu";
-import NewsCard from "@/components/NewsCard";
-import BottomNav from "@/components/BottomNav";
+import BreakingNewsCarousel from "@/components/BreakingNewsCarousel";
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 
 export default async function Home() {
-  // 1. Fetch live data from MongoDB
   let data = { articles: [] as Article[] };
-  try {
-    data = await fetchArticles();
-  } catch (err) {
-    console.error("Failed to load articles", err);
-  }
+  try { data = await fetchArticles(); } catch (err) { console.error(err); }
 
   const allArticles = data.articles || [];
+  let breakingNews = allArticles.filter(a => a.isBreaking);
 
-  // 2. Data Sorting Logic (Updated for Categories!)
-  const breakingNews = allArticles.filter(a => a.isBreaking);
-  const mainBreaking = breakingNews[0]; 
-  const subBreaking = breakingNews.slice(1, 3); 
+  if (breakingNews.length < 3) {
+    const dummyNews = [
+      { _id: "test-1", headline: "Heavy rainfall expected across Central Kerala, Red Alert issued", category: "Weather", isBreaking: true, createdAt: new Date().toISOString(), location: { ward: "Thrissur" }, media: [{ type: 'image', url: 'https://picsum.photos/801/500?grayscale' }] } as Article,
+      { _id: "test-2", headline: "New tech hub proposed in Thrissur expected to generate thousands of local jobs", category: "Business", isBreaking: true, createdAt: new Date().toISOString(), location: { ward: "Koratty" }, media: [{ type: 'image', url: 'https://picsum.photos/802/500?grayscale' }] } as Article
+    ];
+    breakingNews = [...breakingNews, ...dummyNews];
+  }
 
-  // Filter by Category
-  const crimeNews = allArticles.filter(a => a.category === 'Crime');
-  const sportsNews = allArticles.filter(a => a.category === 'Sports');
-  const politicsNews = allArticles.filter(a => a.category === 'Politics');
-  const otherNews = allArticles.filter(a => !['Crime', 'Sports', 'Politics'].includes(a.category));
+  const topTenNews = allArticles.slice(0, 10);
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-24">
-      <Navbar />
+    <div className="pb-24 relative max-w-7xl mx-auto">
       <CategoryMenu />
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="px-4 py-6 flex flex-col md:flex-row gap-8 lg:gap-10 items-start">
         
-        {/* ================= BREAKING NEWS SECTION ================= */}
-        {mainBreaking && (
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-red-600 font-extrabold text-lg tracking-wide uppercase">BREAKING NEWS</h2>
-              <span className="text-red-600 text-xl">›</span>
-            </div>
+        <div className="w-full md:w-[62%] lg:w-[65%] flex-shrink-0">
+          <BreakingNewsCarousel articles={breakingNews} />
+        </div>
 
-            {/* MAIN BREAKING HERO */}
-            <div className="bg-white rounded-3xl overflow-hidden shadow-lg mb-6 border border-gray-100">
-              <img
-                src={mainBreaking.media?.[0]?.url || 'https://picsum.photos/900/500'}
-                alt="Breaking News"
-                className="w-full h-[260px] object-cover"
-              />
-              <div className="p-5">
-                <p className="text-green-700 text-sm font-extrabold uppercase mb-2 tracking-wider">
-                  {mainBreaking.location.ward}
-                </p>
-                <h1 className="text-2xl font-bold leading-tight text-black mb-3 line-clamp-3">
-                  {mainBreaking.headline}
-                </h1>
-                <p className="text-gray-500 text-sm font-medium">Just Now</p>
-              </div>
-            </div>
+        <div className="w-full md:w-[38%] lg:w-[35%] md:sticky md:top-20 mt-4 md:mt-0">
+          
+          <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase mb-4">
+            TOP TEN NEWS
+          </h2>
 
-            {/* SUB BREAKING NEWS GRID */}
-            {subBreaking.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 mb-5">
-                {subBreaking.map((item) => (
-                  <div key={item._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                    <img
-                      src={item.media?.[0]?.url || 'https://picsum.photos/400/300'}
-                      alt="Sub News"
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="p-3">
-                      <h3 className="font-bold text-sm leading-snug text-black line-clamp-3">
-                        {item.headline}
-                      </h3>
+          <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-y-auto h-[500px] md:h-[600px] lg:h-[calc(100vh-140px)] relative [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-800 [&::-webkit-scrollbar-thumb]:rounded-full shadow-sm">
+            <div className="flex flex-col">
+              {topTenNews.map((item, idx) => {
+                const isFirst = idx === 0;
+                const dateObj = new Date(item.createdAt);
+                const timeStr = `${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0' : ''}${dateObj.getMinutes()}`;
+
+                return (
+                  <div key={item._id} className="relative border-b border-gray-100 dark:border-gray-800/60 p-4 last:border-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors overflow-hidden">
+                    
+                    {/* Watermark: Restored to #e3000f */}
+                    <span className="absolute -right-2 -bottom-4 text-[110px] leading-none font-black text-[#e3000f] opacity-5 dark:opacity-[0.03] z-0 pointer-events-none select-none tracking-tighter transition-all group-hover:scale-110">
+                      {idx + 1}
+                    </span>
+
+                    <div className="relative z-10">
+                      {isFirst ? (
+                        <div className="flex flex-col gap-3">
+                          <img src={item.media?.[0]?.url || 'https://picsum.photos/400/250'} className="w-full h-44 object-cover rounded-lg shadow-sm" alt="Thumbnail" />
+                          <div>
+                            {/* Tags: Restored to #e3000f */}
+                            <span className="text-[10px] text-[#e3000f] font-black uppercase border-t-[3px] border-[#e3000f] pt-1 inline-block mb-1 tracking-wider">
+                              {item.category || 'Latest'}
+                            </span>
+                            {/* Preserved dark mode text fix */}
+                            <h3 className="font-bold text-base md:text-lg leading-snug text-black dark:text-white group-hover:text-[#e3000f] transition-colors">
+                              {item.headline}
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-2">{timeStr}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-4 items-start">
+                          <img src={item.media?.[0]?.url || 'https://picsum.photos/100/100'} className="w-24 h-16 object-cover rounded shadow-sm flex-shrink-0" alt="Thumbnail" />
+                          <div className="flex-1">
+                            {/* Tags: Restored to #e3000f */}
+                            <span className="text-[9px] text-[#e3000f] font-black uppercase border-t-2 border-[#e3000f] pt-0.5 inline-block mb-1 tracking-wider">
+                              {item.category || 'Latest'}
+                            </span>
+                            {/* Preserved dark mode text fix */}
+                            <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-black dark:text-gray-100 group-hover:text-[#e3000f] transition-colors">
+                              {item.headline}
+                            </h3>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5">{timeStr}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
-        )}
 
-
-        {/* ================= LATEST FEED ================= */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-black border-l-4 border-red-600 pl-3">Latest News</h2>
-          </div>
-          <div className="space-y-4">
-            {otherNews.slice(0, 10).map((item) => <NewsCard key={item._id} article={item} />)}
-          </div>
-        </div>  
-
-
-        {/* ================= CRIME NEWS ================= */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-black border-l-4 border-red-600 pl-3 uppercase">Crime News</h2>
-            <button className="text-red-600 font-semibold text-sm">View All</button>
-          </div>
-          <div className="space-y-4">
-            {crimeNews.length > 0 ? (
-              crimeNews.slice(0, 3).map((item) => <NewsCard key={item._id} article={item} />)
-            ) : (
-              <p className="text-gray-400 text-sm italic">No recent crime updates.</p>
-            )}
-          </div>
         </div>
-
-        {/* ================= SPORTS NEWS ================= */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-black border-l-4 border-red-600 pl-3 uppercase">Sports News</h2>
-            <button className="text-red-600 font-semibold text-sm">View All</button>
-          </div>
-          <div className="space-y-4">
-            {sportsNews.length > 0 ? (
-              sportsNews.slice(0, 3).map((item) => <NewsCard key={item._id} article={item} />)
-            ) : (
-              <p className="text-gray-400 text-sm italic">No recent sports updates.</p>
-            )}
-          </div>
-        </div>
-
-        {/* ================= POLITICS NEWS ================= */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-black border-l-4 border-red-600 pl-3 uppercase">Politics News</h2>
-            <button className="text-red-600 font-semibold text-sm">View All</button>
-          </div>
-          <div className="space-y-4">
-            {politicsNews.length > 0 ? (
-              politicsNews.slice(0, 3).map((item) => <NewsCard key={item._id} article={item} />)
-            ) : (
-              <p className="text-gray-400 text-sm italic">No recent political updates.</p>
-            )}
-          </div>
-        </div>
-
       </div>
-      <BottomNav />
     </div>
   );
 }
