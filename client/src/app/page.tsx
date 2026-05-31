@@ -1,5 +1,7 @@
 import CategoryMenu from "@/components/CategoryMenu";
 import BreakingNewsCarousel from "@/components/BreakingNewsCarousel";
+import QuickReadButton from "@/components/QuickReadButton";
+import BookmarkButton from "@/components/BookmarkButton"; // <-- Imported here
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 
@@ -40,47 +42,56 @@ export default async function Home() {
             <div className="flex flex-col">
               {topTenNews.map((item, idx) => {
                 const isFirst = idx === 0;
+                
                 const dateObj = new Date(item.createdAt);
-                const timeStr = `${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0' : ''}${dateObj.getMinutes()}`;
+                const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+                let hours = dateObj.getHours();
+                const minutes = dateObj.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12; 
+                const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+                const dateTimeStr = `${formattedDate} • ${hours}:${formattedMinutes} ${ampm}`;
 
                 return (
                   <div key={item._id} className="relative border-b border-gray-100 dark:border-gray-800/60 p-4 last:border-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors overflow-hidden">
                     
-                    {/* Watermark: Restored to #e3000f */}
                     <span className="absolute -right-2 -bottom-4 text-[110px] leading-none font-black text-[#e3000f] opacity-5 dark:opacity-[0.03] z-0 pointer-events-none select-none tracking-tighter transition-all group-hover:scale-110">
                       {idx + 1}
                     </span>
 
                     <div className="relative z-10">
                       {isFirst ? (
-                        <div className="flex flex-col gap-3">
-                          <img src={item.media?.[0]?.url || 'https://picsum.photos/400/250'} className="w-full h-44 object-cover rounded-lg shadow-sm" alt="Thumbnail" />
+                        <div className="flex flex-col gap-3 relative">
+                          <div className="relative">
+                            <img src={item.media?.[0]?.url || 'https://picsum.photos/400/250'} className="w-full h-44 object-cover rounded-lg shadow-sm" alt="Thumbnail" />
+                            {/* BOOKMARK: Floats over the featured image */}
+                            <BookmarkButton className="absolute top-2 right-2 bg-white/60 dark:bg-black/50 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white dark:hover:bg-black" />
+                          </div>
                           <div>
-                            {/* Tags: Restored to #e3000f */}
                             <span className="text-[10px] text-[#e3000f] font-black uppercase border-t-[3px] border-[#e3000f] pt-1 inline-block mb-1 tracking-wider">
                               {item.category || 'Latest'}
                             </span>
-                            {/* Preserved dark mode text fix */}
                             <h3 className="font-bold text-base md:text-lg leading-snug text-black dark:text-white group-hover:text-[#e3000f] transition-colors">
                               {item.headline}
                             </h3>
-                            <p className="text-xs text-gray-400 mt-2">{timeStr}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{dateTimeStr}</p>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex gap-4 items-start">
+                        <div className="flex gap-4 items-start relative">
                           <img src={item.media?.[0]?.url || 'https://picsum.photos/100/100'} className="w-24 h-16 object-cover rounded shadow-sm flex-shrink-0" alt="Thumbnail" />
-                          <div className="flex-1">
-                            {/* Tags: Restored to #e3000f */}
+                          {/* Added pr-8 to give the text room so it doesn't overlap the bookmark icon */}
+                          <div className="flex-1 pr-8">
                             <span className="text-[9px] text-[#e3000f] font-black uppercase border-t-2 border-[#e3000f] pt-0.5 inline-block mb-1 tracking-wider">
                               {item.category || 'Latest'}
                             </span>
-                            {/* Preserved dark mode text fix */}
                             <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-black dark:text-gray-100 group-hover:text-[#e3000f] transition-colors">
                               {item.headline}
                             </h3>
-                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5">{timeStr}</p>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5">{dateTimeStr}</p>
                           </div>
+                          {/* BOOKMARK: Aligned to the top right of the row */}
+                          <BookmarkButton className="absolute top-0 right-0 p-1" />
                         </div>
                       )}
                     </div>
@@ -92,6 +103,9 @@ export default async function Home() {
 
         </div>
       </div>
+      
+      <QuickReadButton />
+
     </div>
   );
 }
