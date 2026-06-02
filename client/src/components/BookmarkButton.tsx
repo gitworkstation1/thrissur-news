@@ -22,7 +22,7 @@ export default function BookmarkButton({ className }: { className?: string }) {
         className={`transition-all duration-300 ${
           isBookmarked 
             ? "fill-[#e3000f] text-[#e3000f] w-5 h-5" 
-            : "text-gray-400 group-hover:text-[#1C1C1E] dark:text-gray-500 dark:group-hover:text-gray-200 stroke-[2px] w-[18px] h-[18px]"
+            : "text-gray-800 group-hover:text-black dark:text-white dark:group-hover:text-gray-200 stroke-[2px] w-[18px] h-[18px]"
         }`} 
       />
     </button>

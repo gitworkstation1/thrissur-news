@@ -1,47 +1,129 @@
 "use client";
-import { Home } from "lucide-react";
-import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Check, Layers } from "lucide-react";
+// 1. Import the router and search params hooks
+import { useRouter, useSearchParams } from "next/navigation";
 
-const categories = ["News", "Crime", "Politics", "Sports", "Business", "Education", "Local", "Health"];
-const trendingTopics = ["Thrissur Pooram", "Weather Alert", "Traffic Block", "Gold Rate"];
+const categories = [
+  "News", "Crime", "Politics", "Sports", "Business", 
+  "Entertainment", "Technology", "Health", "Education",
+  "Automotive", "Real Estate", "Lifestyle"
+];
 
 export default function CategoryMenu() {
-  return (
-    <div className="bg-white dark:bg-[#111] flex flex-col shadow-sm transition-colors duration-300">
-      
-      {/* Tier 1: Main Categories */}
-      <div className="flex items-center overflow-x-auto whitespace-nowrap px-2 py-2.5 border-b border-gray-200 dark:border-gray-800 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        
-        <Link href="/" className="px-4 text-[#002244] dark:text-gray-200 border-r border-gray-300 dark:border-gray-700 hover:text-[#e3000f] dark:hover:text-[#e3000f] transition-colors">
-          <Home className="w-5 h-5" />
-        </Link>
-        
-        {categories.map((item) => (
-          <Link 
-            href={`/category/${item.toLowerCase()}`} 
-            key={item} 
-            className="px-4 text-[13px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight hover:text-[#e3000f] dark:hover:text-[#e3000f] transition-colors"
-          >
-            {item}
-          </Link>
-        ))}
-      </div>
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // 2. Initialize the router and read the current category from the URL
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedCategory = searchParams.get("category") || "News"; // Defaults to "News"
 
-      {/* Tier 2: Quick Links (Trending) */}
-      <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap px-4 py-2 bg-gray-50 dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-gray-800 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <span className="text-[13px] font-extrabold text-[#002244] dark:text-gray-200 mr-2">Quick Links</span>
-        
-        {trendingTopics.map((topic) => (
-          <Link 
-            href="#" 
-            key={topic} 
-            className="px-3 py-1 bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-full text-[#e3000f] dark:text-red-400 text-[11px] font-bold shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+  // Helper function to handle category clicks
+  const handleCategoryClick = (cat: string) => {
+    if (cat === "News") {
+      router.push("/"); // "News" acts as our "All" or default view
+    } else {
+      router.push(`/?category=${cat}`);
+    }
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 60);
+      if (window.scrollY > 60) setIsOpen(false);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); 
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+      isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
+    }`}>
+      <div className="max-w-[96%] mx-auto px-4 h-12 flex items-center justify-between">
+
+        <div className="flex-1 flex items-center gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pr-4">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              // 3. Fire the routing function when clicked
+              onClick={() => handleCategoryClick(cat)}
+              className={`whitespace-nowrap text-[11px] font-black tracking-widest uppercase transition-colors outline-none
+                ${selectedCategory === cat 
+                  ? 'text-[#e3000f]' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-100'
+                }
+              `}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative flex-shrink-0 pl-3 border-l border-gray-200 dark:border-gray-700 ml-1" ref={dropdownRef}>
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors outline-none group"
+            aria-label="More categories"
           >
-            {topic}
-          </Link>
-        ))}
+            <ChevronDown 
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                isOpen ? 'rotate-180 text-[#e3000f]' : ''
+              }`} 
+            />
+          </button>
+
+          {isOpen && (
+            <div className="absolute top-[calc(100%+10px)] right-0 w-56 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-200/60 dark:border-gray-700/50 overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              
+              <div className="px-4 py-2 mb-1 border-b border-gray-100 dark:border-gray-800/80 flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <Layers className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">All Categories</span>
+              </div>
+
+              <div className="max-h-[60vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleCategoryClick(cat)}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors outline-none
+                      ${selectedCategory === cat 
+                        ? 'text-[#e3000f] bg-red-50 dark:bg-red-900/10' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                      }
+                    `}
+                  >
+                    <span>{cat}</span>
+                    {selectedCategory === cat && <Check className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
+              
+            </div>
+          )}
+        </div>
+
       </div>
-      
     </div>
   );
 }
