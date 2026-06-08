@@ -7,7 +7,6 @@ import CategoryMenu from "@/components/CategoryMenu";
 import BreakingNewsCarousel from "@/components/BreakingNewsCarousel";
 import QuickReadButton from "@/components/QuickReadButton";
 import BookmarkButton from "@/components/BookmarkButton";
-import ScrollToTopButton from "@/components/ScrollToTopButton";
 import PlacesMenu from "@/components/PlacesMenu";
 
 // Helper function to keep our date formatting clean and reusable
@@ -314,7 +313,6 @@ export default async function Home({
           </div>
         </div>
       </div>
-      <ScrollToTopButton />
     </div>
   );
 }

@@ -1,7 +1,9 @@
+import "./globals.css";
+
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import QuickReadButton from "@/components/QuickReadButton";
-import "./globals.css";
 
 export const metadata = {
   title: "Thrissur News",
@@ -21,6 +23,7 @@ export default function RootLayout({ children }) {
         
         {/* Drop it safely outside the animated <main> wrapper! */}
         <QuickReadButton />
+        <ScrollToTopButton />
         <BottomNav />
         
       </body>
