@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation"; // 1. Import usePathname
+import { usePathname } from "next/navigation"; 
 
 export default function QuickReadButton() {
-  const pathname = usePathname(); // 2. Get the current URL path
+  const pathname = usePathname(); 
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,6 @@ export default function QuickReadButton() {
     return () => window.removeEventListener("scroll", checkScroll, true);
   }, []);
 
-  // 3. THE FIX: If we are on the search or shorts page, return nothing (null)
   if (pathname === "/search" || pathname === "/shorts") {
     return null;
   }
@@ -42,12 +41,11 @@ export default function QuickReadButton() {
       flex items-center justify-center rounded-full
       transition-all duration-300 ease-in-out overflow-hidden h-10 
       
-      /* PURE LIQUID GLASS EFFECT */
-      bg-white/5 dark:bg-black/10 backdrop-blur-[40px] saturate-[1.2] 
-      border border-white/50 dark:border-white/10 
-      shadow-[inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-2px_4px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.15)] 
-      dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_-2px_4px_rgba(0,0,0,0.2),0_10px_30px_rgba(0,0,0,0.4)]
-      text-slate-900 dark:text-white hover:bg-white/20 dark:hover:bg-white/10
+      /* SOLID RED POP EFFECT */
+      bg-[#e3000f] text-white
+      border border-[#ff4d58]
+      shadow-[0_8px_20px_rgba(227,0,15,0.4)] hover:shadow-[0_12px_25px_rgba(227,0,15,0.6)]
+      hover:bg-[#c2000c] hover:scale-105 active:scale-95
       
       ${isScrolled ? 'w-10 px-0 gap-0' : 'w-[140px] px-4 gap-2'}
       [.socials-open_&]:w-10

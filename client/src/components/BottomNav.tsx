@@ -55,9 +55,6 @@ export default function BottomNav() {
   const pathname = usePathname();
   const [showSocials, setShowSocials] = useState(false);
   
-  // FIX: Identify if the user is on the shorts page so we can force white overlay text
-  const isShortsPage = pathname?.startsWith("/shorts");
-  
   useEffect(() => {
     setShowSocials(false);
   }, [pathname]);
@@ -94,9 +91,9 @@ export default function BottomNav() {
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md md:hidden z-[100]">
       
-      {/* PURE LIQUID GLASS (POPUP) */}
+      {/* SOLID SOCIALS POPUP */}
       <div 
-        className={`absolute left-1/2 -translate-x-1/2 grid grid-cols-3 gap-x-8 gap-y-6 place-items-center bg-white/5 dark:bg-black/10 backdrop-blur-[40px] saturate-[1.2] border border-white/50 dark:border-white/10 shadow-[inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-2px_4px_rgba(255,255,255,0.1),0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_-2px_4px_rgba(0,0,0,0.2),0_20px_50px_rgba(0,0,0,0.6)] rounded-3xl px-8 py-6 transition-all duration-400 ease-out origin-bottom w-max ${
+        className={`absolute left-1/2 -translate-x-1/2 grid grid-cols-3 gap-x-8 gap-y-6 place-items-center bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-3xl px-8 py-6 transition-all duration-400 ease-out origin-bottom w-max ${
           showSocials 
             ? 'bottom-[125%] opacity-100 scale-100' 
             : 'bottom-1/2 opacity-0 scale-50 pointer-events-none'
@@ -111,20 +108,19 @@ export default function BottomNav() {
         <a href="https://instagram.com" target="_blank" rel="noreferrer" className="transition-all hover:scale-110 hover:opacity-80 active:scale-95">
           <Instagram className="w-[24px] h-[24px]" />
         </a>
-        {/* FIX: Force X/Threads icons to be white if opened on the Shorts page */}
-        <a href="https://twitter.com" target="_blank" rel="noreferrer" className={`${isShortsPage ? 'text-white' : 'text-slate-900 dark:text-white'} transition-all hover:scale-110 hover:opacity-80 active:scale-95`}>
+        <a href="https://twitter.com" target="_blank" rel="noreferrer" className="text-slate-900 dark:text-white transition-all hover:scale-110 hover:opacity-80 active:scale-95">
           <XLogo className="w-[24px] h-[24px]" />
         </a>
         <a href="https://facebook.com" target="_blank" rel="noreferrer" className="transition-all hover:scale-110 hover:opacity-80 active:scale-95">
           <Facebook className="w-[24px] h-[24px]" />
         </a>
-        <a href="https://threads.net" target="_blank" rel="noreferrer" className={`${isShortsPage ? 'text-white' : 'text-slate-900 dark:text-white'} transition-all hover:scale-110 hover:opacity-80 active:scale-95`}>
+        <a href="https://threads.net" target="_blank" rel="noreferrer" className="text-slate-900 dark:text-white transition-all hover:scale-110 hover:opacity-80 active:scale-95">
           <Threads className="w-[24px] h-[24px]" />
         </a>
       </div>
 
-      {/* PURE LIQUID GLASS (DOCK) */}
-      <div className="bg-white/5 dark:bg-black/10 backdrop-blur-[40px] saturate-[1.2] border border-white/50 dark:border-white/10 shadow-[inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-2px_4px_rgba(255,255,255,0.1),0_16px_40px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_-2px_4px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.6)] rounded-full px-2 py-3.5 transition-colors duration-300">
+      {/* SOLID BOTTOM DOCK */}
+      <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 shadow-xl rounded-full px-2 py-3.5 transition-colors duration-300">
         <div className="flex items-center justify-between">
           {navItems.map((item) => {
             const isActive = pathname === item.path || (item.action === "toggleSocials" && showSocials);
@@ -147,13 +143,10 @@ export default function BottomNav() {
               </>
             );
 
-            // FIX: If the user is on the Shorts page, force the unselected icons to be white with a shadow so they pop over the video!
             const baseClasses = `flex flex-col items-center justify-center gap-1 transition-all duration-300 flex-1 ${
               isActive 
                 ? "text-[#e3000f] -translate-y-1 drop-shadow-md" 
-                : isShortsPage
-                  ? "text-white/90 hover:text-white drop-shadow-md"
-                  : "text-slate-900 dark:text-gray-100 hover:text-black dark:hover:text-white"
+                : "text-slate-900 dark:text-gray-100 hover:text-black dark:hover:text-white"
             }`;
 
             if (item.action === "toggleSocials") {

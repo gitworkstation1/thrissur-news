@@ -92,9 +92,9 @@ export default function Navbar() {
 
   return (
     <>
-      {/* --- SIDE DRAWER (Now enabled for both Mobile & Desktop) --- */}
+      {/* --- SIDE DRAWER --- */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/60 z-[100] transition-opacity duration-300 ${
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMobileMenuOpen(false)}
@@ -146,103 +146,111 @@ export default function Navbar() {
 
       <header className="sticky top-0 z-50 w-full h-14">
         
-        {/* MORPHING BACKGROUND */}
-        <div className={`absolute inset-0 w-full h-full bg-white/90 backdrop-blur-lg border-b border-gray-200/60 shadow-sm dark:bg-[#111]/90 dark:border-gray-800 transition-all duration-500 ease-in-out origin-top ${
+        {/* SOLID BACKGROUND */}
+        <div className={`absolute inset-0 w-full h-full bg-white border-b border-gray-200 shadow-sm dark:bg-[#111] dark:border-gray-800 transition-all duration-500 ease-in-out origin-top ${
           isScrolled ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
         }`} />
 
-        {/* Updated from max-w-7xl to max-w-[96%] to match your desktop spread */}
-        <div className="max-w-[96%] mx-auto h-full relative">
+        <div className="max-w-[96%] mx-auto h-full relative flex items-center px-4">
           
-          <div className={`flex items-center h-full px-4 pr-44 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-            isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
+          {/* 1. LEFT: HAMBURGER MENU */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className={`text-[#002244] dark:text-gray-200 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-all duration-500 relative z-20 ${
+              isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
+            }`} 
+            aria-label="Menu"
+          >
+            <Menu className="h-7 w-7" />
+          </button>
+          
+          {/* 2. CENTER: BULLETPROOF EXACT CENTER LOGO */}
+          {/* The inset-0 stretches this invisible div perfectly across the entire header. Flexbox locks the logo strictly to the middle. */}
+          <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 z-10 ${
+            isScrolled ? '-translate-y-8 opacity-0' : 'translate-y-0 opacity-100'
           }`}>
-            
-            {/* 1. LEFT: HAMBURGER MENU (Visible on Desktop now) */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="text-[#002244] dark:text-gray-200 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" 
-              aria-label="Menu"
+            <Link 
+              href="/" 
+              className="pointer-events-auto text-2xl font-black tracking-tighter whitespace-nowrap"
             >
-              <Menu className="h-7 w-7" />
-            </button>
-            
-            {/* 2. CENTER: ABSOLUTELY POSITIONED LOGO */}
-            <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl font-black tracking-tighter">
               <span className="text-black dark:text-white transition-colors duration-300">Integrity</span>
               <span className="text-[#e3000f]">News</span>
             </Link>
+          </div>
 
-            {/* 3. RIGHT: DESKTOP LINKS (Pushed to the right next to the pill using ml-auto) */}
-            <div className="hidden md:flex items-center gap-3.5 font-bold text-sm tracking-wide ml-auto">
-              <Link href="/" className={`flex items-center gap-1.5 transition-colors ${pathname === '/' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
-                <Home className="w-4 h-4" /> Home
+          {/* 3. RIGHT: ICON GROUP */}
+          <div className="ml-auto flex items-center gap-4 xl:gap-6 relative z-20">
+            
+            {/* Nav Links */}
+            <div className={`hidden md:flex items-center gap-4 xl:gap-6 font-bold text-sm tracking-wide transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              isScrolled ? '-translate-y-8 opacity-0 pointer-events-none scale-95' : 'translate-y-0 opacity-100 scale-100'
+            }`}>
+              <Link href="/" className={`flex items-center gap-1.5 p-1 transition-colors ${pathname === '/' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
+                <Home className="w-5 h-5 xl:w-4 xl:h-4" /> 
+                <span className="hidden xl:block">Home</span>
               </Link>
-              <Link href="/saved" className={`flex items-center gap-1.5 transition-colors ${pathname === '/saved' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
-                <Bookmark className="w-4 h-4" /> Saved
+              <Link href="/search" className={`flex items-center gap-1.5 p-1 transition-colors ${pathname === '/search' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
+                <Search className="w-5 h-5 xl:w-4 xl:h-4" /> 
+                <span className="hidden xl:block">Search</span>
               </Link>
-              <Link href="/search" className={`flex items-center gap-1.5 transition-colors ${pathname === '/search' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
-                <Search className="w-4 h-4" /> Search
-              </Link>
-              <Link href="/shorts" className={`flex items-center gap-1.5 transition-colors ${pathname === '/shorts' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
-                <PlaySquare className="w-4 h-4" /> Shorts
+              <Link href="/shorts" className={`flex items-center gap-1.5 p-1 transition-colors ${pathname === '/shorts' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
+                <PlaySquare className="w-5 h-5 xl:w-4 xl:h-4" /> 
+                <span className="hidden xl:block">Shorts</span>
               </Link>
             </div>
 
-          </div>
-
-          {/* THE MORPHING PILL */}
-          {/* THE MORPHING PILL */}
-          <div 
-            ref={dropdownRef}
-            className={`absolute right-4 flex items-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-20 ${
-              isScrolled 
-                ? 'top-4 gap-0.5 bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-2xl border border-gray-200/80 dark:border-gray-700/60 shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] rounded-full px-1.5 py-1' 
-                : 'top-1/2 -translate-y-1/2 gap-0 sm:gap-2 bg-transparent border-transparent px-0 py-0 shadow-none'
-            }`}
-          >
-            <button 
-              onClick={() => setShowLocations(!showLocations)} 
-              className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors ${
-                isScrolled ? 'rounded-full' : 'rounded-lg'
-              } ${showLocations ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/30' : 'text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+            {/* THE MENU PILL */}
+            <div 
+              ref={dropdownRef}
+              className={`flex items-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-20 ${
+                isScrolled 
+                  ? 'absolute top-4 right-4 gap-0.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] rounded-full px-1.5 py-1' 
+                  : 'relative gap-4 xl:gap-6 bg-transparent border-transparent px-0 py-0 shadow-none'
+              }`}
             >
-              <MapPin className="h-5 w-5 mb-0.5" />
-              <span className="text-[8px] font-extrabold tracking-wider uppercase w-full text-center truncate px-1">
-                {selectedLocation}
-              </span>
-            </button>
+              <button 
+                onClick={() => setShowLocations(!showLocations)} 
+                className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors ${
+                  isScrolled ? 'rounded-full' : 'rounded-lg'
+                } ${showLocations ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/30' : 'text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              >
+                <MapPin className="h-5 w-5 mb-0.5" />
+                <span className="text-[8px] font-extrabold tracking-wider uppercase w-full text-center truncate px-1">
+                  {selectedLocation}
+                </span>
+              </button>
 
-            <button onClick={toggleTheme} className="text-[#002244] dark:text-gray-200 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+              <button onClick={toggleTheme} className="text-[#002244] dark:text-gray-200 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative z-10">
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
 
-            <Link href="/dashboard" className={`text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-400 hidden sm:flex items-center justify-center overflow-hidden ${
-              isScrolled ? 'w-0 h-0 opacity-0 scale-0 p-0 m-0' : 'w-9 h-9 opacity-100 scale-100 p-1.5 ml-1'
-            }`}>
-              <User className="h-6 w-6 flex-shrink-0" />
-            </Link>
-            
-            {showLocations && (
-              <div className="absolute top-[calc(100%+12px)] right-0 mt-2 w-56 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[70vh] overflow-y-auto z-50">
-                <div className="bg-gray-50 dark:bg-[#111] px-4 py-2 border-b border-gray-100 dark:border-gray-800 sticky top-0">
-                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Select Region</span>
+              <Link href="/dashboard" className={`text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-400 hidden sm:flex items-center justify-center overflow-hidden ${
+                isScrolled ? 'w-0 h-0 opacity-0 scale-0 p-0 m-0' : 'w-9 h-9 opacity-100 scale-100 p-1.5 ml-1'
+              }`}>
+                <User className="h-6 w-6 flex-shrink-0" />
+              </Link>
+              
+              {showLocations && (
+                <div className="absolute top-[calc(100%+12px)] right-0 mt-2 w-56 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[70vh] overflow-y-auto z-50">
+                  <div className="bg-gray-50 dark:bg-[#111] px-4 py-2 border-b border-gray-100 dark:border-gray-800 sticky top-0">
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Select Region</span>
+                  </div>
+                  <div className="flex flex-col">
+                    {places.map((place) => (
+                      <button 
+                        key={place} 
+                        onClick={() => { setSelectedLocation(place); setShowLocations(false); }}
+                        className={`flex items-center justify-between w-full text-left px-4 py-3 text-sm font-semibold border-b border-gray-50 dark:border-gray-800/50 last:border-none transition-colors outline-none
+                          ${selectedLocation === place ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/20' : 'hover:bg-blue-50 dark:hover:bg-gray-800 hover:text-[#2b3582] dark:hover:text-blue-400 text-gray-700 dark:text-gray-200'}`}
+                      >
+                        <span>{place}</span>
+                        {selectedLocation === place && <Check className="w-4 h-4" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  {places.map((place) => (
-                    <button 
-                      key={place} 
-                      onClick={() => { setSelectedLocation(place); setShowLocations(false); }}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-sm font-semibold border-b border-gray-50 dark:border-gray-800/50 last:border-none transition-colors outline-none
-                        ${selectedLocation === place ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/20' : 'hover:bg-blue-50 dark:hover:bg-gray-800 hover:text-[#2b3582] dark:hover:text-blue-400 text-gray-700 dark:text-gray-200'}`}
-                    >
-                      <span>{place}</span>
-                      {selectedLocation === place && <Check className="w-4 h-4" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>
