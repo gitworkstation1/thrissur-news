@@ -151,7 +151,8 @@ export default function Navbar() {
           isScrolled ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
         }`} />
 
-        <div className="max-w-[96%] mx-auto h-full relative flex items-center px-4">
+        {/* CHANGED: Removed max-w-[96%] mx-auto so the navbar content spans full width */}
+        <div className="w-full h-full relative flex items-center px-4">
           
           {/* 1. LEFT: HAMBURGER MENU */}
           <button 
@@ -164,8 +165,7 @@ export default function Navbar() {
             <Menu className="h-7 w-7" />
           </button>
           
-          {/* 2. CENTER: BULLETPROOF EXACT CENTER LOGO */}
-          {/* The inset-0 stretches this invisible div perfectly across the entire header. Flexbox locks the logo strictly to the middle. */}
+          {/* 2. CENTER: PERMANENTLY CENTERED LOGO */}
           <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 z-10 ${
             isScrolled ? '-translate-y-8 opacity-0' : 'translate-y-0 opacity-100'
           }`}>

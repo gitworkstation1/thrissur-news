@@ -1,7 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef } from "react";
-// ✅ 1. Import the new arrow icons
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // The exact wards from your MongoDB model
@@ -20,10 +19,8 @@ export default function PlacesMenu() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ✅ 2. Define the scroll helper function to smoothly move the track
   const scroll = (distance: number) => {
     if (scrollRef.current) {
-      // 250px is a solid, smooth step size for mouse clicks
       scrollRef.current.scrollBy({ left: distance, behavior: 'smooth' });
     }
   };
@@ -37,22 +34,26 @@ export default function PlacesMenu() {
       params.set("ward", ward);
     }
 
-    // This updates the URL without reloading the page
     router.push(`/?${params.toString()}`, { scroll: false });
   };
 
   return (
     <div className="w-full mb-6">
+      
+      {/* BULLETPROOF SCROLLBAR HIDING */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scroll::-webkit-scrollbar { display: none; }
+      `}} />
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase border-b-[3px] border-[#e3000f] pb-1">
           Local Updates
         </h2>
       </div>
 
-      {/* ✅ 3. New Relative Wrapper (needed for positioning absolute buttons) and group for hover */}
       <div className="relative w-full group/track">
         
-        {/* ✅ Left Arrow Button - Only visible on desktop when hovering the track */}
+        {/* Left Arrow Button */}
         <button
           onClick={() => scroll(-250)}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 
@@ -65,15 +66,11 @@ export default function PlacesMenu() {
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* The Scrollable Track - with red accent and adjusted padding for arrows */}
+        {/* The Scrollable Track - Scrollbar hidden completely */}
         <div 
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory 
-          px-2 md:px-10 // Added side padding to make space for the arrows
-          [&::-webkit-scrollbar]:h-0 md:[&::-webkit-scrollbar]:h-1 
-          [&::-webkit-scrollbar-track]:bg-transparent 
-          [&::-webkit-scrollbar-thumb]:bg-[#e3000f] [&::-webkit-scrollbar-thumb]:rounded-full 
-          [scrollbar-width:none] md:[scrollbar-width:thin] md:[scrollbar-color:#e3000f_transparent]"
+          className="flex gap-3 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing snap-x snap-mandatory px-2 md:px-10 hide-scroll"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {THRISSUR_WARDS.map((ward) => {
             const isActive = currentWard === ward;
@@ -81,7 +78,6 @@ export default function PlacesMenu() {
               <button
                 key={ward}
                 onClick={() => handleSelect(ward)}
-                // ✅ 4. Re-sized pills: Smaller padding and smaller font
                 className={`snap-start whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-sm ${
                   isActive 
                     ? "bg-black text-white dark:bg-white dark:text-black scale-105" 
@@ -94,7 +90,7 @@ export default function PlacesMenu() {
           })}
         </div>
 
-        {/* ✅ Right Arrow Button - Only visible on desktop when hovering the track */}
+        {/* Right Arrow Button */}
         <button
           onClick={() => scroll(250)}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 

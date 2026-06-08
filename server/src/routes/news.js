@@ -1,27 +1,18 @@
-// server/src/routes/news.js
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
 
-// GET: Fetch articles (Now optimized with Category AND Ward filtering)
+// 1. GET: Fetch all articles (Existing code)
 router.get('/', async (req, res) => {
   try {
     const query = {};
-    
-    // 1. Filter by Category
     if (req.query.category && req.query.category !== 'News') {
       query.category = new RegExp(`^${req.query.category}$`, 'i');
     }
-
-    // 2. Filter by Location (Ward)
     if (req.query.ward && req.query.ward !== 'All Places') {
-      // We look inside the nested location object in your Mongoose schema
       query['location.ward'] = req.query.ward;
     }
-
-    // MongoDB does all the filtering!
     const articles = await Article.find(query).sort({ createdAt: -1 }).lean();
-    
     res.json({ articles });
   } catch (error) {
     console.error('Fetch error:', error);
@@ -29,7 +20,25 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST: Create a new article (We will use this soon from the Admin UI)
+// 2. NEW ROUTE: Fetch single article by ID
+// Must be placed before the POST route
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const article = await Article.findById(id).lean();
+    
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+    
+    res.json(article);
+  } catch (error) {
+    console.error('Fetch by ID error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 3. POST: Create a new article
 router.post('/', async (req, res) => {
   try {
     const newArticle = new Article(req.body);

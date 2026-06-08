@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check, Layers } from "lucide-react";
-// 1. Import the router and search params hooks
 import { useRouter, useSearchParams } from "next/navigation";
 
 const categories = [
@@ -15,15 +14,13 @@ export default function CategoryMenu() {
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  // 2. Initialize the router and read the current category from the URL
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedCategory = searchParams.get("category") || "News"; // Defaults to "News"
+  const selectedCategory = searchParams.get("category") || "News"; 
 
-  // Helper function to handle category clicks
   const handleCategoryClick = (cat: string) => {
     if (cat === "News") {
-      router.push("/"); // "News" acts as our "All" or default view
+      router.push("/"); 
     } else {
       router.push(`/?category=${cat}`);
     }
@@ -60,13 +57,21 @@ export default function CategoryMenu() {
     <div className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
       isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
     }`}>
-      <div className="max-w-[96%] mx-auto px-4 h-12 flex items-center justify-between">
+      
+      {/* FIXED: dangerouslySetInnerHTML is the correct React prop */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scroll::-webkit-scrollbar { display: none; }
+      `}} />
 
-        <div className="flex-1 flex items-center gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pr-4">
+      <div className="w-full px-4 h-12 flex items-center justify-between">
+
+        <div 
+          className="flex-1 flex items-center gap-6 overflow-x-auto pr-4 hide-scroll"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {categories.map((cat) => (
             <button
               key={cat}
-              // 3. Fire the routing function when clicked
               onClick={() => handleCategoryClick(cat)}
               className={`whitespace-nowrap text-[11px] font-black tracking-widest uppercase transition-colors outline-none
                 ${selectedCategory === cat 
@@ -101,7 +106,10 @@ export default function CategoryMenu() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">All Categories</span>
               </div>
 
-              <div className="max-h-[60vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+              <div 
+                className="max-h-[60vh] overflow-y-auto hide-scroll"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {categories.map((cat) => (
                   <button
                     key={cat}

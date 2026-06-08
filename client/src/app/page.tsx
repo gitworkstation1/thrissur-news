@@ -1,5 +1,6 @@
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
+import Link from "next/link";
 
 import PageTransition from "@/components/PageTransition";
 
@@ -109,15 +110,14 @@ export default async function Home({
   const localKey = `${selectedCategory || "News"}-${selectedWard || "AllPlaces"}`;
 
   return (
-    <div className="pb-24 relative max-w-[96%] mx-auto">
+    <div className="pb-24 relative w-full">
       <CategoryMenu />
 
-      {/* The new animation wrapper starts here! */}
       <PageTransition transitionKey={globalKey}>
         {/* --- HERO SECTION: CAROUSEL & TOP 10 --- */}
         <div
           id="hero-top-ten"
-          className="px-4 py-6 flex flex-col md:flex-row gap-8 lg:gap-10 items-start"
+          className="max-w-[96%] mx-auto px-4 py-6 flex flex-col md:flex-row gap-8 lg:gap-10 items-start"
         >
           <div className="w-full md:w-[62%] lg:w-[65%] shrink-0">
             <BreakingNewsCarousel articles={carouselArticles} />
@@ -131,7 +131,10 @@ export default async function Home({
             <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-hidden flex flex-col h-[500px] md:h-[600px] lg:h-[calc(100vh-140px)] shadow-sm">
               {/* 1. PINNED MAIN ARTICLE */}
               {mainArticle && (
-                <div className="relative border-b border-gray-200 dark:border-gray-800/80 p-4 bg-white dark:bg-[#111] flex-shrink-0 z-20 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                <Link
+                  href={`/article/${mainArticle._id}`}
+                  className="block relative border-b border-gray-200 dark:border-gray-800/80 p-4 bg-white dark:bg-[#111] flex-shrink-0 z-20 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+                >
                   <span className="absolute -right-2 -bottom-4 text-[110px] leading-none font-black text-[#e3000f] opacity-5 dark:opacity-[0.03] z-0 pointer-events-none select-none tracking-tighter transition-all group-hover:scale-110">
                     1
                   </span>
@@ -165,18 +168,18 @@ export default async function Home({
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               )}
 
               {/* 2. SCROLLING SUB-ARTICLES */}
-              {/* REMOVED the inline webkit classes so it inherits globals.css! */}
               <div className="flex-1 overflow-y-auto relative">
                 <div className="flex flex-col">
                   {scrollingArticles.map((item, idx) => {
                     return (
-                      <div
+                      <Link
+                        href={`/article/${item._id}`}
                         key={item._id}
-                        className="relative border-b border-gray-100 dark:border-gray-800/60 p-4 last:border-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors overflow-hidden"
+                        className="block relative border-b border-gray-100 dark:border-gray-800/60 p-4 last:border-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors overflow-hidden"
                       >
                         <span className="absolute -right-2 -bottom-4 text-[110px] leading-none font-black text-[#e3000f] opacity-5 dark:opacity-[0.03] z-0 pointer-events-none select-none tracking-tighter transition-all group-hover:scale-110">
                           {idx + 2}
@@ -207,7 +210,7 @@ export default async function Home({
                             className="absolute top-0 right-0 p-1"
                           />
                         </div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -218,19 +221,19 @@ export default async function Home({
       </PageTransition>
 
       {/* --- BOTTOM GRID: PLACES & MORE STORIES --- */}
-      <div className="px-4 py-10 mt-4">
+      <div className="max-w-[96%] mx-auto px-4 py-10 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14">
+          
           {/* LEFT COLUMN: PLACES FEED */}
           <div className="flex flex-col h-full">
             <PlacesMenu />
 
-            {/* LOCAL ANIMATION: Fades when picking a new town */}
             <PageTransition transitionKey={localKey}>
-              {/* The Local News Feed */}
               <div className="flex flex-col gap-6 flex-1">
                 {localFeedArticles.length > 0 ? (
                   localFeedArticles.map((item) => (
-                    <div
+                    <Link
+                      href={`/article/${item._id}`}
                       key={item._id}
                       className="group cursor-pointer flex gap-4 items-start border-b border-gray-100 dark:border-gray-800/60 pb-6 last:border-0"
                     >
@@ -253,7 +256,7 @@ export default async function Home({
                           {formatArticleDate(item.createdAt)}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-sm text-gray-400 italic bg-gray-50 dark:bg-[#111] p-6 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
@@ -276,7 +279,8 @@ export default async function Home({
               <div className="flex flex-col gap-6">
                 {moreStoriesArticles.length > 0 ? (
                   moreStoriesArticles.map((item) => (
-                    <div
+                    <Link
+                      href={`/article/${item._id}`}
                       key={item._id}
                       className="group cursor-pointer flex gap-4 items-center"
                     >
@@ -301,7 +305,7 @@ export default async function Home({
                           {formatArticleDate(item.createdAt)}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-sm text-gray-400 italic">

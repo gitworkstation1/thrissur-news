@@ -114,12 +114,15 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
           </div>
 
           {/* Footer Navigation Button (Inverts text/bg based on theme) */}
-          <Link 
-            href={`/article/${article._id}`}
-            className="w-full py-3 text-center bg-black dark:bg-white text-white dark:text-black font-bold text-xs rounded-xl tracking-wide hover:bg-gray-800 dark:hover:bg-gray-100 active:bg-gray-700 dark:active:bg-gray-200 transition-colors active:scale-[0.99] shadow-lg shrink-0"
-          >
-            Read Full Detailed Coverage
-          </Link>
+          {/* Footer Navigation Button - Added container with margin to clear BottomNav */}
+          <div className="mb-10 md:mb-0 shrink-0">
+            <Link 
+              href={`/article/${article._id}`}
+              className="block w-full py-3 text-center bg-black dark:bg-white text-white dark:text-black font-bold text-xs rounded-xl tracking-wide hover:bg-gray-800 dark:hover:bg-gray-100 active:bg-gray-700 dark:active:bg-gray-200 transition-colors active:scale-[0.99] shadow-lg"
+            >
+              Read Full Detailed Coverage
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -16,24 +16,50 @@ export async function fetchArticles(category?: string, ward?: string): Promise<{
   }
 
   const res = await fetch(url, { cache: 'no-store' });
+  
+  // Robust error handling to avoid parsing HTML as JSON
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Failed to fetch articles');
+  }
+
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to fetch articles');
   return data;
 }
 
-// 2. Create Article (Expects a partial Article object, returns any for now)
+// 2. Fetch a Single Article by ID
+export async function fetchArticleById(id: string): Promise<Article> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, { 
+    cache: 'no-store' 
+  });
+  
+  // Check if the response is OK before attempting to parse JSON
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || `Failed to fetch article: ${res.status}`);
+  }
+  
+  const data = await res.json();
+  return data;
+}
+
+// 3. Create Article
 export async function createArticle(articleData: Partial<Article>): Promise<any> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(articleData)
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || data.details?.[0] || 'Failed to publish article');
-  return data;
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || data.details?.[0] || 'Failed to publish article');
+  }
+  
+  return await res.json();
 }
 
-// 3. Upload Image (Expects a standard File object, returns a string URL)
+// 4. Upload Image
 export async function uploadImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
@@ -42,7 +68,12 @@ export async function uploadImage(file: File): Promise<string> {
     method: 'POST',
     body: formData 
   });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to upload image');
+  }
+  
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to upload image');
   return data.url; 
 }
