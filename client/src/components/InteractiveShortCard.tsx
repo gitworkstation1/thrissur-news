@@ -62,7 +62,7 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
       <div className="relative z-10 w-full h-full md:h-[75vh] md:max-w-5xl flex flex-col md:flex-row bg-white dark:bg-[#121212] md:rounded-2xl md:border border-gray-200 dark:border-white/10 overflow-hidden shadow-none md:shadow-[0_25px_70px_rgba(0,0,0,0.08)] dark:md:shadow-[0_25px_70px_rgba(0,0,0,0.8)]">
         
         {/* IMAGE COMPONENT */}
-        <div className="relative h-[40dvh] md:h-full w-full md:w-[45%] bg-gray-100 dark:bg-neutral-900 shrink-0 overflow-hidden">
+        <div className="relative h-[40dvh] md:h-full w-full md:w-[45%]  bg-gray-100 dark:bg-neutral-900 shrink-0 overflow-hidden">
           <img 
             src={article.media?.[0]?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600'} 
             alt="" 
@@ -73,8 +73,7 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
         </div>
 
         {/* TEXT DETAILS SIDE PANEL */}
-        <div className="flex-1 bg-white dark:bg-[#121212] border-t border-gray-100 dark:border-white/10 md:border-t-0 p-5 md:p-8 pb-8 flex flex-col justify-between overflow-hidden relative rounded-t-2xl md:rounded-t-none -mt-5 md:mt-0 shadow-[0_-15px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_-15px_30px_rgba(0,0,0,0.6)] md:shadow-none">
-          
+        <div className="flex-1 bg-white dark:bg-[#121212] border-t border-gray-100 dark:border-white/10 md:border-t-0 p-5 pb-24 md:p-8 md:pb-6 flex flex-col justify-between overflow-hidden relative rounded-t-2xl md:rounded-t-none -mt-5 md:mt-0 shadow-[0_-15px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_-15px_30px_rgba(0,0,0,0.6)] md:shadow-none">
           {/* Header Row */}
           <div className="flex items-center justify-between mb-4 shrink-0">
             <span className="text-[10px] font-black text-[#e3000f] bg-[#e3000f]/10 border border-[#e3000f]/20 px-2.5 py-1 rounded-md tracking-wider uppercase backdrop-blur-md">
