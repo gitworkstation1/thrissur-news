@@ -12,3 +12,52 @@
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+
+/* ==========================================
+   PREMIUM GLOBAL SCROLLBAR 
+   ========================================== */
+
+/* 1. Set Firefox standards */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+/* 2. Set WebKit (Chrome/Edge/Safari) standards */
+::-webkit-scrollbar {
+  width: 5px;  /* Ultra-thin vertical scrollbar */
+  height: 5px; /* Ultra-thin horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Invisible track */
+}
+
+/* 3. The Scrollbar Thumb (Light Mode Default) */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5); /* Subtle gray */
+  border-radius: 10px;
+}
+
+/* 4. The Scrollbar Thumb (Dark Mode) */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5); /* Darker gray for dark mode */
+}
+
+/* 5. Hover Effect - Brand Red Pop! */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #e3000f;
+}

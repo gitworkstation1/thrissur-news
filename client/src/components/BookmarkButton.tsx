@@ -1,14 +1,44 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bookmark } from "lucide-react";
+import { Article } from "@/lib/types";
 
-export default function BookmarkButton({ className }: { className?: string }) {
+interface BookmarkButtonProps {
+  className?: string;
+  article: Article; // ✅ Fixed: Define the contract so TypeScript knows what data is coming in
+}
+
+export default function BookmarkButton({ className, article }: BookmarkButtonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
+  // ✅ Read from local storage when the page loads
+  useEffect(() => {
+    const saved = localStorage.getItem("thrissur_news_bookmarks");
+    if (saved) {
+      const bookmarks: Article[] = JSON.parse(saved);
+      // Check if this specific article id exists in our saved array
+      const exists = bookmarks.some((item) => item._id === article._id);
+      setIsBookmarked(exists);
+    }
+  }, [article._id]);
+
   const toggleBookmark = (e: React.MouseEvent) => {
-    // This stops the click from accidentally opening the news article!
     e.preventDefault();
     e.stopPropagation(); 
+
+    // ✅ Write changes back to local storage
+    const saved = localStorage.getItem("thrissur_news_bookmarks");
+    let bookmarks: Article[] = saved ? JSON.parse(saved) : [];
+
+    if (isBookmarked) {
+      // Remove the article if it's already there
+      bookmarks = bookmarks.filter((item) => item._id !== article._id);
+    } else {
+      // Save the entire article object so we can show it later on a "Saved Stories" page
+      bookmarks.push(article);
+    }
+
+    localStorage.setItem("thrissur_news_bookmarks", JSON.stringify(bookmarks));
     setIsBookmarked(!isBookmarked);
   };
 

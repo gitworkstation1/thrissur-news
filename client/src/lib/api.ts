@@ -1,8 +1,21 @@
 import { Article } from './types';
 
-// 1. Fetch Articles (You already did this one!)
-export async function fetchArticles(): Promise<{ articles: Article[] }> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, { cache: 'no-store' });
+// 1. Fetch Articles (Now handles both category and ward!)
+export async function fetchArticles(category?: string, ward?: string): Promise<{ articles: Article[] }> {
+  let url = `${process.env.NEXT_PUBLIC_API_URL}/api/news`;
+  
+  // Use URLSearchParams to cleanly build our query string
+  const params = new URLSearchParams();
+  
+  if (category && category !== 'News') params.append('category', category);
+  if (ward && ward !== 'All Places') params.append('ward', ward);
+
+  const queryString = params.toString();
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
+  const res = await fetch(url, { cache: 'no-store' });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Failed to fetch articles');
   return data;

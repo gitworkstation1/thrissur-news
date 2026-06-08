@@ -3,11 +3,25 @@ const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
 
-// GET: Fetch all articles for the public feed
+// GET: Fetch articles (Now optimized with Category AND Ward filtering)
 router.get('/', async (req, res) => {
   try {
-    // .lean() makes the query insanely fast by returning pure JSON
-    const articles = await Article.find().sort({ createdAt: -1 }).lean();
+    const query = {};
+    
+    // 1. Filter by Category
+    if (req.query.category && req.query.category !== 'News') {
+      query.category = new RegExp(`^${req.query.category}$`, 'i');
+    }
+
+    // 2. Filter by Location (Ward)
+    if (req.query.ward && req.query.ward !== 'All Places') {
+      // We look inside the nested location object in your Mongoose schema
+      query['location.ward'] = req.query.ward;
+    }
+
+    // MongoDB does all the filtering!
+    const articles = await Article.find(query).sort({ createdAt: -1 }).lean();
+    
     res.json({ articles });
   } catch (error) {
     console.error('Fetch error:', error);
