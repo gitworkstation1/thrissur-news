@@ -306,7 +306,7 @@ export default async function Home({
                   ))
                 ) : (
                   <p className="text-sm text-gray-400 italic">
-                    More stories coming soon.
+                    More stories coming soon! Stay tuned for the latest updates.
                   </p>
                 )}
               </div>
