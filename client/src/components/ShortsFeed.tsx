@@ -48,7 +48,7 @@ export default function ShortsFeed({ articles }: { articles: Article[] }) {
                 {article.headline}
               </h2>
               <p className="text-sm text-gray-300 line-clamp-3 font-medium mb-2 drop-shadow-md">
-                {article.content || "Swipe up to read the next breaking story from your local area..."}
+                {article.body || "Swipe up to read the next breaking story from your local area..."}
               </p>
               <p className="text-[10px] text-gray-400 font-bold tracking-wider">
                 {article.location?.ward || 'Thrissur'} • {formattedDate}
