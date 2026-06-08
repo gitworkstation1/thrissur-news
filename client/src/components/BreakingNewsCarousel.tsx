@@ -101,7 +101,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e3000f]"></span>
         </span>
-        <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase flex items-center gap-1">
+        <h2 className="text-[#00e308] font-black text-lg tracking-wide uppercase flex items-center gap-1">
           Breaking News <ChevronRight className="w-5 h-5 -ml-1 stroke-[3px]" />
         </h2>
       </div>
