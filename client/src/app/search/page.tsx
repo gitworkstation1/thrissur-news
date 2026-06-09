@@ -2,6 +2,8 @@ import SearchClient from "@/components/SearchClient";
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Search | Thrissur News',
   description: 'Search hyperlocal news in Thrissur',

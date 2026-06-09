@@ -2,6 +2,8 @@ import ShortsFeed from "@/components/ShortsFeed";
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Shorts | Thrissur News',
   description: 'Fast, swipeable news updates',

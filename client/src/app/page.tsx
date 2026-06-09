@@ -10,6 +10,8 @@ import QuickReadButton from "@/components/QuickReadButton";
 import BookmarkButton from "@/components/BookmarkButton";
 import PlacesMenu from "@/components/PlacesMenu";
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to keep our date formatting clean and reusable
 const formatArticleDate = (dateStr: string) => {
   const dateObj = new Date(dateStr);
