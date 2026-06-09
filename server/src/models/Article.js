@@ -19,8 +19,14 @@ const articleSchema = new mongoose.Schema({
     enum: ["News", "Crime", "Politics", "Sports", "Business", "Education", "Local", "Health"],
     default: "News"
   },
+  // Add this inside your mongoose.Schema({ ... })
+  status: {
+    type: String,
+    enum: ['published', 'draft'],
+    default: 'published'
+  },
   location: {
-    ward: { type: String, required: true, enum: THRISSUR_WARDS },
+    ward: { type: String, required: false, enum: THRISSUR_WARDS },
     landmark: { type: String }
   },
   media: { type: Array, default: [] },

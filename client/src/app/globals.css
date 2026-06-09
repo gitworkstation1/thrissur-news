@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/typography"; /* <-- Add this line */
+
+/* ... the rest of your CSS ... */
 
 /* Custom View Transition for Dark Mode Ripple */
 ::view-transition-old(root),

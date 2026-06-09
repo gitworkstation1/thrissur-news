@@ -37,12 +37,14 @@ export default async function Home({
   let localData = { articles: [] as Article[] };
 
   try {
-    // Fetch 1: Global/Category News (Ignores the ward)
-    globalData = await fetchArticles(selectedCategory);
+    // Fetch 1: Global/Category News 
+    // Args: category, search, page, limit, status, ward
+    globalData = await fetchArticles(selectedCategory, "", 1, 20, "published", "All Places");
 
     // Fetch 2: Local News (Only fetches if a specific place is clicked)
     if (selectedWard && selectedWard !== "All Places") {
-      localData = await fetchArticles(selectedCategory, selectedWard);
+      // Pass the selectedWard in the 6th position so it maps correctly!
+      localData = await fetchArticles(selectedCategory, "", 1, 15, "published", selectedWard);
     } else {
       localData = globalData; // If "All Places", just use the global pool
     }
@@ -132,7 +134,7 @@ export default async function Home({
               {/* 1. PINNED MAIN ARTICLE */}
               {mainArticle && (
                 <Link
-                  href={`/article/${mainArticle._id}`}
+                  href={`/full-coverage/${mainArticle._id}`}
                   className="block relative border-b border-gray-200 dark:border-gray-800/80 p-4 bg-white dark:bg-[#111] flex-shrink-0 z-20 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
                 >
                   <span className="absolute -right-2 -bottom-4 text-[110px] leading-none font-black text-[#e3000f] opacity-5 dark:opacity-[0.03] z-0 pointer-events-none select-none tracking-tighter transition-all group-hover:scale-110">
@@ -177,7 +179,7 @@ export default async function Home({
                   {scrollingArticles.map((item, idx) => {
                     return (
                       <Link
-                        href={`/article/${item._id}`}
+                        href={`/full-coverage/${item._id}`}
                         key={item._id}
                         className="block relative border-b border-gray-100 dark:border-gray-800/60 p-4 last:border-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors overflow-hidden"
                       >
@@ -233,7 +235,7 @@ export default async function Home({
                 {localFeedArticles.length > 0 ? (
                   localFeedArticles.map((item) => (
                     <Link
-                      href={`/article/${item._id}`}
+                      href={`/full-coverage/${item._id}`}
                       key={item._id}
                       className="group cursor-pointer flex gap-4 items-start border-b border-gray-100 dark:border-gray-800/60 pb-6 last:border-0"
                     >
@@ -280,7 +282,7 @@ export default async function Home({
                 {moreStoriesArticles.length > 0 ? (
                   moreStoriesArticles.map((item) => (
                     <Link
-                      href={`/article/${item._id}`}
+                      href={`/full-coverage/${item._id}`}
                       key={item._id}
                       className="group cursor-pointer flex gap-4 items-center"
                     >
