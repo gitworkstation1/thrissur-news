@@ -87,6 +87,7 @@ export default function BottomNav() {
     { name: "CONNECT", action: "toggleSocials", icon: Globe },
     { name: "ADMIN", path: "/dashboard", icon: User },
   ];
+  
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md md:hidden z-[100]">

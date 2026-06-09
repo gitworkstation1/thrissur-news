@@ -24,7 +24,6 @@ export default function RootLayout({ children }) {
         
         <QuickReadButton />
         <ScrollToTopButton />
-        <BottomNav />
       </body>
     </html>
   );

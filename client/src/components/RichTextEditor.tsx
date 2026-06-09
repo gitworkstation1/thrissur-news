@@ -20,14 +20,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       Link.configure({
         openOnClick: false,
       }),
-      // --- NEW YOUTUBE CONFIGURATION ---
       Youtube.configure({
         HTMLAttributes: {
-          class: 'w-full aspect-video rounded-xl shadow-sm my-6', // Makes it responsive!
+          class: 'w-full aspect-video rounded-xl shadow-sm my-6',
         },
       }),
     ],
     content: value || `<p>${placeholder || 'Write your story here...'}</p>`,
+    immediatelyRender: false, // <--- ADD THIS LINE HERE
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

@@ -54,7 +54,18 @@ export default async function Home({
     console.error(err);
   }
 
-  const allGlobalArticles = globalData.articles || [];
+  // === THE FIX: FILTER OUT SHORTS ===
+  // 1. Remove Shorts from the main global feed 
+  const allGlobalArticles = (globalData.articles || []).filter(
+    (a) => a.category !== 'Shorts' && a.category !== 'Advertisement'
+  );
+  
+  // Remove them from local feed as well
+  if (localData.articles) {
+    localData.articles = localData.articles.filter(
+      (a) => a.category !== 'Shorts' && a.category !== 'Advertisement'
+    );
+  }
 
   // ==========================================
   // GLOBAL LAYOUT LOGIC (Hero & Top 10)

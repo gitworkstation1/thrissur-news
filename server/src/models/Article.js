@@ -1,25 +1,24 @@
 // server/src/models/Article.js
 const mongoose = require('mongoose');
 
-// Hardcoded Wards to prevent typos from the editorial team
+// Added "All Places" and "" to allow optional/global saving
 const THRISSUR_WARDS = [
   "Thrissur Central", "East Fort", "Viyyur", "Ollur", 
   "Cheruthuruthy", "Kodungallur", "Guruvayur", "Puthukkad",
-  "Chavakkad", "Kunnamkulam", "Wadakkanchery", "Anthikkad"
+  "Chavakkad", "Kunnamkulam", "Wadakkanchery", "Anthikkad",
+  "All Places", ""
 ];
 
 const articleSchema = new mongoose.Schema({
   headline: { type: String, required: true },
   body: { type: String, required: true },
   isBreaking: { type: Boolean, default: false },
-  // ADD THIS NEW CATEGORY FIELD:
   category: { 
     type: String, 
     required: true,
-    enum: ["News", "Crime", "Politics", "Sports", "Business", "Education", "Local", "Health"],
+    enum: ['News', 'Crime', 'Politics', 'Sports', 'Business', 'Education', 'Local', 'Health', 'Shorts', 'Advertisement'],
     default: "News"
   },
-  // Add this inside your mongoose.Schema({ ... })
   status: {
     type: String,
     enum: ['published', 'draft'],
@@ -29,7 +28,14 @@ const articleSchema = new mongoose.Schema({
     ward: { type: String, required: false, enum: THRISSUR_WARDS },
     landmark: { type: String }
   },
-  media: { type: Array, default: [] },
+  externalLink: { type: String, required: false },
+  media: [{
+    type: {
+      type: String,
+      enum: ['image', 'video', 'youtube-short'] 
+    },
+    url: String
+  }]
 }, { timestamps: true });
 
 articleSchema.index({ createdAt: -1 });
