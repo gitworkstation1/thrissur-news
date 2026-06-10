@@ -38,7 +38,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
   };
 
   const handleSlideClick = (articleId: string) => {
-    if (!isSwiping) router.push(`/article/${articleId}`);
+    if (!isSwiping) router.push(`/full-coverage/${articleId}`);
     setIsSwiping(false);
   };
 

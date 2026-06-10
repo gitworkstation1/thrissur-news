@@ -32,10 +32,16 @@ export default async function FullCoveragePage({ params }: { params: Promise<{ i
   // 2. Fetch related articles from the same category
   // Args: category, search, page, limit, status, ward
   const relatedData = await fetchArticles(article.category, "", 1, 4, "published", "All Places");
+
   
-  // Filter out the current article from the related list and grab the top 3
+  
+  // Filter out the current article, Shorts, and Ads from the related list and grab the top 3
   const relatedArticles = relatedData.articles
-    .filter(a => a._id !== article._id)
+    .filter((a: any) => 
+      a._id !== article._id && 
+      a.category !== "Shorts" && 
+      a.category !== "Advertisement"
+    )
     .slice(0, 3);
 
   const hasImage = article.media && article.media.length > 0 && article.media[0].url;

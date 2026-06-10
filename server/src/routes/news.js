@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Article = require('../models/Article');
 
 // server/src/routes/news.js (Update your GET route)
@@ -80,6 +81,12 @@ router.get('/stats', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // THE BOUNCER: Check if it's a valid 24-character MongoDB ID first
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: 'Article not found (Invalid ID format)' });
+    }
+
     const article = await Article.findById(id).lean();
     
     if (!article) {

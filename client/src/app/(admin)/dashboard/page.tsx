@@ -31,6 +31,7 @@ import {
   Globe,
   Zap,
   Database,
+  Megaphone, // <-- NEW: Added for Ads Manager
 } from "lucide-react";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
@@ -55,7 +56,7 @@ interface ArticleFormData {
   category: string;
   location: LocationData;
   status?: "published" | "draft";
-  externalLink?: string; // <-- 1. Add this!
+  externalLink?: string;
 }
 
 interface Article extends ArticleFormData {
@@ -97,13 +98,17 @@ const INITIAL_FORM_STATE: ArticleFormData = {
   category: "News",
   location: { ward: "", landmark: "" },
   status: "published",
-  externalLink: "", // <-- 2. Add this!
+  externalLink: "",
 };
+
 export default function AdminDashboard() {
   const router = useRouter();
 
-  // --- NEW: App View State (Library vs Composer) ---
-  const [currentView, setCurrentView] = useState<"library" | "compose">("library");
+  // --- APP STATE ---
+  // Expanded to include 'ads' view
+  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads">("library");
+  // NEW: Controls the News vs Shorts toggle inside the Library
+  const [contentTab, setContentTab] = useState<"news" | "shorts">("news");
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -128,8 +133,7 @@ export default function AdminDashboard() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<ArticleFormData>(INITIAL_FORM_STATE);
 
-
-const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
+  const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
   const [shortUrl, setShortUrl] = useState<string>("");
 
   useEffect(() => {
@@ -140,7 +144,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [filterCategory, searchQuery, activeView, currentView]); // Added currentView to dependency array
+  }, [filterCategory, searchQuery, activeView, currentView, contentTab]);
 
   const handleLogout = async () => {
     try {
@@ -164,8 +168,16 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
   const loadArticlesForPage = async (targetPage: number) => {
     setIsLoading(true);
     try {
+      // Smart Fetching based on the active tab/view
+      let fetchCat = filterCategory;
+      if (currentView === "ads") {
+        fetchCat = "Advertisement";
+      } else if (currentView === "library" && contentTab === "shorts") {
+        fetchCat = "Shorts";
+      }
+
       const data = await fetchArticles(
-        filterCategory,
+        fetchCat,
         searchQuery,
         targetPage,
         12,
@@ -216,7 +228,6 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
     try {
       let articlePayload: any = { ...formData };
 
-      // 1. SHORTS MODE
       if (editorMode === "shorts") {
         const youtubeId = shortUrl.split("/").pop()?.split("?")[0];
         if (!youtubeId) throw new Error("Invalid YouTube Shorts URL");
@@ -230,12 +241,9 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
           isBreaking: false,
           media: [{ type: "youtube-short", url: youtubeId }],
         };
-      } 
-      // 2. ADVERTISEMENT MODE
-      else if (editorMode === "ad") {
+      } else if (editorMode === "ad") {
         let finalMedia: { type: string; url: string }[] = [];
         
-        // Check if they used a video link OR an image upload
         if (shortUrl) {
           const youtubeId = shortUrl.split("/").pop()?.split("?")[0];
           if (youtubeId) finalMedia.push({ type: "youtube-short", url: youtubeId });
@@ -254,9 +262,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
           externalLink: formData.externalLink,
           media: finalMedia,
         };
-      }
-      // 3. NORMAL NEWS MODE
-      else {
+      } else {
         let finalMedia: { type: string; url: string }[] = [];
         if (imageFile) {
           const imageUrl = await uploadImage(imageFile, formData.headline);
@@ -278,8 +284,9 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
       setShortUrl("");
       setEditingId(null);
       
-      // Switch back to Library view on success
-      setCurrentView("library");
+      // Send them back to the right view after saving
+      if (editorMode === "ad") setCurrentView("ads");
+      else setCurrentView("library");
 
       loadArticlesForPage(1);
       loadDashboardStats();
@@ -298,13 +305,12 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
       category: article.category || "News",
       location: article.location || { ward: "", landmark: "" },
       status: article.status || "published",
-      externalLink: article.externalLink || "", // <-- Add this
+      externalLink: article.externalLink || "",
     });
     setEditingId(article._id);
     setImageFile(null);
     setError("");
     
-    // Auto-switch mode based on category
     if (article.category === "Shorts") setEditorMode("shorts");
     else if (article.category === "Advertisement") setEditorMode("ad");
     else setEditorMode("news");
@@ -329,13 +335,13 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
     }
   };
 
-  const startNewPost = () => {
+  // Pre-select the correct form mode based on where they clicked "Add New"
+  const startNewPost = (defaultMode: "news" | "ad" = "news") => {
     setFormData(INITIAL_FORM_STATE);
     setEditingId(null);
     setImageFile(null);
     setError("");
-    setEditorMode("news");
-    // Switch to Composer view
+    setEditorMode(defaultMode);
     setCurrentView("compose");
   };
 
@@ -367,6 +373,16 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
     return pages;
   };
 
+  // 1. Double check the frontend mapping so categories never mix
+  const displayedArticles = articles.filter(article => {
+    if (currentView === "ads") return article.category === "Advertisement";
+    if (currentView === "library") {
+      if (contentTab === "shorts") return article.category === "Shorts";
+      if (contentTab === "news") return article.category !== "Shorts" && article.category !== "Advertisement";
+    }
+    return true;
+  });
+
   return (
     <div className="flex min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] overflow-x-hidden">
       {/* ---------------- FIXED LEFT SIDEBAR ---------------- */}
@@ -392,8 +408,22 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
             <Newspaper className="w-5 h-5" />
             <span>Content Library</span>
           </button>
+          
+          {/* NEW: Ads Manager Button */}
           <button 
-            onClick={startNewPost}
+            onClick={() => setCurrentView("ads")}
+            className={`w-full flex items-center gap-3 px-4 py-3 font-medium rounded-xl transition-all ${
+              currentView === "ads" 
+                ? "bg-red-600 text-white shadow-sm" 
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Megaphone className="w-5 h-5" />
+            <span>Ads Manager</span>
+          </button>
+
+          <button 
+            onClick={() => startNewPost(currentView === "ads" ? "ad" : "news")}
             className={`w-full flex items-center gap-3 px-4 py-3 font-medium rounded-xl transition-all ${
               currentView === "compose" 
                 ? "bg-red-600 text-white shadow-sm" 
@@ -401,7 +431,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
             }`}
           >
             <PenTool className="w-5 h-5" />
-            <span>Compose Story</span>
+            <span>{currentView === "ads" ? "Create New Ad" : "Compose Story"}</span>
           </button>
           
           <div className="my-4 border-t border-white/10" />
@@ -435,18 +465,20 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen relative pb-8">
         <main className="flex-1 p-6 sm:p-8 md:p-10">
           
-          {currentView === "library" ? (
+          {currentView !== "compose" ? (
             // ==========================================
-            // VIEW 1: THE CONTENT LIBRARY
+            // VIEW: CONTENT LIBRARY & ADS MANAGER
             // ==========================================
             <>
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    Content Management
+                    {currentView === "ads" ? "Ads Manager" : "Content Management"}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
-                    Manage and publish news to your community.
+                    {currentView === "ads" 
+                      ? "Manage sponsored posts and injected advertisements." 
+                      : "Manage and publish news to your community."}
                   </p>
                 </div>
 
@@ -476,10 +508,11 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
 
                   <button
                     type="button"
-                    onClick={startNewPost}
+                    onClick={() => startNewPost(currentView === "ads" ? "ad" : "news")}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full active:scale-[0.98] transition-all shadow-md shrink-0"
                   >
-                    <Plus className="w-4 h-4" /> Add New Story
+                    <Plus className="w-4 h-4" /> 
+                    {currentView === "ads" ? "Add New Ad" : "Add New Story"}
                   </button>
                 </div>
               </div>
@@ -537,48 +570,80 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
               </div>
 
               {/* SEARCH & FILTERS */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white dark:bg-[#121212] p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6 bg-white dark:bg-[#121212] p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search headlines..."
+                    placeholder="Search titles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-11 pr-4 py-3 bg-transparent text-sm focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
-                <div className="w-px bg-gray-100 dark:bg-white/10 hidden sm:block"></div>
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="py-3 px-4 bg-transparent text-sm font-medium outline-none cursor-pointer text-gray-700 dark:text-gray-300 min-w-40"
-                >
-                  <option value="All">All Categories</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                
+                {/* Only show categories dropdown in Library mode */}
+                {currentView === "library" && (
+                  <>
+                    <div className="w-px bg-gray-100 dark:bg-white/10 hidden sm:block"></div>
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value)}
+                      className="py-3 px-4 bg-transparent text-sm font-medium outline-none cursor-pointer text-gray-700 dark:text-gray-300 min-w-40"
+                    >
+                      <option value="All">All Categories</option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
+
+              {/* NEW: NEWS vs SHORTS PILL TOGGLE (Library only) */}
+              {currentView === "library" && (
+                <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl w-full sm:w-max mb-8 border border-gray-200 dark:border-white/5">
+                  <button
+                    onClick={() => setContentTab("news")}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                      contentTab === "news"
+                        ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Written News
+                  </button>
+                  <button
+                    onClick={() => setContentTab("shorts")}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                      contentTab === "shorts"
+                        ? "bg-red-600 text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Shorts Feed
+                  </button>
+                </div>
+              )}
 
               {/* GRID */}
               {isLoading ? (
                 <div className="flex justify-center py-20">
                   <Loader2 className="w-10 h-10 animate-spin text-red-600" />
                 </div>
-              ) : articles.length === 0 ? (
+              ) : displayedArticles.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#121212] border border-dashed border-gray-200 dark:border-white/10 rounded-3xl">
-                  <Newspaper className="w-12 h-12 text-gray-300 mb-4" />
+                  {currentView === "ads" ? <Megaphone className="w-12 h-12 text-gray-300 mb-4" /> : <Newspaper className="w-12 h-12 text-gray-300 mb-4" />}
                   <p className="text-gray-500 font-medium">
-                    No {activeView} articles found.
+                    No {activeView} {currentView === "ads" ? "advertisements" : contentTab === "news" ? "written articles" : "shorts"} found.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {articles.map((article) => {
+                    {displayedArticles.map((article) => {
                       const hasImage =
                         article.media &&
                         article.media.length > 0 &&
@@ -604,7 +669,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                             >
                               <img
                                 src={
-                                  article.category === "Shorts"
+                                  (article.category === "Shorts" || article.category === "Advertisement") && article.media?.[0]?.type === "youtube-short"
                                     ? `https://img.youtube.com/vi/${article.media?.[0]?.url}/hqdefault.jpg`
                                     : article.media?.[0]?.url ||
                                       "https://picsum.photos/400/250"
@@ -698,16 +763,16 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
             </>
           ) : (
             // ==========================================
-            // VIEW 2: THE DEDICATED COMPOSER
+            // VIEW: THE DEDICATED COMPOSER
             // ==========================================
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                    {editingId ? "Edit Story" : "Compose Story"}
+                    {editingId ? "Edit Content" : "Compose Content"}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
-                    Draft, format, and publish your content.
+                    Draft, format, and publish to your feeds.
                   </p>
                 </div>
                 <button
@@ -728,7 +793,9 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                         type="button"
                         onClick={() => setEditorMode("news")}
                         className={`flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-all ${
-                          editorMode === "news" ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          editorMode === "news"
+                            ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
                         }`}
                       >
                         Written Article
@@ -737,17 +804,20 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                         type="button"
                         onClick={() => setEditorMode("shorts")}
                         className={`flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-all ${
-                          editorMode === "shorts" ? "bg-red-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          editorMode === "shorts"
+                            ? "bg-red-600 text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
                         }`}
                       >
                         YouTube Short
                       </button>
-                      {/* NEW: Ad Button */}
                       <button
                         type="button"
                         onClick={() => setEditorMode("ad")}
                         className={`flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-all ${
-                          editorMode === "ad" ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          editorMode === "ad"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
                         }`}
                       >
                         Advertisement
@@ -790,7 +860,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                      {editorMode === "shorts" ? "Short Title" : "Headline"}
+                      {editorMode === "shorts" ? "Short Title" : editorMode === "ad" ? "Ad Title / Campaign Name" : "Headline"}
                     </label>
                     <input
                       type="text"
@@ -802,6 +872,8 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                       placeholder={
                         editorMode === "shorts"
                           ? "Catchy video title..."
+                          : editorMode === "ad"
+                          ? "e.g., Summer Sale Promo..."
                           : "e.g., Thrissur Pooram preparations begin..."
                       }
                     />
@@ -813,7 +885,10 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                         YouTube Shorts Link
                       </label>
                       <input
-                        type="url" required value={shortUrl} onChange={(e) => setShortUrl(e.target.value)}
+                        type="url"
+                        required
+                        value={shortUrl}
+                        onChange={(e) => setShortUrl(e.target.value)}
                         className="w-full p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm"
                         placeholder="https://www.youtube.com/shorts/..."
                       />
@@ -961,7 +1036,9 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                           ? "bg-red-400 dark:bg-red-800 cursor-not-allowed"
                           : formData.status === "draft"
                             ? "bg-amber-600 hover:bg-amber-700 active:scale-[0.99]"
-                            : "bg-red-600 hover:bg-red-700 active:scale-[0.99]"
+                            : editorMode === "ad"
+                              ? "bg-blue-600 hover:bg-blue-700 active:scale-[0.99]"
+                              : "bg-red-600 hover:bg-red-700 active:scale-[0.99]"
                       }`}
                     >
                       {isSubmitting ? (
@@ -971,7 +1048,7 @@ const [editorMode, setEditorMode] = useState<"news" | "shorts" | "ad">("news");
                       ) : formData.status === "draft" ? (
                         editingId ? "Update Draft" : "Save as Draft"
                       ) : editingId ? (
-                        "Update Live Article"
+                        "Update Live Content"
                       ) : (
                         "Publish to Live Feed"
                       )}
