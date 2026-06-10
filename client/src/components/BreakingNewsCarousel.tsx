@@ -1,12 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Article } from "@/lib/types";
+import { injectAds } from "@/lib/adUtils";
+import CarouselAdCard from "./CarouselAdCard";
 
 export default function BreakingNewsCarousel({ articles }: { articles: Article[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
+
+  // Inject an ad every 3 slides (you can adjust this number)
+  const slideItems = useMemo(() => injectAds(articles, 3), [articles]);
 
   // Swipe/Drag States
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -16,19 +21,20 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   const minSwipeDistance = 50;
 
-  // Auto-play
+  // Auto-play (updated to use slideItems.length)
   useEffect(() => {
-    if (!articles || articles.length <= 1) return;
+    if (!slideItems || slideItems.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % articles.length);
+      setCurrentIndex((prev) => (prev + 1) % slideItems.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [articles]);
+  }, [slideItems]);
 
   if (!articles || articles.length === 0) return null;
 
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % articles.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + articles.length) % articles.length);
+  // Updated to use slideItems.length
+  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % slideItems.length);
+  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + slideItems.length) % slideItems.length);
 
   const handleSwipe = () => {
     if (!touchStart || !touchEnd) return;
@@ -37,8 +43,16 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
     else if (distance < -minSwipeDistance) prevSlide();
   };
 
-  const handleSlideClick = (articleId: string) => {
-    if (!isSwiping) router.push(`/full-coverage/${articleId}`);
+  // Updated to handle the item object instead of just the ID
+  const handleSlideClick = (item: any) => {
+    if (!isSwiping) {
+      if (item.type === 'news') {
+        router.push(`/full-coverage/${item.data._id}`);
+      } else {
+        // Optional: Handle Ad Click (e.g., redirect or track)
+        console.log("Carousel Ad Clicked!");
+      }
+    }
     setIsSwiping(false);
   };
 
@@ -49,7 +63,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e3000f]"></span>
         </span>
-        <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase">Breaking News</h2>
+        <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase">Breaking News </h2>
       </div>
 
       <div
@@ -62,36 +76,43 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
         onMouseUp={() => { setIsDragging(false); handleSwipe(); }}
         onMouseLeave={() => { if (isDragging) { setIsDragging(false); handleSwipe(); } }}
       >
-        {articles.map((article, index) => (
+        {/* Map over slideItems instead of articles */}
+        {slideItems.map((item, index) => (
           <div
-            key={article._id}
-            onClick={() => handleSlideClick(article._id)}
+            key={item.type === 'news' ? item.data._id : `ad-${index}`}
+            onClick={() => handleSlideClick(item)}
             className={`transition-opacity duration-700 ease-in-out ${index === currentIndex ? "opacity-100 relative" : "opacity-0 absolute inset-0 pointer-events-none"}`}
           >
-            <div className="flex flex-col h-full">
-              {/* Fixed Image Container */}
-              <div className="relative w-full h-48 md:h-64 flex-shrink-0 overflow-hidden">
-                <img
-                  src={article.media?.[0]?.url || "https://picsum.photos/1200/800"}
-                  alt={article.headline}
-                  className="w-full h-full object-cover"
-                  draggable="false"
-                />
-              </div>
+            {item.type === 'news' ? (
+              <div className="flex flex-col h-full">
+                {/* Fixed Image Container */}
+                <div className="relative w-full h-48 md:h-64 flex-shrink-0 overflow-hidden">
+                  <img
+                    src={item.data.media?.[0]?.url || "https://picsum.photos/1200/800"}
+                    alt={item.data.headline}
+                    className="w-full h-full object-cover"
+                    draggable="false"
+                  />
+                </div>
 
-              {/* Text Container - Expands naturally for 3-line headlines */}
-              <div className="flex flex-col gap-1 px-4 py-3">
-                <span className="inline-block text-[#e3000f] text-[10px] font-black uppercase tracking-widest">
-                  {article.category || "Alert"} • {article.location?.ward || "Latest"}
-                </span>
-                <h3 className="text-black dark:text-white font-bold text-lg md:text-2xl leading-tight line-clamp-3">
-                  {article.headline}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-xs font-medium mt-2">
-                  {new Date(article.createdAt).toLocaleDateString('en-GB')}
-                </p>
+                {/* Text Container - Expands naturally for 3-line headlines */}
+                <div className="flex flex-col gap-1 px-4 py-3">
+                  <span className="inline-block text-[#e3000f] text-[10px] font-black uppercase tracking-widest">
+                    {item.data.category || "Alert"} • {item.data.location?.ward || "Latest"}
+                  </span>
+                  <h3 className="text-black dark:text-white font-bold text-lg md:text-2xl leading-tight line-clamp-3">
+                    {item.data.headline}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs font-medium mt-2">
+                    {new Date(item.data.createdAt).toLocaleDateString('en-GB')}
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col h-full">
+                <CarouselAdCard />
+              </div>
+            )}
           </div>
         ))}
 
@@ -101,9 +122,9 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="w-10 h-10 rounded-full bg-black/40 hover:bg-[#e3000f] backdrop-blur-md flex items-center justify-center text-white pointer-events-auto transition-colors border border-white/10"><ChevronRight /></button>
         </div>
 
-        {/* Pagination Dots */}
+        {/* Pagination Dots - Mapped over slideItems */}
         <div className="absolute bottom-4 right-5 z-30 flex gap-2 pointer-events-none">
-          {articles.map((_, idx) => (
+          {slideItems.map((_, idx) => (
             <button
               key={idx}
               onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
