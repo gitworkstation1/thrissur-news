@@ -11,6 +11,8 @@ import QuickReadButton from "@/components/QuickReadButton";
 import BookmarkButton from "@/components/BookmarkButton";
 import PlacesMenu from "@/components/PlacesMenu";
 import HomeAdCard from "@/components/HomeAdCard"; 
+import ShowsSection from "@/components/ShowsSection";
+import LiveTVSection from "@/components/LiveTVSection";
 
 export const dynamic = 'force-dynamic';
 
@@ -264,6 +266,9 @@ export default async function Home({
         </div>
       </PageTransition>
 
+      {/* --- INJECTED LIVE TV SECTION --- */}
+      <LiveTVSection />
+
       <div className="max-w-[96%] mx-auto px-4 py-10 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
 
@@ -437,6 +442,10 @@ export default async function Home({
 
         </div>
       </div>
+
+      {/* --- INJECTED SHOWS SECTION --- */}
+      <ShowsSection />
+
     </div>
   );
 }
