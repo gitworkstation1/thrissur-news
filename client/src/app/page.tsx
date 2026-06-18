@@ -2,17 +2,16 @@ import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 import Link from "next/link";
 import React from "react"; 
-import DesktopHeroAd from "@/components/DesktopHeroAd";
 
-import PageTransition from "@/components/PageTransition";
-import CategoryMenu from "@/components/CategoryMenu";
-import BreakingNewsCarousel from "@/components/BreakingNewsCarousel";
-import QuickReadButton from "@/components/QuickReadButton";
-import BookmarkButton from "@/components/BookmarkButton";
-import PlacesMenu from "@/components/PlacesMenu";
-import HomeAdCard from "@/components/HomeAdCard"; 
-import ShowsSection from "@/components/ShowsSection";
-import LiveTVSection from "@/components/LiveTVSection";
+import PageTransition from "@/components/layout/PageTransition";
+import CategoryMenu from "@/components/layout/CategoryMenu";
+import BreakingNewsCarousel from "@/components/sections/BreakingNewsCarousel";
+import QuickReadButton from "@/components/ui/QuickReadButton";
+import BookmarkButton from "@/components/ui/BookmarkButton";
+import PlacesMenu from "@/components/layout/PlacesMenu";
+import HomeAdCard from "@/components/ad/HomeAdCard"; 
+import ShowsSection from "@/components/sections/ShowsSection";
+import LiveTVSection from "@/components/sections/LiveTVSection";
 
 export const dynamic = 'force-dynamic';
 
@@ -38,9 +37,13 @@ export default async function Home({
 
   let globalData = { articles: [] as Article[] };
   let localData = { articles: [] as Article[] };
+  let adsData = { articles: [] as any[] }; 
 
   try {
     globalData = await fetchArticles(selectedCategory, "", 1, 20, "published", "All Places");
+    
+    // --- FETCH LIVE ADS ---
+    adsData = await fetchArticles("Advertisement", "", 1, 15, "published", "All Places");
 
     if (selectedWard && selectedWard !== "All Places") {
       localData = await fetchArticles(selectedCategory, "", 1, 15, "published", selectedWard);
@@ -50,6 +53,13 @@ export default async function Home({
   } catch (err) {
     console.error(err);
   }
+
+  // --- FILTER ADS FOR HOMEPAGE HERO ZONE ---
+  const activeAds = adsData.articles || [];
+  const heroAds = activeAds.filter((ad) => ad.location?.landmark === "Homepage Hero");
+  const shuffledHeroAds = heroAds.sort(() => 0.5 - Math.random());
+  const leftAd = shuffledHeroAds[0] || null;
+  const rightAd = shuffledHeroAds[1] || null;
 
   const allGlobalArticles = (globalData.articles || []).filter(
     (a) => a.category !== 'Shorts' && a.category !== 'Advertisement'
@@ -156,24 +166,92 @@ export default async function Home({
       <PageTransition transitionKey={globalKey}>
         <div
           id="hero-top-ten"
-          className="max-w-[96%] mx-auto px-4 py-6 flex flex-col md:flex-row gap-8 lg:gap-10 items-stretch"
+          // UPDATED: Added a master fixed height (lg:h-[680px] xl:h-[720px]) so both columns lock to this exact height
+          className="max-w-[96%] mx-auto px-4 py-6 flex flex-col lg:flex-row gap-8 lg:gap-10 lg:h-[680px] xl:h-[720px]"
         >
           {/* CAROUSEL & DESKTOP AD CONTAINER */}
-          <div className="w-full md:w-[62%] lg:w-[65%] shrink-0 flex flex-col">
-            <BreakingNewsCarousel articles={carouselArticles} />
+          <div className="w-full lg:w-[65%] shrink-0 flex flex-col h-full min-h-0">
             
-            {/* === INJECTED DESKTOP HERO AD === */}
-            <div className="flex-1 flex flex-col">
-              <DesktopHeroAd />
+            {/* UPDATED: flex-1 min-h-0 ensures the carousel fills the remaining space above the ad perfectly */}
+            <div className="w-full flex-1 min-h-0 relative rounded-2xl overflow-hidden shadow-sm">
+              <BreakingNewsCarousel articles={carouselArticles} />
             </div>
+            
+            {/* === ADVERTISEMENT SECTION === */}
+            {/* shrink-0 prevents the ad from compressing, pt-6 provides the exact gap */}
+            <div className="w-full shrink-0 pt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Advertisement
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Left Ad */}
+                <a 
+                  href={leftAd?.externalLink || "#"} 
+                  target={leftAd ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="group relative block w-full h-[100px] sm:h-[120px] bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  {leftAd?.media?.[0]?.url ? (
+                    <>
+                      <img src={leftAd.media[0].url} alt="Ad Thumbnail" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">Sponsored</div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-transparent">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl sm:text-3xl">🛍️</span>
+                        <div>
+                          <h3 className="font-bold text-gray-900 dark:text-white text-sm">Premium Sponsor</h3>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 hidden sm:block">Placeholder Ad Space</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </a>
+
+                {/* Right Ad */}
+                <a 
+                  href={rightAd?.externalLink || "#"} 
+                  target={rightAd ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="group relative block w-full h-[100px] sm:h-[120px] bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  {rightAd?.media?.[0]?.url ? (
+                    <>
+                      <img src={rightAd.media[0].url} alt="Ad Thumbnail" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">Sponsored</div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl sm:text-3xl">⚡</span>
+                        <div>
+                          <h3 className="font-bold text-gray-900 dark:text-white text-sm">Local Business Ad</h3>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 hidden sm:block">Placeholder Ad Space</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </a>
+
+              </div>
+            </div>
+            
           </div>
 
-          <div className="w-full md:w-[38%] lg:w-[35%] md:sticky md:top-20 mt-4 md:mt-0">
-            <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase mb-4">
+          {/* TOP TEN NEWS CONTAINER */}
+          {/* UPDATED: flex flex-col h-full min-h-0 allows it to map to the master height */}
+          <div className="w-full lg:w-[35%] flex flex-col h-full min-h-0 mt-8 lg:mt-0">
+            <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase mb-4 shrink-0">
               TOP TEN NEWS
             </h2>
 
-            <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-hidden flex flex-col md:h-[600px] lg:h-[calc(100vh-140px)] shadow-sm">
+            {/* flex-1 min-h-0 is the magic combo that forces the box to match the left column's exact height */}
+            <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-hidden flex flex-col flex-1 min-h-0 shadow-sm">
               
               {/* Main Article */}
               {mainArticle && (
@@ -218,7 +296,7 @@ export default async function Home({
               )}
 
               {/* Scrolling List Container */}
-              <div className="h-[320px] md:h-auto md:flex-1 overflow-y-auto relative">
+              <div className="flex-1 overflow-y-auto relative min-h-0">
                 <div className="flex flex-col">
                   {scrollingArticles.map((item, idx) => {
                     return (

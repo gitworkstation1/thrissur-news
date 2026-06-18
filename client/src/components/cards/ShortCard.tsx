@@ -3,7 +3,7 @@
 
 import { useRef, useState } from 'react';
 import { Share2, Volume2, VolumeX } from 'lucide-react';
-import BookmarkButton from './BookmarkButton';
+import BookmarkButton from '../ui/BookmarkButton';
 
 export default function ShortCard({ short }: { short: any }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);

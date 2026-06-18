@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Article } from "@/lib/types";
 import { injectAds } from "@/lib/adUtils";
-import CarouselAdCard from "./CarouselAdCard";
+import CarouselAdCard from "../ad/CarouselAdCard";
 
 export default function BreakingNewsCarousel({ articles }: { articles: Article[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -67,7 +67,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
       </div>
 
       <div
-        className={`relative w-full rounded-2xl overflow-hidden group shadow-md border border-gray-200 dark:border-gray-800 touch-pan-y select-none bg-white dark:bg-[#111] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`relative w-full group touch-pan-y select-none bg-white dark:bg-[#111] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         onTouchStart={(e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); setIsSwiping(false); }}
         onTouchMove={(e) => { setTouchEnd(e.targetTouches[0].clientX); setIsSwiping(true); }}
         onTouchEnd={handleSwipe}

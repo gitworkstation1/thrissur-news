@@ -1,12 +1,12 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check, Layers } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 const categories = [
   "News", "Crime", "Politics", "Sports", "Business", 
   "Entertainment", "Technology", "Health", "Education",
-  "Automotive", "Real Estate", "Lifestyle"
+  "Automotive", "Real Estate", "Lifestyle", "Obituary"
 ];
 
 export default function CategoryMenu() {
@@ -16,11 +16,21 @@ export default function CategoryMenu() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedCategory = searchParams.get("category") || "News"; 
+  const pathname = usePathname();
+
+  // Smart active state: Check if we are on the dedicated obituary route, 
+  // otherwise look for the category search parameter, defaulting to News.
+  let selectedCategory = searchParams.get("category") || "News"; 
+  if (pathname === "/obituary") {
+    selectedCategory = "Obituary";
+  }
 
   const handleCategoryClick = (cat: string) => {
     if (cat === "News") {
       router.push("/"); 
+    } else if (cat === "Obituary") {
+      // Route specifically to our custom dedicated page
+      router.push("/obituary");
     } else {
       router.push(`/?category=${cat}`);
     }
@@ -58,7 +68,6 @@ export default function CategoryMenu() {
       isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
     }`}>
       
-      {/* FIXED: dangerouslySetInnerHTML is the correct React prop */}
       <style dangerouslySetInnerHTML={{__html: `
         .hide-scroll::-webkit-scrollbar { display: none; }
       `}} />

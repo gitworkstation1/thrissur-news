@@ -16,7 +16,7 @@ const articleSchema = new mongoose.Schema({
   category: { 
     type: String, 
     required: true,
-    enum: ['News', 'Crime', 'Politics', 'Sports', 'Business', 'Education', 'Local', 'Health', 'Shorts', 'Advertisement'],
+    enum: ['News', 'Crime', 'Politics', 'Sports', 'Business', 'Education', 'Local', 'Health', 'Shorts', 'Advertisement', 'Obituary'], // <-- Added 'Obituary' here
     default: "News"
   },
   status: {
@@ -34,8 +34,14 @@ const articleSchema = new mongoose.Schema({
       type: String,
       enum: ['image', 'video', 'youtube-short'] 
     },
-    url: String
-  }]
+    url: String,
+    credit: { type: String, default: "" } // <-- Added this
+  }],
+
+  // --- NEW FIELDS ---
+  reportedBy: { type: String, default: "" },      // <-- Added this
+  photographedBy: { type: String, default: "" }   // <-- Added this
+
 }, { timestamps: true });
 
 articleSchema.index({ createdAt: -1 });

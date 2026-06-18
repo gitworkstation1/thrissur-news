@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Share2, ArrowRight } from "lucide-react";
-import BookmarkButton from "@/components/BookmarkButton";
+import BookmarkButton from "@/components/ui/BookmarkButton";
 import { fetchArticleById } from "@/lib/api";
 
 const formatArticleDate = (dateStr: string) => {

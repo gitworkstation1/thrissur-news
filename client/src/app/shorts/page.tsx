@@ -2,8 +2,8 @@
 import { fetchArticles } from "@/lib/api";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import ShortCard from "@/components/ShortCard";
-import AdCard from "@/components/AdCard"; // <-- Import the new Ad UI
+import ShortCard from "@/components/cards/ShortCard";
+import AdCard from "@/components/ad/AdCard"; 
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +12,10 @@ export default async function ShortsFeedPage() {
   const shortsData = await fetchArticles("Shorts", "", 1, 30, "published", "All Places");
   const shorts = shortsData.articles || [];
 
-  // 2. Fetch Ads
+  // 2. Fetch Ads and filter specifically for the Shorts zone!
   const adsData = await fetchArticles("Advertisement", "", 1, 10, "published", "All Places");
-  const ads = adsData.articles || [];
+  const allAds = adsData.articles || [];
+  const verticalAds = allAds.filter((ad: any) => ad.location?.landmark === "Shorts Vertical Feed");
 
   // 3. The Injection Engine (1 Ad every 2 Shorts, plus a fallback)
   const combinedFeed: any[] = [];
@@ -23,9 +24,9 @@ export default async function ShortsFeedPage() {
   shorts.forEach((short, index) => {
     combinedFeed.push({ ...short, isAd: false });
 
-    // Changed from 3 to 2 so you see ads faster during testing
-    if ((index + 1) % 2 === 0 && ads.length > 0) {
-      const currentAd = ads[adIndex % ads.length]; 
+    // Inject an ad every 2 shorts IF we have vertical ads available
+    if ((index + 1) % 2 === 0 && verticalAds.length > 0) {
+      const currentAd = verticalAds[adIndex % verticalAds.length]; 
       combinedFeed.push({ 
         ...currentAd, 
         isAd: true, 
@@ -35,18 +36,17 @@ export default async function ShortsFeedPage() {
     }
   });
 
-  // THE FIX: If you had fewer than 2 shorts, the math above never triggered! 
-  // This guarantees at least one ad shows up at the end of a short list.
-  if (adIndex === 0 && ads.length > 0 && shorts.length > 0) {
+  // Guarantee at least one ad shows up if the list is short
+  if (adIndex === 0 && verticalAds.length > 0 && shorts.length > 0) {
     combinedFeed.push({ 
-      ...ads[0], 
+      ...verticalAds[0], 
       isAd: true, 
-      uniqueKey: `ad-${ads[0]._id}-fallback` 
+      uniqueKey: `ad-${verticalAds[0]._id}-fallback` 
     });
   }
 
   return (
-    <div className="w-full h-screen bg-black overflow-hidden relative">
+    <div className="w-full h-[calc(100vh-140px)] md:h-screen bg-black overflow-hidden relative">
       
       {/* Floating Header */}
       <div className="absolute top-0 inset-x-0 z-50 p-6 flex items-center justify-between pointer-events-none">

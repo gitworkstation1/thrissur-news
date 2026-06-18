@@ -2,7 +2,7 @@ import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import InteractiveShortCard from "@/components/InteractiveShortCard"; // Imported the modular card engine
+import InteractiveShortCard from "@/components/cards/InteractiveShortCard"; // Imported the modular card engine
 
 export default async function QuickReadPage() {
   let data = { articles: [] as Article[] };
