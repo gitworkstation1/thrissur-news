@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { fetchArticles } from "@/lib/api";
 import { Search, Loader2 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar"; // Adjust if your Navbar import is different
-import CategoryMenu from "@/components/layout/CategoryMenu"; // Adjust if needed
+import Navbar from "@/components/layout/Navbar";
+import CategoryMenu from "@/components/layout/CategoryMenu";
 
-export default function ObituaryPage() {
+export const dynamic = 'force-dynamic';
+
+function ObituaryContent() {
   const [obituaries, setObituaries] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadObituaries = async () => {
       try {
-        // Fetch only articles categorized as 'Obituary'
         const response = await fetchArticles("Obituary", "", 1, 20, "published", "All Places");
         setObituaries(response.articles || []);
       } catch (error) {
@@ -37,7 +38,6 @@ export default function ObituaryPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a]">
-      {/* Assuming you want your standard navigation at the top */}
       <Navbar />
       <CategoryMenu />
 
@@ -81,7 +81,6 @@ export default function ObituaryPage() {
                       {obituary.headline.charAt(0)}
                     </div>
                   )}
-                  {/* Subtle gradient overlay for elegance */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 
@@ -90,7 +89,6 @@ export default function ObituaryPage() {
                     <h2 className="text-lg font-bold font-serif text-gray-900 dark:text-white leading-snug mb-2 line-clamp-2">
                       {obituary.headline}
                     </h2>
-                    {/* Optionally display the first few words of the body as a snippet */}
                     <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4"
                        dangerouslySetInnerHTML={{ __html: obituary.body.replace(/<[^>]*>?/gm, '') }}
                     />
@@ -106,5 +104,13 @@ export default function ObituaryPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ObituaryPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" /></div>}>
+      <ObituaryContent />
+    </Suspense>
   );
 }

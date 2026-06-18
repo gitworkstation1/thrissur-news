@@ -38,6 +38,8 @@ const CATEGORIES = [
   "Obituary",
 ];
 
+export const dynamic = 'force-dynamic';
+
 const INITIAL_FORM_STATE = {
   headline: "",
   body: "",
