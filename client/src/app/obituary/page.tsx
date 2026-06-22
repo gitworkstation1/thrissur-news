@@ -2,12 +2,11 @@
 
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { fetchArticles } from "@/lib/api";
 import { Search, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import CategoryMenu from "@/components/layout/CategoryMenu";
-
-export const dynamic = 'force-dynamic';
 
 function ObituaryContent() {
   const [obituaries, setObituaries] = useState<any[]>([]);
@@ -38,7 +37,6 @@ function ObituaryContent() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a]">
-      <Navbar />
       <CategoryMenu />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -71,10 +69,12 @@ function ObituaryContent() {
               >
                 <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
                   {obituary.media?.[0]?.url ? (
-                    <img 
+                    <Image 
                       src={obituary.media[0].url} 
                       alt={obituary.headline} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-gray-300 font-serif text-4xl">

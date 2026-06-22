@@ -1,4 +1,5 @@
 import GoogleAd from "./GoogleAd";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { fetchArticles } from "@/lib/api";
 
 export default async function SidebarAd() {
@@ -22,16 +23,18 @@ export default async function SidebarAd() {
           rel="noopener noreferrer"
           className="block w-[300px] h-[600px] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative bg-gray-100 dark:bg-gray-900 group"
         >
-          <img 
+          <Image 
             src={customAd.media?.[0]?.url || "https://picsum.photos/300/600"} 
-            alt={customAd.headline}
-            className="w-full h-full object-cover"
+            alt={customAd.headline || "Advertisement"}
+            fill
+            sizes="300px"
+            className="object-cover"
           />
-          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
             Sponsored
           </div>
           {!customAd.media?.[0]?.url && (
-             <div className="absolute inset-0 flex items-center justify-center p-6 bg-gradient-to-b from-gray-900 to-gray-800">
+             <div className="absolute inset-0 flex items-center justify-center p-6 bg-gradient-to-b from-gray-900 to-gray-800 z-10">
                <h3 className="text-white font-bold text-center text-xl">{customAd.headline}</h3>
              </div>
           )}

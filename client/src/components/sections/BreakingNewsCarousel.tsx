@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Article } from "@/lib/types";
 import { injectAds } from "@/lib/adUtils";
 import CarouselAdCard from "../ad/CarouselAdCard";
+import Link from "next/link";
 
 export default function BreakingNewsCarousel({ articles }: { articles: Article[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -58,13 +60,21 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   return (
     <div className="w-full flex flex-col">
-      <div className="flex items-center gap-2 mb-4">
+      <Link href="/breaking-news" className="flex items-center gap-2 mb-4 group w-max cursor-pointer">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e3000f]"></span>
         </span>
-        <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase">Breaking News </h2>
-      </div>
+        <div className="flex items-center">
+          <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase group-hover:underline decoration-2 underline-offset-4">
+            Breaking News
+          </h2>
+          {/* Permanently visible arrow that slides right on hover */}
+          <span className="text-[#e3000f] text-2xl leading-none ml-1 -mt-0.5 font-medium transition-transform duration-300 group-hover:translate-x-1.5">
+            ›
+          </span>
+        </div>
+      </Link>
 
       <div
         className={`relative w-full group touch-pan-y select-none bg-white dark:bg-[#111] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -86,11 +96,14 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
             {item.type === 'news' ? (
               <div className="flex flex-col h-full">
                 {/* Fixed Image Container */}
-                <div className="relative w-full h-48 md:h-64 flex-shrink-0 overflow-hidden">
-                  <img
+                <div className="relative w-full h-48 md:h-64 shrink-0 overflow-hidden">
+                  <Image
                     src={item.data.media?.[0]?.url || "https://picsum.photos/1200/800"}
-                    alt={item.data.headline}
-                    className="w-full h-full object-cover"
+                    alt={item.data.headline || "Breaking News"}
+                    fill
+                    priority={index === 0} // Only preload the first image
+                    sizes="(max-width: 768px) 100vw, 65vw"
+                    className="object-cover"
                     draggable="false"
                   />
                 </div>

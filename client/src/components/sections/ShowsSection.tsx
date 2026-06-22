@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { PlayCircle, ChevronRight } from "lucide-react";
 
 export default function ShowsSection({ shows = [] }: { shows?: any[] }) {
@@ -36,11 +37,13 @@ export default function ShowsSection({ shows = [] }: { shows?: any[] }) {
               href={`/shows/${show._id}`}
               className="snap-start shrink-0 w-[280px] sm:w-[320px] group cursor-pointer flex flex-col gap-3"
             >
-              <div className="w-full aspect-[16/9] rounded-2xl overflow-hidden relative shadow-md border border-black/5 dark:border-white/5">
-                <img 
-                  src={show.image || show.media?.[0]?.url} 
-                  alt={show.title || show.headline} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden shadow-md border border-black/5 dark:border-white/5">
+                <Image 
+                  src={show.image || show.media?.[0]?.url || "https://picsum.photos/600/338"} 
+                  alt={show.title || show.headline || "Show Thumbnail"} 
+                  fill
+                  sizes="(max-width: 640px) 280px, 320px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">

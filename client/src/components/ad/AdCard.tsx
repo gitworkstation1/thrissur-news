@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Image from 'next/image'; // <-- NEW: Next.js Image component
 import { Volume2, VolumeX, ExternalLink } from 'lucide-react';
 import GoogleAd from "./GoogleAd"; // <-- IMPORT YOUR GLOBAL GOOGLE AD COMPONENT
 
@@ -45,11 +46,15 @@ export default function AdCard({ ad }: { ad: any }) {
               allowFullScreen
             />
           ) : (
-            <img 
-              src={mediaUrl || "https://picsum.photos/400/800"} 
-              alt={ad.headline}
-              className="w-full max-w-md h-[100dvh] object-cover"
-            />
+            <div className="relative w-full max-w-md h-[100dvh]">
+              <Image 
+                src={mediaUrl || "https://picsum.photos/400/800"} 
+                alt={ad.headline || "Advertisement"}
+                fill
+                sizes="(max-width: 768px) 100vw, 448px"
+                className="object-cover"
+              />
+            </div>
           )}
 
           {/* Ad Overlay UI layer */}

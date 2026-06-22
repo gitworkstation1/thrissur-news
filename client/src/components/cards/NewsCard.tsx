@@ -1,4 +1,5 @@
 import { Article } from "@/lib/types";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 
 export default function NewsCard({ article }: { article: Article }) {
   const imageUrl = article.media && article.media.length > 0 && article.media[0].type === 'image' 
@@ -13,14 +14,12 @@ export default function NewsCard({ article }: { article: Article }) {
     : article.location.ward;
 
   return (
-    // Added dark:bg-transparent and dark:border-gray-800
     <div className="flex gap-4 py-4 border-b border-gray-100 dark:border-gray-800 last:border-0 group cursor-pointer bg-white dark:bg-transparent transition-colors duration-300">
       
       <div className="flex-1 flex flex-col justify-start">
         <p className="text-[#2b3582] dark:text-blue-400 text-[10px] tracking-wider font-extrabold uppercase mb-1.5">
           {article.category || 'LATEST NEWS'} 
         </p>
-        {/* Added dark:text-gray-100 */}
         <h2 className="text-[17px] md:text-lg font-semibold leading-[1.35] text-black dark:text-gray-100 group-hover:text-[#2b3582] dark:group-hover:text-blue-400 transition-colors line-clamp-3">
           {article.headline}
         </h2>
@@ -29,9 +28,11 @@ export default function NewsCard({ article }: { article: Article }) {
         </p>
       </div>
 
-      <img
+      <Image
         src={imageUrl}
         alt={article.headline}
+        width={120}
+        height={120}
         className="w-[100px] h-[100px] md:w-[120px] md:h-[120px] object-cover rounded-lg flex-shrink-0 bg-gray-100 dark:bg-gray-800"
       />
     </div>

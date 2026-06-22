@@ -1,4 +1,5 @@
 import GoogleAd from "./GoogleAd";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { fetchArticles } from "@/lib/api";
 
 export default async function HomeAdCard() {
@@ -24,28 +25,30 @@ export default async function HomeAdCard() {
           href={customAd.externalLink || "#"} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="block w-full max-w-[350px] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group bg-gray-100 dark:bg-gray-900"
+          className="block w-full max-w-[350px] aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group bg-gray-100 dark:bg-gray-900"
         >
-          <img 
+          <Image 
             src={customAd.media?.[0]?.url || "https://picsum.photos/300/250"} 
-            alt={customAd.headline}
-            className="w-full h-auto object-cover aspect-[4/3]"
+            alt={customAd.headline || "Advertisement"}
+            fill
+            sizes="(max-width: 768px) 100vw, 350px"
+            className="object-cover"
           />
           {/* Subtle sponsored badge so readers know it's an ad */}
-          <div className="absolute top-0 left-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-br-lg">
+          <div className="absolute top-0 left-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-br-lg z-10">
             Sponsored
           </div>
           
           {/* Overlay text if the admin didn't upload a poster, but wrote a headline instead */}
           {!customAd.media?.[0]?.url && (
-             <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-tr from-blue-900 to-blue-600">
+             <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-tr from-blue-900 to-blue-600 z-10">
                <h3 className="text-white font-bold text-center text-lg">{customAd.headline}</h3>
              </div>
           )}
         </a>
       ) : isDevelopment ? (
         /* --- RENDER STYLIZED PLACEHOLDER (Self-Promo) --- */
-        <div className="w-full bg-gray-50 dark:bg-[#111] border border-gray-100 dark:border-gray-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
+        <div className="w-full max-w-[350px] bg-gray-50 dark:bg-[#111] border border-gray-100 dark:border-gray-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
           {/* Decorative background glow */}
           <div className="absolute -right-10 -top-10 w-32 h-32 bg-[#e3000f]/5 rounded-full blur-2xl group-hover:bg-[#e3000f]/10 transition-colors" />
 

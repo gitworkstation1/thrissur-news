@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Share2, Clock } from "lucide-react"; // <-- Added Clock icon
+import Image from "next/image"; // <-- NEW: Next.js Image component
+import { ChevronLeft, Share2, Clock } from "lucide-react"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { fetchArticleById, fetchArticles } from "@/lib/api";
 import ShareButton from "@/components/ui/ShareButton";
@@ -23,7 +24,7 @@ const formatShortDate = (dateStr: string) => {
   return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
 };
 
-// --- NEW: Helper function to calculate estimated reading time ---
+// --- Helper function to calculate estimated reading time ---
 const calculateReadTime = (htmlContent: string) => {
   if (!htmlContent) return 1;
   // Strip HTML tags to just get the raw text
@@ -99,7 +100,6 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
             {article.headline}
           </h1>
           
-          {/* UPDATED DATE & READ TIME ROW */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-y border-gray-100 dark:border-white/10 py-3 text-sm text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <span className="whitespace-nowrap">Published on {formatDetailedDate(article.createdAt)}</span>
@@ -130,8 +130,15 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
               <div className="space-y-8 mb-8">
                 {imageMedia.map((img: any, index: number) => (
                   <figure key={index} className="w-full flex flex-col gap-2">
-                    <div className="w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-gray-100 dark:bg-gray-800">
-                      <img src={img.url} alt={`${article.headline} - Image ${index + 1}`} className="w-full h-full object-cover" />
+                    <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-gray-100 dark:bg-gray-800">
+                      <Image 
+                        src={img.url} 
+                        alt={`${article.headline} - Image ${index + 1}`} 
+                        fill
+                        priority={index === 0} // Load the very first photo instantly
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        className="object-cover" 
+                      />
                     </div>
                     {img.credit && (
                       <figcaption className="text-xs font-semibold text-gray-500 uppercase tracking-widest text-right px-2">
@@ -143,28 +150,38 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
               </div>
             )}
             
-            <div lang="ml" className="prose prose-base md:prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-p:leading-7 prose-p:text-justify prose-p:hyphens-auto prose-a:text-red-600 prose-img:rounded-xl">
+            <div lang="ml" className="article-body prose prose-base md:prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-p:leading-7 prose-p:text-justify prose-p:hyphens-auto prose-a:text-red-600 prose-img:rounded-xl">
               
-              {/* UPDATED INLINE AD INJECTION */}
+              {/* UPDATED INLINE AD INJECTION & VIDEO RENDERER */}
               {(() => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(article.body || article.content || '', 'text/html');
-                const paragraphs = Array.from(doc.querySelectorAll('p'));
                 
-                return paragraphs.map((p, index) => {
-                  // LOGIC: Show an ad every 4 paragraphs, but stop after 2 ads (index < 10 limits it to index 3 and 7)
-                  const showAd = (index + 1) % 4 === 0 && index !== paragraphs.length - 1 && index < 10;
+                const elements = Array.from(doc.body.children);
+                let pCount = 0;
+                
+                return elements.map((el, index) => {
+                  const isParagraph = el.tagName.toLowerCase() === 'p';
+                  if (isParagraph && el.textContent?.trim().length) pCount++;
+                  
+                  const showAd = isParagraph && pCount % 4 === 0 && pCount <= 8 && index !== elements.length - 1;
 
                   return (
-                    <div key={index}>
-                      <p dangerouslySetInnerHTML={{ __html: p.innerHTML }} />
+                    <div key={index} className="w-full">
+                      <div dangerouslySetInnerHTML={{ __html: el.outerHTML }} />
                       
                       {showAd && (
                         <div className="my-10 flex justify-center w-full">
                           {inlineAd ? (
                             <a href={inlineAd.externalLink || "#"} target="_blank" rel="noopener noreferrer" className="block w-full max-w-[728px] h-[90px] md:h-[120px] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative bg-gray-100 dark:bg-gray-900 group">
-                              <img src={inlineAd.media?.[0]?.url || "https://picsum.photos/728/120"} alt={inlineAd.headline} className="w-full h-full object-cover" />
-                              <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Sponsored</div>
+                              <Image 
+                                src={inlineAd.media?.[0]?.url || "https://picsum.photos/728/120"} 
+                                alt={inlineAd.headline} 
+                                fill
+                                sizes="(max-width: 768px) 100vw, 728px"
+                                className="object-cover" 
+                              />
+                              <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">Sponsored</div>
                               {!inlineAd.media?.[0]?.url && (
                                 <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-r from-gray-900 to-gray-800">
                                   <h3 className="text-white font-bold text-center text-lg">{inlineAd.headline}</h3>
@@ -201,8 +218,14 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
             <div className="flex justify-center w-full sticky top-24">
               {sidebarAd ? (
                 <a href={sidebarAd.externalLink || "#"} target="_blank" rel="noopener noreferrer" className="block w-[300px] h-[600px] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative bg-gray-100 dark:bg-gray-900 group">
-                  <img src={sidebarAd.media?.[0]?.url || "https://picsum.photos/300/600"} alt={sidebarAd.headline} className="w-full h-full object-cover" />
-                  <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Sponsored</div>
+                  <Image 
+                    src={sidebarAd.media?.[0]?.url || "https://picsum.photos/300/600"} 
+                    alt={sidebarAd.headline} 
+                    fill
+                    sizes="300px"
+                    className="object-cover" 
+                  />
+                  <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">Sponsored</div>
                   {!sidebarAd.media?.[0]?.url && (
                      <div className="absolute inset-0 flex items-center justify-center p-6 bg-gradient-to-b from-gray-900 to-gray-800">
                        <h3 className="text-white font-bold text-center text-xl">{sidebarAd.headline}</h3>
@@ -226,8 +249,14 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {relatedArticles.map((related: any) => (
                 <Link href={`/full-coverage/${related._id}`} key={related._id} className="group block">
-                  <div className="aspect-video rounded-xl overflow-hidden mb-4">
-                    <img src={related.media?.[0]?.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <div className="relative aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
+                    <Image 
+                      src={related.media?.[0]?.url || "https://picsum.photos/400/225"} 
+                      alt={related.headline}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
                   </div>
                   <h3 className="font-bold text-lg leading-tight mb-2">{related.headline}</h3>
                   <span className="text-xs text-red-600 font-bold uppercase">{formatShortDate(related.createdAt)}</span>

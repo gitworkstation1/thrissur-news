@@ -1,4 +1,5 @@
 import GoogleAd from "./GoogleAd";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { fetchArticles } from "@/lib/api";
 
 export default async function TopBannerAd() {
@@ -29,13 +30,15 @@ export default async function TopBannerAd() {
           rel="noopener noreferrer"
           className="block w-[320px] h-[50px] md:w-[728px] md:h-[90px] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group bg-gray-100 dark:bg-gray-900"
         >
-          <img 
+          <Image 
             src={customAd.media?.[0]?.url || "https://picsum.photos/728/90"} 
-            alt={customAd.headline}
-            className="w-full h-full object-cover"
+            alt={customAd.headline || "Advertisement"}
+            fill
+            sizes="(max-width: 768px) 320px, 728px"
+            className="object-cover"
           />
           {/* Subtle sponsored badge so readers know it's an ad */}
-          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
             Sponsored
           </div>
         </a>

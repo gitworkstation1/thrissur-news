@@ -5,7 +5,29 @@ import Link from "next/link";
 import ShortCard from "@/components/cards/ShortCard";
 import AdCard from "@/components/ad/AdCard"; 
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // <-- Phase 2: ISR Caching
+
+// <-- Phase 3: Enhanced SEO & Social Media Metadata
+export const metadata = {
+  title: 'Shorts | Integrity News',
+  description: 'Swipe through the latest breaking news shorts and updates.',
+  openGraph: {
+    title: 'Shorts | Integrity News',
+    description: 'Swipe through the latest breaking news shorts and updates.',
+    url: 'https://yourdomain.com/shorts',
+    siteName: 'Integrity News',
+    images: [
+      {
+        url: 'https://picsum.photos/1200/630', // TODO: Swap with your actual website logo/banner URL!
+        width: 1200,
+        height: 630,
+        alt: 'Integrity News Shorts',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+};
 
 export default async function ShortsFeedPage() {
   // 1. Fetch regular Shorts

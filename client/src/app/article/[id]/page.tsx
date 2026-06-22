@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import DOMPurify from "isomorphic-dompurify"; // <-- NEW: Security import
 import { ChevronLeft, Share2, ArrowRight } from "lucide-react";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { fetchArticleById } from "@/lib/api";
+
+export const revalidate = 60; // <-- Phase 2 ISR Caching
 
 const formatArticleDate = (dateStr: string) => {
   const dateObj = new Date(dateStr);
@@ -35,18 +39,26 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
           {article.headline}
         </h1>
         
+        {/* Optimized Next.js Image */}
         {article.media?.[0]?.url && (
-          <img 
-            src={article.media[0].url} 
-            alt={article.headline}
-            className="w-full aspect-video object-cover rounded-xl mb-8 shadow-sm" 
-          />
+          <div className="relative w-full aspect-video rounded-xl mb-8 shadow-sm overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <Image 
+              src={article.media[0].url} 
+              alt={article.headline}
+              fill
+              priority // Loads instantly for the reader
+              sizes="(max-width: 1024px) 100vw, 800px"
+              className="object-cover" 
+            />
+          </div>
         )}
         
-        {/* --- THE WYSIWYG RICH TEXT RENDERER --- */}
+        {/* --- THE WYSIWYG RICH TEXT RENDERER (NOW 100% SECURE) --- */}
         <div 
           className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-[#e3000f] hover:prose-a:text-red-700 dark:prose-a:text-red-400 mb-8"
-          dangerouslySetInnerHTML={{ __html: article.body || article.content || '' }} 
+          dangerouslySetInnerHTML={{ 
+            __html: DOMPurify.sanitize(article.body || article.content || '') 
+          }} 
         />
 
         {/* --- FIXED OVERLAP: Added margin to ensure button clears the BottomNav --- */}

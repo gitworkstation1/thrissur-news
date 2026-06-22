@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image"; // <-- NEW: Next.js Image component
 import { Article } from "@/lib/types";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import Link from "next/link";
@@ -44,29 +45,32 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
   };
 
   return (
-    // Base wrapper adapts to light/dark
     <div className="relative w-full h-dvh snap-start bg-gray-50 dark:bg-[#0a0a0a] flex flex-col md:items-center md:justify-center md:p-8 overflow-hidden">
       
       {/* DESKTOP BACKGROUND BLUR */}
       <div className="absolute inset-0 z-0 hidden md:block">
-        <img 
+        <Image 
           src={article.media?.[0]?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600'} 
           alt="" 
-          className="w-full h-full object-cover opacity-30 dark:opacity-20 blur-3xl scale-110 pointer-events-none select-none" 
+          fill
+          sizes="(max-width: 768px) 100vw, 100vw"
+          className="object-cover opacity-30 dark:opacity-20 blur-3xl scale-110 pointer-events-none select-none" 
         />
         {/* Dynamic overlay to soften the blurred background */}
         <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      {/* THE MAIN CONSOLE: Now defaults to white, switches to #121212 in dark mode */}
+      {/* THE MAIN CONSOLE */}
       <div className="relative z-10 w-full h-full md:h-[75vh] md:max-w-5xl flex flex-col md:flex-row bg-white dark:bg-[#121212] md:rounded-2xl md:border border-gray-200 dark:border-white/10 overflow-hidden shadow-none md:shadow-[0_25px_70px_rgba(0,0,0,0.08)] dark:md:shadow-[0_25px_70px_rgba(0,0,0,0.8)]">
         
         {/* IMAGE COMPONENT */}
-        <div className="relative h-[40dvh] md:h-full w-full md:w-[45%]  bg-gray-100 dark:bg-neutral-900 shrink-0 overflow-hidden">
-          <img 
+        <div className="relative h-[40dvh] md:h-full w-full md:w-[45%] shrink-0 overflow-hidden bg-gray-100 dark:bg-neutral-900">
+          <Image 
             src={article.media?.[0]?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600'} 
-            alt="" 
-            className="w-full h-full object-cover select-none" 
+            alt={article.headline} 
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover select-none" 
           />
           {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent md:bg-linear-to-r md:from-transparent md:to-black/10 dark:md:to-black/30" />
@@ -80,7 +84,7 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
               {article.category || 'LATEST'} {article.location?.ward && `• ${article.location.ward}`}
             </span>
             
-            {/* Interaction buttons (Adapted for high contrast in light mode) */}
+            {/* Interaction buttons */}
             <div className="flex items-center gap-2.5">
               <button 
                 onClick={handleShare}
@@ -101,20 +105,16 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
             </div>
           </div>
 
-          {/* Headline (Black in light mode, White in dark mode) */}
           <h2 className="text-black dark:text-white font-extrabold text-lg md:text-2xl leading-snug tracking-tight mb-4 line-clamp-3 md:line-clamp-4 shrink-0">
             {article.headline}
           </h2>
 
-          {/* Attached the supercharged hide-scrollbar class here as well */}
           <div className="flex-1 overflow-y-auto pr-1 md:pr-2 text-gray-600 dark:text-gray-400 text-[13px] md:text-sm leading-relaxed font-normal space-y-3 mb-6 hide-scrollbar">
             <p className="opacity-95">
               {article.body || "Swipe vertically to look across remaining breaking updates across the community region..."}
             </p>
           </div>
 
-          {/* Footer Navigation Button (Inverts text/bg based on theme) */}
-          {/* Footer Navigation Button - Added container with margin to clear BottomNav */}
           <div className="mb-10 md:mb-0 shrink-0">
             <Link 
               href={`/article/${article._id}`}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import InteractiveShortCard from "@/components/cards/InteractiveShortCard"; // Imported the modular card engine
 
+export const revalidate = 60; // <-- NEW: Phase 2 ISR Caching to protect your database!
+
 export default async function QuickReadPage() {
   let data = { articles: [] as Article[] };
   try {

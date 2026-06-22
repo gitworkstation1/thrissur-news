@@ -78,3 +78,16 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+/* Fix for embedded videos in the Rich Text Editor */
+.article-body iframe, 
+.article-body .ql-video {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}

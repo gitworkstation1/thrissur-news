@@ -1,4 +1,5 @@
 import GoogleAd from '@/components/ad/GoogleAd';
+import Image from 'next/image'; // <-- NEW: Next.js Image component
 import { fetchArticles } from "@/lib/api";
 
 export default async function DesktopHeroAd() {
@@ -33,17 +34,19 @@ export default async function DesktopHeroAd() {
           rel="noopener noreferrer"
           className="flex-1 w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative bg-gray-100 dark:bg-gray-900 group block"
         >
-          <img 
+          <Image 
             src={customAd.media?.[0]?.url || "https://picsum.photos/800/120"} 
-            alt={customAd.headline}
-            className="w-full h-full object-cover"
+            alt={customAd.headline || "Advertisement"}
+            fill
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            className="object-cover"
           />
-          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+          <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md text-[8px] text-white font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
             Sponsored
           </div>
           
           {!customAd.media?.[0]?.url && (
-             <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-r from-gray-900 to-gray-800">
+             <div className="absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-r from-gray-900 to-gray-800 z-10">
                <h3 className="text-white font-bold text-center text-lg">{customAd.headline}</h3>
              </div>
           )}
