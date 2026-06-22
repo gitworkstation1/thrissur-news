@@ -15,7 +15,6 @@ export async function fetchArticles(
   date?: string                 // <-- NEW: Added date parameter
 ): Promise<{ articles: Article[], totalPages: number, currentPage: number }> {
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   let url = `${API_URL}/api/news`;
   
   const params = new URLSearchParams();
@@ -34,7 +33,8 @@ export async function fetchArticles(
 
   url += `?${params.toString()}`;
 
-  const res = await fetch(url, { cache: 'no-store' });
+  // FIX: Applied Option B (ISR) - Cache for 60 seconds on public pages
+  const res = await fetch(url, { next: { revalidate: 60 } });
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -46,8 +46,9 @@ export async function fetchArticles(
 
 // 2. Fetch a Single Article by ID
 export async function fetchArticleById(id: string): Promise<Article> {
+  // FIX: Applied Option B (ISR) - Cache individual articles for 60 seconds
   const res = await fetch(`${API_URL}/api/news/${id}`, { 
-    cache: 'no-store' 
+    next: { revalidate: 60 } 
   });
   
   if (!res.ok) {
@@ -127,7 +128,7 @@ export async function uploadImage(file: File, headline: string): Promise<string>
 
 // 7. Fetch Admin Dashboard Stats
 export async function fetchStats(): Promise<{ total: number, published: number, drafts: number, breaking: number }> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  // KEPT AS OPTION A: Admins need live, uncached data for their dashboard stats
   const res = await fetch(`${API_URL}/api/news/stats`, { cache: 'no-store' });
   
   if (!res.ok) {

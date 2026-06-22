@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react"; // <-- IMPORT SUSPENSE HERE
 import Link from "next/link";
-import Image from "next/image"; // <-- NEW: Next.js Image component
+import Image from "next/image";
 import { fetchArticles } from "@/lib/api";
 import { Loader2, Calendar, MapPin, Filter } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -29,7 +29,6 @@ export default function BreakingNewsHub() {
     const loadBreakingNews = async () => {
       setIsLoading(true);
       try {
-        // Fetch using our new parameters: isBreaking = true, plus the selected date
         const response = await fetchArticles(
           selectedCategory, 
           "", 
@@ -37,8 +36,8 @@ export default function BreakingNewsHub() {
           50, 
           "published", 
           selectedWard, 
-          true, // isBreaking = true
-          selectedDate // passed as YYYY-MM-DD
+          true, 
+          selectedDate 
         );
         setArticles(response.articles || []);
       } catch (error) {
@@ -49,7 +48,7 @@ export default function BreakingNewsHub() {
     };
 
     loadBreakingNews();
-  }, [selectedDate, selectedWard, selectedCategory]); // Re-fetch when filters change
+  }, [selectedDate, selectedWard, selectedCategory]); 
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -59,8 +58,16 @@ export default function BreakingNewsHub() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a]">
-      <Navbar />
-      <CategoryMenu />
+      {/* FIX: Wrap imported components in Suspense boundaries. 
+        If Navbar or CategoryMenu use useSearchParams(), Next.js will no longer crash the build.
+      */}
+      <Suspense fallback={<div className="h-16 w-full animate-pulse bg-gray-100 dark:bg-gray-900"></div>}>
+        <Navbar />
+      </Suspense>
+      
+      <Suspense fallback={<div className="h-10 w-full animate-pulse bg-gray-50 dark:bg-gray-800"></div>}>
+        <CategoryMenu />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         
