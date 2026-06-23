@@ -9,9 +9,19 @@ const THRISSUR_WARDS = [
 ];
 
 const advertisementSchema = new mongoose.Schema({
-  // Using 'headline' instead of 'sponsorName' so your frontend components don't break
-  headline: { type: String, required: true }, 
-  externalLink: { type: String, required: true },
+  headline: { 
+    type: String, 
+    required: [true, 'Sponsor name/headline is required'],
+    trim: true,
+    maxlength: [200, 'Headline cannot exceed 200 characters']
+  }, 
+  externalLink: { 
+    type: String, 
+    required: [true, 'External link is required'],
+    trim: true,
+    // 🛡️ SECURITY: Prevents JS-injection into the href attribute
+    match: [/^https?:\/\/.+/, 'Please provide a valid web URL (http/https)']
+  },
   status: {
     type: String,
     enum: ['published', 'draft'],
@@ -19,12 +29,23 @@ const advertisementSchema = new mongoose.Schema({
   },
   location: {
     ward: { type: String, required: false, enum: THRISSUR_WARDS },
-    landmark: { type: String } // e.g., "Homepage Hero"
+    landmark: { 
+      type: String,
+      trim: true,
+      maxlength: [100, 'Landmark identifier cannot exceed 100 characters']
+    }
   },
   media: [{
     type: { type: String, enum: ['image', 'video'], default: 'image' },
-    url: String
+    url: { 
+      type: String, 
+      required: [true, 'Media URL is required'],
+      match: [/^https?:\/\/.+/, 'Please provide a valid image/video URL'] 
+    }
   }]
 }, { timestamps: true });
+
+// 🚀 PERFORMANCE: Speeds up your homepage ad-filtering logic
+advertisementSchema.index({ status: 1, 'location.landmark': 1 });
 
 module.exports = mongoose.model('Advertisement', advertisementSchema);

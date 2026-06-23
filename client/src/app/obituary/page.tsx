@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image"; // <-- NEW: Next.js Image component
+import DOMPurify from "isomorphic-dompurify"; // <-- NEW: Security import
 import { fetchArticles } from "@/lib/api";
 import { Search, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -61,45 +62,52 @@ function ObituaryContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {obituaries.map((obituary) => (
-              <Link 
-                href={`/full-coverage/${obituary._id}`} 
-                key={obituary._id}
-                className="group bg-white dark:bg-[#111] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
-              >
-                <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
-                  {obituary.media?.[0]?.url ? (
-                    <Image 
-                      src={obituary.media[0].url} 
-                      alt={obituary.headline} 
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-300 font-serif text-4xl">
-                      {obituary.headline.charAt(0)}
+            {obituaries.map((obituary) => {
+              // 1. Sanitize the HTML first to remove malicious scripts
+              const cleanHtml = DOMPurify.sanitize(obituary.body || '');
+              // 2. Strip safe HTML tags to create a plain text summary snippet
+              const plainTextSummary = cleanHtml.replace(/<[^>]*>?/gm, '');
+
+              return (
+                <Link 
+                  href={`/full-coverage/${obituary._id}`} 
+                  key={obituary._id}
+                  className="group bg-white dark:bg-[#111] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
+                >
+                  <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
+                    {obituary.media?.[0]?.url ? (
+                      <Image 
+                        src={obituary.media[0].url} 
+                        alt={obituary.headline} 
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-300 font-serif text-4xl">
+                        {obituary.headline.charAt(0)}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+                  
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold font-serif text-gray-900 dark:text-white leading-snug mb-2 line-clamp-2">
+                        {obituary.headline}
+                      </h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
+                         {plainTextSummary}
+                      </p>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold font-serif text-gray-900 dark:text-white leading-snug mb-2 line-clamp-2">
-                      {obituary.headline}
-                    </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4"
-                       dangerouslySetInnerHTML={{ __html: obituary.body.replace(/<[^>]*>?/gm, '') }}
-                    />
+                    <div className="pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      <span>{obituary.location?.ward || "Thrissur"}</span>
+                      <span>{formatDate(obituary.createdAt)}</span>
+                    </div>
                   </div>
-                  <div className="pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    <span>{obituary.location?.ward || "Thrissur"}</span>
-                    <span>{formatDate(obituary.createdAt)}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>

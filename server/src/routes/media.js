@@ -4,6 +4,16 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 
+// --- 🛡️ NEW: SECURITY MIDDLEWARE ---
+// This acts as the bouncer. It checks for the admin cookie before allowing uploads.
+const requireAdmin = (req, res, next) => {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader || !cookieHeader.includes('admin_token=authenticated')) {
+    return res.status(401).json({ error: 'Unauthorized: Admin access required.' });
+  }
+  next(); 
+};
+
 // 1. Configure Cloudinary with your .env keys
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,11 +25,20 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage, 
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  // --- 🛡️ NEW: STRICT FILE TYPE VALIDATION ---
+  fileFilter: (req, file, cb) => {
+    // Only allow standard image and video MIME types
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('INVALID_FILE_TYPE'), false);
+    }
+  }
 }); 
 
-// 3. The Upload Route
-router.post('/upload', (req, res) => {
+// 3. The Upload Route (🛡️ PROTECTED BY requireAdmin)
+router.post('/upload', requireAdmin, (req, res) => {
   
   // WRAP MULTER EXECUTION TO CATCH ERRORS GRACEFULLY
   upload.single('image')(req, res, async (err) => {
@@ -31,6 +50,9 @@ router.post('/upload', (req, res) => {
       }
       return res.status(400).json({ error: err.message });
     } else if (err) {
+      if (err.message === 'INVALID_FILE_TYPE') {
+        return res.status(415).json({ error: 'Unsupported file format. Only images and videos are allowed.' });
+      }
       return res.status(500).json({ error: 'An unknown server error occurred during upload.' });
     }
 

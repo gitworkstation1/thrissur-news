@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image"; // <-- NEW: Next.js Image component
+import DOMPurify from "isomorphic-dompurify"; // <-- NEW: Security import
 import { ChevronLeft, Share2, Clock } from "lucide-react"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { fetchArticleById, fetchArticles } from "@/lib/api";
@@ -152,7 +153,7 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
             
             <div lang="ml" className="article-body prose prose-base md:prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-p:leading-7 prose-p:text-justify prose-p:hyphens-auto prose-a:text-red-600 prose-img:rounded-xl">
               
-              {/* UPDATED INLINE AD INJECTION & VIDEO RENDERER */}
+              {/* UPDATED INLINE AD INJECTION & SECURE VIDEO RENDERER */}
               {(() => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(article.body || article.content || '', 'text/html');
@@ -168,7 +169,8 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
 
                   return (
                     <div key={index} className="w-full">
-                      <div dangerouslySetInnerHTML={{ __html: el.outerHTML }} />
+                      {/* SECURED WITH DOMPURIFY */}
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(el.outerHTML) }} />
                       
                       {showAd && (
                         <div className="my-10 flex justify-center w-full">

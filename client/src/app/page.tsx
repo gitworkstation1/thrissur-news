@@ -1,7 +1,7 @@
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 import Link from "next/link";
-import Image from "next/image"; // <-- NEW: Next.js Image component
+import Image from "next/image"; 
 import React from "react";
 import { Play } from "lucide-react";
 
@@ -15,7 +15,29 @@ import HomeAdCard from "@/components/ad/HomeAdCard";
 import ShowsSection from "@/components/sections/ShowsSection";
 import LiveTVSection from "@/components/sections/LiveTVSection";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // <-- PHASE 2: ISR Caching added. Database protected!
+
+// <-- PHASE 3: Global SEO added for social media sharing
+export const metadata = {
+  title: 'Integrity News | Thrissur Local Updates',
+  description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
+  openGraph: {
+    title: 'Integrity News | Thrissur Local Updates',
+    description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
+    url: 'https://yourdomain.com',
+    siteName: 'Integrity News',
+    images: [
+      {
+        url: 'https://picsum.photos/1200/630', // TODO: Swap with your main website banner URL
+        width: 1200,
+        height: 630,
+        alt: 'Integrity News Banner',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+};
 
 const formatArticleDate = (dateStr: string) => {
   const dateObj = new Date(dateStr);

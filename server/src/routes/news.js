@@ -12,8 +12,24 @@ const Short = require('../models/Short');
 // Note: If you have cloudinary required elsewhere, ensure it's at the top of the file!
 // const cloudinary = require('cloudinary').v2;
 
+// --- 🛡️ NEW: SECURITY MIDDLEWARE ---
+// This acts as the bouncer. It checks for the admin cookie before allowing writes.
+const requireAdmin = (req, res, next) => {
+  // Check the raw cookie header sent from the frontend
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader || !cookieHeader.includes('admin_token=authenticated')) {
+    return res.status(401).json({ error: 'Unauthorized: Admin access required.' });
+  }
+  next(); // Pass checks! Allow them into the route.
+};
+
+// --- 🛡️ NEW: REGEX SANITIZER ---
+// Neutralizes malicious characters before they hit MongoDB
+const escapeRegex = (text) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+};
+
 // 1. GET STATS (Admin Dashboard - Tracks real news)
-// Must stay at the top before /:id
 router.get('/stats', async (req, res) => {
   try {
     const total = await Article.countDocuments();
@@ -31,7 +47,6 @@ router.get('/stats', async (req, res) => {
 // 2. GET ALL (Smart Routing based on category, date, and breaking status)
 router.get('/', async (req, res) => {
   try {
-    // ADDED isBreaking and date to the destructured query
     const { category, search, page = 1, limit = 10, status, ward, isBreaking, date } = req.query;
     
     let ModelToQuery = Article;
@@ -45,31 +60,37 @@ router.get('/', async (req, res) => {
     }
     
     if (ward && ward !== 'All Places') query['location.ward'] = ward; 
-    if (search) query.headline = { $regex: search, $options: 'i' }; 
     
-    // --- NEW: Filter by Breaking News ---
+    // --- 🛡️ APPLIED REGEX SANITIZER ---
+    if (search) {
+      const safeSearch = escapeRegex(search);
+      query.headline = { $regex: safeSearch, $options: 'i' }; 
+    }
+    
     if (isBreaking === 'true') {
       query.isBreaking = true;
     }
 
-    // --- NEW: Filter by Date ---
     if (date) {
       const startDate = new Date(date);
-      startDate.setUTCHours(0, 0, 0, 0); // Start of the selected day
+      startDate.setUTCHours(0, 0, 0, 0); 
       const endDate = new Date(date);
-      endDate.setUTCHours(23, 59, 59, 999); // End of the selected day
+      endDate.setUTCHours(23, 59, 59, 999); 
       query.createdAt = { $gte: startDate, $lte: endDate };
     }
 
     if (status === 'draft') query.status = 'draft';
     else if (status !== 'all') query.status = { $ne: 'draft' }; 
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    // Prevent negative skips if page is manipulated
+    const safePage = Math.max(1, parseInt(page) || 1);
+    const safeLimit = Math.max(1, parseInt(limit) || 10);
+    const skip = (safePage - 1) * safeLimit;
     
     const articles = await ModelToQuery.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(safeLimit)
       .lean();
       
     const total = await ModelToQuery.countDocuments(query);
@@ -78,13 +99,16 @@ router.get('/', async (req, res) => {
         if (category === 'Obituary') item.category = 'Obituary';
         if (category === 'Advertisement') item.category = 'Advertisement';
         if (category === 'Shorts') item.category = 'Shorts';
+        
+        // --- UX FIX: Ensure missing edit/delete options are gracefully handled by front-end ---
+        // (You added edit/delete buttons to the frontend in April, ensuring standard structure here helps)
         return item;
     });
 
     res.json({
       articles: formattedArticles,
-      totalPages: Math.ceil(total / parseInt(limit)),
-      currentPage: parseInt(page)
+      totalPages: Math.ceil(total / safeLimit),
+      currentPage: safePage
     });
 
   } catch (error) {
@@ -98,12 +122,10 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // THE BOUNCER: Check if it's a valid 24-character MongoDB ID first
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({ error: 'Document not found (Invalid ID format)' });
     }
 
-    // Check each collection until found
     let doc = await Article.findById(id).lean();
     if (doc) return res.json(doc);
 
@@ -123,8 +145,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 4. POST: Create a new document (Routes to correct collection)
-router.post('/', async (req, res) => {
+// ==========================================
+// 🛡️ PROTECTED ADMIN ROUTES START HERE 🛡️
+// ==========================================
+
+// 4. POST: Create a new document (PROTECTED)
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const { category } = req.body;
     let newDoc;
@@ -150,8 +176,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 5. UPDATE
-router.put('/:id', async (req, res) => {
+// 5. UPDATE (PROTECTED)
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -176,8 +202,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// 6. DELETE (Includes your Cloudinary Cleanup)
-router.delete('/:id', async (req, res) => {
+// 6. DELETE (PROTECTED)
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -185,7 +211,6 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Document not found (Invalid ID format)' });
     }
 
-    // 1. Find the document and determine its collection
     let ModelToUse = null;
     let document = null;
 
@@ -208,7 +233,6 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // 2. Look for any images attached to this document (Works for Ads/Obits too!)
     if (document.media && document.media.length > 0) {
       for (const item of document.media) {
         if (item.type === 'image' && item.url) {
@@ -216,7 +240,6 @@ router.delete('/:id', async (req, res) => {
             const matches = item.url.match(/\/upload\/(?:v\d+\/)?([^.]+)/);
             if (matches && matches[1]) {
               const publicId = matches[1];
-              // Assuming cloudinary is required globally or in this file
               if (typeof cloudinary !== 'undefined') {
                  await cloudinary.uploader.destroy(publicId);
                  console.log(`Successfully deleted Cloudinary asset: ${publicId}`);
@@ -229,7 +252,6 @@ router.delete('/:id', async (req, res) => {
       }
     }
 
-    // 3. Permanently remove the document from the correct MongoDB Collection
     await ModelToUse.findByIdAndDelete(id);
 
     return res.status(200).json({ message: 'Document and associated media deleted successfully' });

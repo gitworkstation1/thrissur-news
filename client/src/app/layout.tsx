@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import Script from "next/script";
+import { Metadata, Viewport } from "next"; // <-- NEW: Type imports
 
 import ScrollToTopButton from "@/components/layout/ScrollToTopButton";
 import Navbar from "@/components/layout/Navbar";
@@ -11,12 +12,47 @@ import TopBannerAd from "@/components/ad/TopBannerAd";
 import HideOnShorts from "@/components/layout/HideOnShorts";
 import HideOnDashboard from "@/components/layout/HideOnDashboard";
 
-export const metadata = {
-  title: "Thrissur News",
-  description: "Hyperlocal news for Thrissur",
+// --- PHASE 3: GLOBAL VIEWPORT SETTINGS ---
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
-// src/app/layout.js
+// --- PHASE 3: GLOBAL SEO FALLBACKS ---
+export const metadata: Metadata = {
+  metadataBase: new URL("https://yourdomain.com"), // TODO: Replace with your actual live URL
+  title: {
+    default: "Integrity News | Thrissur Local Updates",
+    template: "%s | Integrity News", // Automatically appends the brand name to child pages!
+  },
+  description: "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "/",
+    siteName: "Integrity News",
+    images: [
+      {
+        url: "https://picsum.photos/1200/630", // TODO: Replace with your global social share image
+        width: 1200,
+        height: 630,
+        alt: "Integrity News",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Integrity News | Thrissur Local Updates",
+    description: "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
+    images: ["https://picsum.photos/1200/630"], // TODO: Same fallback image as above
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

@@ -9,9 +9,22 @@ const THRISSUR_WARDS = [
 ];
 
 const articleSchema = new mongoose.Schema({
-  headline: { type: String, required: true },
-  body: { type: String, required: true },
-  isBreaking: { type: Boolean, default: false },
+  headline: { 
+    type: String, 
+    required: [true, 'Headline is required'],
+    trim: true,
+    maxlength: [300, 'Headline cannot exceed 300 characters']
+  },
+  body: { 
+    type: String, 
+    required: [true, 'Article body is required'],
+    trim: true,
+    maxlength: [50000, 'Article body cannot exceed 50,000 characters'] // 🛡️ Huge allowance, but strictly bounded
+  },
+  isBreaking: { 
+    type: Boolean, 
+    default: false 
+  },
   category: { 
     type: String, 
     required: true,
@@ -26,20 +39,48 @@ const articleSchema = new mongoose.Schema({
   },
   location: {
     ward: { type: String, required: false, enum: THRISSUR_WARDS },
-    landmark: { type: String }
+    landmark: { 
+      type: String,
+      trim: true,
+      maxlength: [150, 'Landmark cannot exceed 150 characters']
+    }
   },
   media: [{
     type: {
       type: String,
       enum: ['image', 'video'] 
     },
-    url: String,
-    credit: { type: String, default: "" } 
+    url: { 
+      type: String, 
+      required: [true, 'Media URL is required'],
+      match: [/^https?:\/\/.+/, 'Please provide a valid HTTP or HTTPS URL'] 
+    },
+    credit: { 
+      type: String, 
+      default: "",
+      trim: true,
+      maxlength: [100, 'Credit cannot exceed 100 characters']
+    } 
   }],
-  reportedBy: { type: String, default: "" },      
-  photographedBy: { type: String, default: "" }   
+  reportedBy: { 
+    type: String, 
+    default: "",
+    trim: true,
+    maxlength: [100, 'Reporter name cannot exceed 100 characters']
+  },      
+  photographedBy: { 
+    type: String, 
+    default: "",
+    trim: true,
+    maxlength: [100, 'Photographer name cannot exceed 100 characters']
+  }   
 
 }, { timestamps: true });
 
-articleSchema.index({ createdAt: -1 });
+// 🚀 HIGH-PERFORMANCE INDEXING
+// 1. General feed & Category filtering
+articleSchema.index({ status: 1, category: 1, createdAt: -1 });
+// 2. Breaking News Carousel filtering
+articleSchema.index({ status: 1, isBreaking: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Article', articleSchema);

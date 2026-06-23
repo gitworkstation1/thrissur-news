@@ -3,12 +3,33 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet'); 
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-// Dynamic CORS: Allows your local testing environment AND your live Vercel deployment
+// --- 1. THE REVERSE PROXY FIX ---
+// REQUIRED for Render/Heroku/DigitalOcean so the Rate Limiter reads the REAL user's IP, not the server's IP.
+app.set('trust proxy', 1);
+
+// --- 2. GLOBAL SECURITY SHIELDS ---
+// The Helmet Fix: Allows your Vercel frontend to load images from this backend
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } 
+}));
+
+// Global Rate Limiter
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, 
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+app.use(globalLimiter);
+
+// --- 3. MIDDLEWARE ---
 const allowedOrigins = [
   'http://localhost:3000',
   'https://thrissur-news-tau.vercel.app' 
@@ -16,7 +37,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -29,17 +49,15 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// MongoDB Atlas Connection
-// Note: Changed process.env.MONGO_URI to match whatever key name you use on Render
+// --- 4. DATABASE CONNECTION ---
 mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Atlas connected successfully'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Routes
+// --- 5. ROUTES ---
 app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
 
-// Binds dynamically to the port Render gives you, fallback to 5000 locally
 app.listen(PORT, () => {
   console.log(`🚀 Backend Engine running on port ${PORT}`);
 });

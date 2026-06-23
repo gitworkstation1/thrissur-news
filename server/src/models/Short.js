@@ -9,7 +9,12 @@ const THRISSUR_WARDS = [
 ];
 
 const shortSchema = new mongoose.Schema({
-  headline: { type: String, required: true },
+  headline: { 
+    type: String, 
+    required: [true, 'Headline is required'],
+    trim: true, // Automatically strips accidental spaces at the start/end
+    maxlength: [200, 'Headline cannot exceed 200 characters'] // 🛡️ NEW: Prevents DB bloat
+  },
   status: {
     type: String,
     enum: ['published', 'draft'],
@@ -20,9 +25,18 @@ const shortSchema = new mongoose.Schema({
   },
   media: [{
     type: { type: String, enum: ['youtube-short', 'video'], default: 'youtube-short' },
-    url: { type: String, required: true }
+    url: { 
+      type: String, 
+      required: [true, 'Media URL is required'],
+      // 🛡️ NEW: Strict Regex to ensure it is an actual HTTP/HTTPS web address
+      match: [/^https?:\/\/.+/, 'Please provide a valid HTTP or HTTPS URL'] 
+    }
   }]
 }, { timestamps: true });
 
-shortSchema.index({ createdAt: -1 });
+// 🚀 NEW: Compound Index! 
+// In your news.js, you constantly query `status` and sort by `createdAt`. 
+// This compound index makes those API calls lightning fast.
+shortSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Short', shortSchema);
