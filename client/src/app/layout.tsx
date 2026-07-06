@@ -1,7 +1,6 @@
 import "./globals.css";
-
 import Script from "next/script";
-import { Metadata, Viewport } from "next"; // <-- NEW: Type imports
+import { Metadata, Viewport } from "next";
 
 import ScrollToTopButton from "@/components/layout/ScrollToTopButton";
 import Navbar from "@/components/layout/Navbar";
@@ -11,8 +10,8 @@ import NewsTicker from "@/components/layout/NewsTicker";
 import TopBannerAd from "@/components/ad/TopBannerAd";
 import HideOnShorts from "@/components/layout/HideOnShorts";
 import HideOnDashboard from "@/components/layout/HideOnDashboard";
+import Footer from "@/components/layout/Footer";
 
-// --- PHASE 3: GLOBAL VIEWPORT SETTINGS ---
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
@@ -23,41 +22,15 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-// --- PHASE 3: GLOBAL SEO FALLBACKS ---
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yourdomain.com"), // TODO: Replace with your actual live URL
-  title: {
-    default: "Integrity News | Thrissur Local Updates",
-    template: "%s | Integrity News", // Automatically appends the brand name to child pages!
-  },
-  description: "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
-  openGraph: {
-    type: "website",
-    locale: "en_IN",
-    url: "/",
-    siteName: "Integrity News",
-    images: [
-      {
-        url: "https://picsum.photos/1200/630", // TODO: Replace with your global social share image
-        width: 1200,
-        height: 630,
-        alt: "Integrity News",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Integrity News | Thrissur Local Updates",
-    description: "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
-    images: ["https://picsum.photos/1200/630"], // TODO: Same fallback image as above
-  },
+  title: { default: "Fides News | Thrissur Local Updates", template: "%s | Fides News" },
+  description: "Your trusted source for hyper-local news.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* Adds the AdSense Master Script safely */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
@@ -65,9 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="afterInteractive"
         />
       </head>
-      <body className="bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden">
+      <body className="bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col">
         
-        {/* 1. WRAP THE TOP ELEMENTS */}
         <HideOnShorts>
           <HideOnDashboard>
             <TopBannerAd />
@@ -76,13 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NewsTicker />
         </HideOnShorts>
         
-        {/* The main content area where your pages actually load */}
-        <main className="w-full relative pb-28"> 
+        {/* Removed pb-28 from here */}
+        <main className="w-full relative flex-grow"> 
           {children}
         </main>
         
-        {/* 2. WRAP THE BOTTOM / FLOATING ELEMENTS */}
         <HideOnShorts>
+          <Footer />
           <QuickReadButton />
           <ScrollToTopButton />
           <BottomNav />

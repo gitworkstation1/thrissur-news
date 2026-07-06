@@ -90,8 +90,7 @@ export default function BottomNav() {
   
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md md:hidden z-[100]">
-      
+<div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md md:hidden z-[60]">      
       {/* SOLID SOCIALS POPUP */}
       <div 
         className={`absolute left-1/2 -translate-x-1/2 grid grid-cols-3 gap-x-8 gap-y-6 place-items-center bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 shadow-2xl rounded-3xl px-8 py-6 transition-all duration-400 ease-out origin-bottom w-max ${

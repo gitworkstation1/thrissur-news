@@ -23,7 +23,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   const minSwipeDistance = 50;
 
-  // Auto-play (updated to use slideItems.length)
+  // Auto-play
   useEffect(() => {
     if (!slideItems || slideItems.length <= 1) return;
     const timer = setInterval(() => {
@@ -34,7 +34,6 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   if (!articles || articles.length === 0) return null;
 
-  // Updated to use slideItems.length
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % slideItems.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + slideItems.length) % slideItems.length);
 
@@ -45,13 +44,11 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
     else if (distance < -minSwipeDistance) prevSlide();
   };
 
-  // Updated to handle the item object instead of just the ID
   const handleSlideClick = (item: any) => {
     if (!isSwiping) {
       if (item.type === 'news') {
         router.push(`/full-coverage/${item.data._id}`);
       } else {
-        // Optional: Handle Ad Click (e.g., redirect or track)
         console.log("Carousel Ad Clicked!");
       }
     }
@@ -60,7 +57,10 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   return (
     <div className="w-full flex flex-col">
-      <Link href="/breaking-news" className="flex items-center gap-2 mb-4 group w-max cursor-pointer">
+      {/* FIXED: Added mt-3 and ml-3 to give the text and the ping animation 
+        enough clearance from the parent's overflow-hidden boundary. 
+      */}
+      <Link href="/breaking-news" className="flex items-center gap-2 mb-4 mt-3 ml-3 group w-max cursor-pointer">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e3000f]"></span>
@@ -69,7 +69,6 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           <h2 className="text-[#e3000f] font-black text-lg tracking-wide uppercase group-hover:underline decoration-2 underline-offset-4">
             Breaking News
           </h2>
-          {/* Permanently visible arrow that slides right on hover */}
           <span className="text-[#e3000f] text-2xl leading-none ml-1 -mt-0.5 font-medium transition-transform duration-300 group-hover:translate-x-1.5">
             ›
           </span>
@@ -86,7 +85,6 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
         onMouseUp={() => { setIsDragging(false); handleSwipe(); }}
         onMouseLeave={() => { if (isDragging) { setIsDragging(false); handleSwipe(); } }}
       >
-        {/* Map over slideItems instead of articles */}
         {slideItems.map((item, index) => (
           <div
             key={item.type === 'news' ? item.data._id : `ad-${index}`}
@@ -95,20 +93,18 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           >
             {item.type === 'news' ? (
               <div className="flex flex-col h-full">
-                {/* Fixed Image Container */}
                 <div className="relative w-full h-48 md:h-64 shrink-0 overflow-hidden">
                   <Image
                     src={item.data.media?.[0]?.url || "https://picsum.photos/1200/800"}
                     alt={item.data.headline || "Breaking News"}
                     fill
-                    priority={index === 0} // Only preload the first image
+                    priority={index === 0}
                     sizes="(max-width: 768px) 100vw, 65vw"
                     className="object-cover"
                     draggable="false"
                   />
                 </div>
 
-                {/* Text Container - Expands naturally for 3-line headlines */}
                 <div className="flex flex-col gap-1 px-4 py-3">
                   <span className="inline-block text-[#e3000f] text-[10px] font-black uppercase tracking-widest">
                     {item.data.category || "Alert"} • {item.data.location?.ward || "Latest"}
@@ -129,13 +125,11 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
           </div>
         ))}
 
-        {/* Navigation Arrows */}
         <div className="absolute inset-0 z-30 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none hidden md:flex">
           <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="w-10 h-10 rounded-full bg-black/40 hover:bg-[#e3000f] backdrop-blur-md flex items-center justify-center text-white pointer-events-auto transition-colors border border-white/10"><ChevronLeft /></button>
           <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="w-10 h-10 rounded-full bg-black/40 hover:bg-[#e3000f] backdrop-blur-md flex items-center justify-center text-white pointer-events-auto transition-colors border border-white/10"><ChevronRight /></button>
         </div>
 
-        {/* Pagination Dots - Mapped over slideItems */}
         <div className="absolute bottom-4 right-5 z-30 flex gap-2 pointer-events-none">
           {slideItems.map((_, idx) => (
             <button

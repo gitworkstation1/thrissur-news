@@ -14,6 +14,17 @@ export interface Article {
     type: string;
     url: string;
   }>;
+  // --- NEW: Added optional credits for reporter and photographer ---
+  credits?: {
+    reporter?: {
+      name: string;
+      avatarUrl?: string; // Optional image for the reporter
+    };
+    photographer?: {
+      name: string;
+      avatarUrl?: string; // Optional image for the photographer
+    };
+  };
   createdAt: string;
   updatedAt: string;
   status?: 'published' | 'draft';

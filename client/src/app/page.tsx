@@ -1,7 +1,7 @@
 import { fetchArticles } from "@/lib/api";
 import { Article } from "@/lib/types";
 import Link from "next/link";
-import Image from "next/image"; 
+import Image from "next/image";
 import React from "react";
 import { Play } from "lucide-react";
 
@@ -300,9 +300,9 @@ export default async function Home({
                         className="w-full h-44 object-cover shadow-sm group-hover:scale-105 transition-transform duration-500"
                         alt="Thumbnail"
                       />
-                      {/* MAIN ARTICLE PLAY ICON */}
+                      {/* MAIN ARTICLE PLAY ICON (FIXED SHADOW) */}
                       {mainHasVideo && (
-                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#e3000f]/95 backdrop-blur-sm shadow-[0_4px_12px_rgba(227,0,15,0.4)] transform group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute bottom-3 left-3 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-[#e3000f] shadow-[0_4px_10px_rgba(0,0,0,0.25)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.4)] transform group-hover:scale-110 transition-transform duration-300">
                           <Play className="w-5 h-5 text-white fill-white ml-1" />
                         </div>
                       )}
@@ -397,6 +397,10 @@ export default async function Home({
         </div>
       </PageTransition>
 
+      {/* --- WIDE DIVIDER (Doesn't touch corners) --- */}
+      <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/10 my-10"></div>
+
+
       {/* --- INJECTED LIVE TV SECTION --- */}
       <LiveTVSection />
 
@@ -480,7 +484,7 @@ export default async function Home({
           </div>
 
           {/* COLUMN 2: MORE STORIES */}
-          <div className="flex flex-col">
+          <div className="flex flex-col md:border-l md:border-gray-300 md:dark:border-gray-700 md:pl-8 lg:pl-12">
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase border-b-[3px] border-[#e3000f] pb-1">
                 More Stories
@@ -557,7 +561,7 @@ export default async function Home({
           </div>
 
           {/* COLUMN 3: EDITOR'S PICK */}
-          <div className="flex flex-col">
+          <div className="flex flex-col lg:border-l lg:border-gray-300 lg:dark:border-gray-700 lg:pl-12">
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase border-b-[3px] border-[#e3000f] pb-1">
                 Editor's Pick

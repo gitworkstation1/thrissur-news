@@ -1,13 +1,13 @@
-"use client"; // Required for DOMParser to run in the browser
+"use client"; 
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image"; // <-- NEW: Next.js Image component
-import DOMPurify from "isomorphic-dompurify"; // <-- NEW: Security import
-import { ChevronLeft, Share2, Clock } from "lucide-react"; 
-import BookmarkButton from "@/components/ui/BookmarkButton";
+import Image from "next/image"; 
+import DOMPurify from "isomorphic-dompurify"; 
+import { Clock } from "lucide-react"; 
+import AutoScrollToTop from "@/components/ui/AutoScrollToTop";
+import ArticleNavbar from "@/components/layout/ArticleNavbar";
 import { fetchArticleById, fetchArticles } from "@/lib/api";
-import ShareButton from "@/components/ui/ShareButton";
 import GoogleAd from "@/components/ad/GoogleAd";
 
 const formatDetailedDate = (dateStr: string) => {
@@ -25,14 +25,10 @@ const formatShortDate = (dateStr: string) => {
   return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
 };
 
-// --- Helper function to calculate estimated reading time ---
 const calculateReadTime = (htmlContent: string) => {
   if (!htmlContent) return 1;
-  // Strip HTML tags to just get the raw text
   const text = htmlContent.replace(/<[^>]*>?/gm, '');
-  // Count words by splitting on spaces
   const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-  // Average reading speed is ~200 words per minute. Math.ceil ensures it's at least 1 min.
   const readingTime = Math.ceil(wordCount / 200);
   return readingTime;
 };
@@ -42,7 +38,6 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
   const [relatedArticles, setRelatedArticles] = useState<any[]>([]);
   const [resolvedParams, setResolvedParams] = useState<any>(null);
   
-  // Hold our specific Admin Ads
   const [sidebarAd, setSidebarAd] = useState<any>(null);
   const [inlineAd, setInlineAd] = useState<any>(null);
 
@@ -54,14 +49,12 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
       fetchArticleById(p.id).then(article => {
         setData(article);
         
-        // Fetch Related News
         fetchArticles(article.category, "", 1, 4, "published", "All Places").then(relatedData => {
           setRelatedArticles(relatedData.articles
             .filter((a: any) => a._id !== article._id && a.category !== "Shorts" && a.category !== "Advertisement")
             .slice(0, 3));
         });
 
-        // FETCH ADS: Grab the Admin Ads and filter them to their specific zones!
         fetchArticles("Advertisement", "", 1, 10, "published", "All Places").then(adsData => {
           const ads = adsData.articles || [];
           setSidebarAd(ads.find((ad: any) => ad.location?.landmark === "Sidebar Banner"));
@@ -79,20 +72,14 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
   return (
     <div className="w-full min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] pb-24 selection:bg-red-200 dark:selection:bg-red-900/50">
 
-      {/* GLASSMORPHISM NAVBAR */}
-      <div className="sticky top-0 z-50 bg-white/70 dark:bg-[#0a0a0a]/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/5 h-16 flex items-center justify-between px-4 sm:px-6 transition-all">
-        <Link href="/" className="flex items-center gap-2 px-3 py-2 -ml-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-700 dark:text-gray-300 font-medium text-sm">
-          <ChevronLeft className="w-5 h-5" /> Back to News
-        </Link>
-        <div className="flex items-center gap-2">
-          <button className="p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
-            <Share2 className="w-5 h-5" />
-          </button>
-          <BookmarkButton article={article} />
-        </div>
-      </div>
+      {/* Invisible component that forces scroll to top */}
+      <AutoScrollToTop />
 
-      <main className="w-full pt-8">
+      {/* Interactive Navbar handles back, share, and bookmark */}
+      <ArticleNavbar article={article} />
+
+      {/* pt-20 ensures the headline clears the fixed navbar */}
+      <main className="w-full pt-20">
         <header className="max-w-7xl mx-auto px-4 sm:px-6 pb-8">
           <div className="text-xs text-gray-500 mb-6 flex gap-2">
             <span>Home</span> | <span>{article.category}</span> | <span>Latest</span>
@@ -101,59 +88,97 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
             {article.headline}
           </h1>
           
-          <div className="flex flex-wrap items-center justify-between gap-4 border-y border-gray-100 dark:border-white/10 py-3 text-sm text-gray-500 dark:text-gray-400">
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <span className="whitespace-nowrap">Published on {formatDetailedDate(article.createdAt)}</span>
-              <span className="hidden sm:inline-block text-gray-300 dark:text-gray-600">•</span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap font-bold text-gray-700 dark:text-gray-300">
-                <Clock className="w-4 h-4 text-red-600" />
-                {calculateReadTime(article.body)} min read
-              </span>
-            </div>
-            <ShareButton title={article.headline} url={`https://yourdomain.com/full-coverage/${article._id}`} />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 border-y border-gray-100 dark:border-white/10 py-3 text-sm text-gray-500 dark:text-gray-400">
+            <span className="whitespace-nowrap">Published on {formatDetailedDate(article.createdAt)}</span>
+            <span className="hidden sm:inline-block text-gray-300 dark:text-gray-600">•</span>
+            <span className="flex items-center gap-1.5 whitespace-nowrap font-bold text-gray-700 dark:text-gray-300">
+              <Clock className="w-4 h-4 text-red-600" />
+              {calculateReadTime(article.body)} min read
+            </span>
           </div>
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 mt-4">
           <article className="lg:col-span-6">
             
-            {/* REPORTER CREDIT */}
-            {article.reportedBy && (
-              <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 border-l-4 border-red-600 rounded-r-lg">
-                <p className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                  Reported By: <span className="text-red-600">{article.reportedBy}</span>
-                </p>
+            {/* Frosted Glass Credits Section */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 rounded-2xl bg-white/40 dark:bg-[#222]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+              
+              <div className="flex items-center gap-3 flex-1">
+                {article.credits?.reporter?.avatarUrl ? (
+                  <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
+                    <Image src={article.credits.reporter.avatarUrl} alt={article.credits?.reporter?.name || "Anonymous"} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
+                      {(article.credits?.reporter?.name || "A").charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Reporter</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.reporter?.name || "Anonymous"}</span>
+                </div>
               </div>
-            )}
 
-            {/* MULTIPLE PHOTOS WITH CREDITS */}
+              {article.credits?.photographer?.name && (
+                <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-gray-700/50"></div>
+              )}
+
+              {article.credits?.photographer?.name && (
+                <div className="flex items-center gap-3 flex-1">
+                  {article.credits.photographer.avatarUrl ? (
+                    <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
+                      <Image src={article.credits.photographer.avatarUrl} alt={article.credits.photographer.name} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
+                        {article.credits.photographer.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Photographer</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits.photographer.name}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* MULTIPLE PHOTOS WITH ANONYMOUS FALLBACK CREDITS */}
             {imageMedia.length > 0 && (
               <div className="space-y-8 mb-8">
-                {imageMedia.map((img: any, index: number) => (
-                  <figure key={index} className="w-full flex flex-col gap-2">
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-gray-100 dark:bg-gray-800">
-                      <Image 
-                        src={img.url} 
-                        alt={`${article.headline} - Image ${index + 1}`} 
-                        fill
-                        priority={index === 0} // Load the very first photo instantly
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-cover" 
-                      />
-                    </div>
-                    {img.credit && (
+                {imageMedia.map((img: any, index: number) => {
+                  
+                  // Determine the credit for this specific image, fallback to main photographer, then Anonymous
+                  const photoCredit = img.credit || article.credits?.photographer?.name || "Anonymous";
+
+                  return (
+                    <figure key={index} className="w-full flex flex-col gap-2">
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-gray-100 dark:bg-gray-800">
+                        <Image 
+                          src={img.url} 
+                          alt={`${article.headline} - Image ${index + 1}`} 
+                          fill
+                          priority={index === 0} 
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          className="object-cover" 
+                        />
+                      </div>
+                      
                       <figcaption className="text-xs font-semibold text-gray-500 uppercase tracking-widest text-right px-2">
-                        📸 Photo by: <span className="text-gray-900 dark:text-gray-300">{img.credit}</span>
+                        📸 Photo: <span className="text-gray-900 dark:text-gray-300">{photoCredit}</span>
                       </figcaption>
-                    )}
-                  </figure>
-                ))}
+                    </figure>
+                  );
+                })}
               </div>
             )}
             
             <div lang="ml" className="article-body prose prose-base md:prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-p:leading-7 prose-p:text-justify prose-p:hyphens-auto prose-a:text-red-600 prose-img:rounded-xl">
               
-              {/* UPDATED INLINE AD INJECTION & SECURE VIDEO RENDERER */}
               {(() => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(article.body || article.content || '', 'text/html');
@@ -169,7 +194,6 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
 
                   return (
                     <div key={index} className="w-full">
-                      {/* SECURED WITH DOMPURIFY */}
                       <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(el.outerHTML) }} />
                       
                       {showAd && (
@@ -216,7 +240,6 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
               </ul>
             </div>
             
-            {/* SIDEBAR AD INJECTION */}
             <div className="flex justify-center w-full sticky top-24">
               {sidebarAd ? (
                 <a href={sidebarAd.externalLink || "#"} target="_blank" rel="noopener noreferrer" className="block w-[300px] h-[600px] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative bg-gray-100 dark:bg-gray-900 group">

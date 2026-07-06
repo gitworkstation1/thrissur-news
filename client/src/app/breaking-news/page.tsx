@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchArticles } from "@/lib/api";
 import { Loader2, Calendar, MapPin, Filter } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
 import CategoryMenu from "@/components/layout/CategoryMenu";
 
 const THRISSUR_WARDS = [
@@ -61,9 +60,7 @@ export default function BreakingNewsHub() {
       {/* FIX: Wrap imported components in Suspense boundaries. 
         If Navbar or CategoryMenu use useSearchParams(), Next.js will no longer crash the build.
       */}
-      <Suspense fallback={<div className="h-16 w-full animate-pulse bg-gray-100 dark:bg-gray-900"></div>}>
-        <Navbar />
-      </Suspense>
+     
       
       <Suspense fallback={<div className="h-10 w-full animate-pulse bg-gray-50 dark:bg-gray-800"></div>}>
         <CategoryMenu />
