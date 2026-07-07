@@ -200,11 +200,18 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Document not found (Invalid ID format)' });
     }
 
+    // ⚡ THE FIX: Explicitly declare the variable here so JavaScript doesn't panic
     let ModelToUse = null;
-    if (await Article.findById(id)) ModelToUse = Article;
-    else if (await Obituary.findById(id)) ModelToUse = Obituary;
-    else if (await Advertisement.findById(id)) ModelToUse = Advertisement;
-    else if (await Short.findById(id)) ModelToUse = Short;
+
+    if (await Article.findById(id)) {
+        ModelToUse = Article;
+    } else if (await Obituary.findById(id)) {
+        ModelToUse = Obituary;
+    } else if (await Advertisement.findById(id)) {
+        ModelToUse = Advertisement;
+    } else if (await Short.findById(id)) {
+        ModelToUse = Short;
+    }
 
     if (!ModelToUse) {
       return res.status(404).json({ message: 'Document not found' });
@@ -213,7 +220,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { new: true });
     res.json(updatedDoc);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update document', error: error.message });
+    // This is where your red error box came from!
+    res.status(500).json({ message: 'Failed to update', error: error.message });
   }
 });
 
