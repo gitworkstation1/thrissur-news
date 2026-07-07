@@ -59,10 +59,11 @@ export async function fetchArticleById(id: string): Promise<Article> {
   return await res.json();
 }
 
-// 3. Create Article
+// 3. Create Article (Tunnel)
 export async function createArticle(articleData: Partial<Article>): Promise<any> {
-  const res = await fetch(`${API_URL}/api/news`, {
+  const res = await fetch('/backend/news', { // ⚡ CHANGED to use the proxy tunnel
     method: 'POST',
+    credentials: 'include', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(articleData)
   });
@@ -75,10 +76,11 @@ export async function createArticle(articleData: Partial<Article>): Promise<any>
   return await res.json();
 }
 
-// 4. Update Article
+// 4. Update Article (Tunnel)
 export async function updateArticle(id: string, articleData: Partial<Article>): Promise<Article> {
-  const res = await fetch(`${API_URL}/api/news/${id}`, {
+  const res = await fetch(`/backend/news/${id}`, { // ⚡ CHANGED
     method: 'PUT',
+    credentials: 'include', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(articleData),
   });
@@ -91,10 +93,11 @@ export async function updateArticle(id: string, articleData: Partial<Article>): 
   return await res.json();
 }
 
-// 5. Delete Article
+// 5. Delete Article (Tunnel)
 export async function deleteArticle(id: string): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/api/news/${id}`, {
+  const res = await fetch(`/backend/news/${id}`, { // ⚡ CHANGED
     method: 'DELETE',
+    credentials: 'include', 
   });
 
   if (!res.ok) {
@@ -105,14 +108,15 @@ export async function deleteArticle(id: string): Promise<{ message: string }> {
   return await res.json();
 }
 
-// 6. Upload Image 
+// 6. Upload Image (Tunnel)
 export async function uploadImage(file: File, headline: string): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
   formData.append('headline', headline || 'Untitled-Story'); 
 
-  const res = await fetch(`${API_URL}/api/media/upload`, {
+  const res = await fetch('/backend/media/upload', { // ⚡ CHANGED
     method: 'POST',
+    credentials: 'include', 
     body: formData 
   });
   

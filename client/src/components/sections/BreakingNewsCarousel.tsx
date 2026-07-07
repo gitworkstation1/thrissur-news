@@ -102,6 +102,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
                     sizes="(max-width: 768px) 100vw, 65vw"
                     className="object-cover"
                     draggable="false"
+                    
                   />
                 </div>
 
