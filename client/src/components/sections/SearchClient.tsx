@@ -18,7 +18,7 @@ export default function SearchClient({
   sidebarAd,
 }: {
   initialArticles: Article[];
-  sidebarAd?: React.ReactNode; // Tell TypeScript this is allowed!
+  sidebarAd?: React.ReactNode; 
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -55,39 +55,52 @@ export default function SearchClient({
     <div className="max-w-[96%] 2xl:max-w-[1500px] mx-auto px-4 py-6 flex flex-row gap-8 justify-center items-start relative">
       {/* ================= LEFT AD COLUMN ================= */}
       <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 sticky top-24 flex-col gap-6">
-        {sidebarAd} {/* <-- Use the prop here! */}
+        {sidebarAd}
       </div>
 
       {/* ================= MAIN SEARCH COLUMN ================= */}
       <div className="w-full max-w-3xl flex-1">
-        {/* SEARCH BAR */}
-        <div className="sticky top-[72px] z-40 bg-white dark:bg-[#111] pb-4 pt-2 transition-colors duration-300">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-[#e3000f] dark:group-focus-within:text-red-500 transition-colors" />
+        
+        {/* SEARCH BAR - PILL DESIGN WITH BLACK-TO-RED OUTLINE */}
+        <div className="sticky top-[60px] md:top-[72px] z-40 bg-[#fafafa] dark:bg-[#0a0a0a] pb-4 pt-4 transition-colors duration-300">
+          
+          {/* The Wrapper that scales up slightly when clicked */}
+          <div className="relative group transition-transform duration-300 ease-out focus-within:scale-[1.02]">
+            
+            {/* The main input container */}
+            <div className="relative flex items-center bg-white dark:bg-[#111] border-2 border-black dark:border-gray-500 focus-within:border-[#e3000f] dark:focus-within:border-[#e3000f] rounded-full shadow-sm focus-within:shadow-md focus-within:ring-4 focus-within:ring-[#e3000f]/10 dark:focus-within:ring-[#e3000f]/20 transition-all duration-300 p-1.5 overflow-hidden">
+              
+              {/* Search Icon */}
+              <div className="flex items-center justify-center pl-4 pr-2 text-gray-400 group-focus-within:text-[#e3000f] transition-colors duration-300">
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
 
-            <input
-              type="text"
-              placeholder="Search news, locations, or topics..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setActiveFilter(null);
-              }}
-              className="w-full bg-gray-100 dark:bg-[#1a1a1a] text-black dark:text-white border border-transparent focus:border-red-200 dark:focus:border-red-900/50 rounded-2xl py-3.5 pl-12 pr-10 outline-none focus:ring-4 focus:ring-red-50 dark:focus:ring-red-900/20 transition-all shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
-            />
+              {/* The Input Field */}
+              <input
+                type="text"
+                placeholder="Search news, locations, or topics..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setActiveFilter(null);
+                }}
+                className="w-full bg-transparent text-gray-900 dark:text-white text-base sm:text-lg font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-600 outline-none px-2 py-2.5"
+              />
 
-            {(searchQuery || activeFilter) && (
-              <button
-                onClick={handleClear}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+              {/* Clear Button */}
+              {(searchQuery || activeFilter) && (
+                <button
+                  onClick={handleClear}
+                  className="mr-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full transition-colors flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* QUICK FILTERS */}
-          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap mt-4 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap mt-6 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <TrendingUp className="w-4 h-4 text-[#e3000f] dark:text-red-500 flex-shrink-0 mr-1" />
             {quickFilters.map((filter) => (
               <button
@@ -98,7 +111,7 @@ export default function SearchClient({
                 }}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all duration-300 ${
                   activeFilter === filter
-                    ? "bg-[#e3000f] text-white border-[#e3000f] dark:bg-red-600 dark:border-red-600 shadow-md"
+                    ? "bg-[#e3000f] text-white border-[#e3000f] dark:bg-red-600 dark:border-red-600 shadow-md scale-105"
                     : "bg-white dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >
@@ -147,7 +160,7 @@ export default function SearchClient({
 
       {/* ================= RIGHT AD COLUMN ================= */}
       <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 sticky top-24 flex-col gap-6">
-        {sidebarAd} {/* <-- Use the prop here! */}
+        {sidebarAd}
       </div>
     </div>
   );
