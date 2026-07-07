@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { createArticle, updateArticle, uploadImage } from "@/lib/api";
 
+import ImageCropperModal from "@/components/ui/ImageCropperModal";
+
 const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), {
   ssr: false,
   loading: () => (
@@ -92,7 +94,6 @@ export default function AdminComposer({
     { file: null, url: "", credit: "" },
   ]);
 
-  // NEW: State for tracking Credit Avatars before upload
   const [creditFiles, setCreditFiles] = useState<{
     reporter: File | null;
     photographer: File | null;
@@ -101,8 +102,9 @@ export default function AdminComposer({
     photographer: null,
   });
 
+  const [croppingImage, setCroppingImage] = useState<{ src: string; index: number } | null>(null);
+
   useEffect(() => {
-    // 🛡️ DEEP NORMALIZATION: Force the data into the exact shape the form needs
     const normalizedCredits = {
       reporter: {
         name:
@@ -157,10 +159,9 @@ export default function AdminComposer({
         location: { ...prev.location, [child]: finalValue },
       }));
     } else if (name.startsWith("credits.")) {
-      // NEW: Handle nested credit names
       const parts = name.split(".");
-      const role = parts[1]; // 'reporter' or 'photographer'
-      const field = parts[2]; // 'name'
+      const role = parts[1]; 
+      const field = parts[2]; 
       setFormData((prev: any) => ({
         ...prev,
         credits: {
@@ -184,6 +185,18 @@ export default function AdminComposer({
     setMediaList(newList);
   };
 
+  const handleFileSelectForCrop = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCroppingImage({ src: reader.result as string, index });
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = ''; 
+  };
+
   const addMediaSlot = () =>
     setMediaList([...mediaList, { file: null, url: "", credit: "" }]);
   const removeMediaSlot = (index: number) =>
@@ -197,8 +210,6 @@ export default function AdminComposer({
     try {
       let articlePayload: any = { ...formData };
       let finalMedia: { type: string; url: string; credit?: string }[] = [];
-
-      // --- NEW: Process Credit Avatars First ---
       let finalCredits = { ...articlePayload.credits };
 
       if (creditFiles.reporter) {
@@ -216,7 +227,6 @@ export default function AdminComposer({
         finalCredits.photographer.avatarUrl = photographerUrl;
       }
 
-      // Clean up empty credits to avoid polluting database
       if (!finalCredits.reporter?.name) delete finalCredits.reporter;
       if (!finalCredits.photographer?.name) delete finalCredits.photographer;
       articlePayload.credits = finalCredits;
@@ -458,54 +468,61 @@ export default function AdminComposer({
                   />
                 </div>
 
-                <div className="p-3 bg-gray-50 border border-gray-200 border-dashed rounded-xl flex flex-col justify-center">
+                <div className="p-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl flex flex-col justify-center">
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                    {editingId && mediaList[0]?.url
+                    {mediaList[0]?.url || mediaList[0]?.file
                       ? "Update Poster Ad"
                       : "OR Poster Ad (Image Upload)"}
                   </label>
 
-                  {editingId && mediaList[0]?.url && !mediaList[0]?.file && (
-                    <div className="mb-3 relative w-full h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                  {(mediaList[0]?.url || mediaList[0]?.file) && (
+                    <div className="mb-4 relative w-full h-24 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
                       <img
-                        src={mediaList[0].url}
+                        src={mediaList[0].file ? URL.createObjectURL(mediaList[0].file) : mediaList[0].url}
                         alt="Current Ad"
                         className="w-full h-full object-cover opacity-80"
                       />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                        <span className="text-white text-[10px] font-bold uppercase bg-black/50 px-2 py-1 rounded">
-                          Current Image
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                        <span className="text-white text-[10px] font-bold uppercase tracking-widest bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
+                          {mediaList[0].file ? "Ready for Upload" : "Current Image"}
                         </span>
                       </div>
                     </div>
                   )}
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      handleMediaChange(0, "file", e.target.files?.[0] || null)
-                    }
-                    className="block w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white cursor-pointer"
-                  />
+                  {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
+                  <div className="flex items-center gap-3">
+                    <label htmlFor="ad-media-upload" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm">
+                      {mediaList[0]?.file ? "Re-Crop New Image" : mediaList[0]?.url ? "Replace Ad Image" : "Choose Image"}
+                    </label>
+                    <input
+                      id="ad-media-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileSelectForCrop(0, e)}
+                      className="hidden"
+                    />
+                    {mediaList[0]?.file && (
+                      <span className="text-xs font-bold text-green-600 dark:text-green-400">
+                        ✓ Ready
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
           ) : (
             <>
-              {/* --- NEW: COMPREHENSIVE CREDITS SECTION --- */}
               <div className="p-5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl space-y-4">
                 <h3 className="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                  <UserCircle className="w-5 h-5 text-red-500" /> Article
-                  Credits
+                  <UserCircle className="w-5 h-5 text-red-500" /> Article Credits
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
                   {/* Reporter Assignment */}
                   <div className="space-y-2">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                      {editorMode === "obituary"
-                        ? "Submitted By / Family Contact"
-                        : "Reporter Name"}
+                      {editorMode === "obituary" ? "Submitted By / Family Contact" : "Reporter Name"}
                     </label>
                     <input
                       type="text"
@@ -513,26 +530,28 @@ export default function AdminComposer({
                       value={formData.credits?.reporter?.name || ""}
                       onChange={handleChange}
                       className="w-full p-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none"
-                      placeholder={
-                        editorMode === "obituary"
-                          ? "e.g., Family Member Name"
-                          : "e.g., Desk Reporter"
-                      }
+                      placeholder={editorMode === "obituary" ? "e.g., Family Member Name" : "e.g., Desk Reporter"}
                     />
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 pt-1">
                       Avatar / Photo (Optional)
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setCreditFiles((prev) => ({
-                          ...prev,
-                          reporter: e.target.files?.[0] || null,
-                        }))
-                      }
-                      className="block w-full text-xs text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-200 dark:file:bg-gray-800 file:text-gray-700 dark:file:text-gray-300 cursor-pointer"
-                    />
+                    
+                    {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
+                    <div className="flex items-center gap-3">
+                      <label htmlFor="reporter-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
+                        {creditFiles.reporter ? "Change Avatar" : "Choose Avatar"}
+                      </label>
+                      <input
+                        id="reporter-avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setCreditFiles((prev) => ({ ...prev, reporter: e.target.files?.[0] || null }))}
+                        className="hidden"
+                      />
+                      {creditFiles.reporter && (
+                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Attached</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Photographer Assignment */}
@@ -551,17 +570,23 @@ export default function AdminComposer({
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 pt-1">
                       Avatar / Photo (Optional)
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setCreditFiles((prev) => ({
-                          ...prev,
-                          photographer: e.target.files?.[0] || null,
-                        }))
-                      }
-                      className="block w-full text-xs text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-200 dark:file:bg-gray-800 file:text-gray-700 dark:file:text-gray-300 cursor-pointer"
-                    />
+                    
+                    {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
+                    <div className="flex items-center gap-3">
+                      <label htmlFor="photographer-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
+                        {creditFiles.photographer ? "Change Avatar" : "Choose Avatar"}
+                      </label>
+                      <input
+                        id="photographer-avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setCreditFiles((prev) => ({ ...prev, photographer: e.target.files?.[0] || null }))}
+                        className="hidden"
+                      />
+                      {creditFiles.photographer && (
+                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Attached</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -579,7 +604,6 @@ export default function AdminComposer({
                 />
               </div>
 
-              {/* --- MULTIPLE PHOTOS --- */}
               <div className="space-y-4">
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                   Media Attachments
@@ -595,43 +619,52 @@ export default function AdminComposer({
                         <button
                           type="button"
                           onClick={() => removeMediaSlot(index)}
-                          className="absolute top-3 right-3 p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200"
+                          className="absolute top-3 right-3 p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200 z-10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
 
-                      <div className="grid grid-cols-1 gap-6 items-center">
+                      <div className="grid grid-cols-1 gap-4 items-center">
                         <div className="w-full">
-                          {media.url && !media.file && (
-                            <div className="mb-3 relative w-full h-28 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
-                              <img
-                                src={media.url}
-                                alt="Current Media"
-                                className="w-full h-full object-cover opacity-90"
+                          
+                          {(media.url || media.file) && (
+                            <div className="mb-4 relative w-full aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm bg-gray-100 dark:bg-gray-900">
+                              <img 
+                                src={media.file ? URL.createObjectURL(media.file) : media.url} 
+                                alt="Media Preview" 
+                                className="w-full h-full object-cover" 
                               />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
                                 <span className="text-white text-[10px] font-bold uppercase tracking-widest bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
-                                  Saved Image
+                                  {media.file ? "Ready for Upload" : "Live Image"}
                                 </span>
                               </div>
                             </div>
                           )}
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                            {media.url ? "Replace Image" : "Upload Image"}
-                          </label>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                              handleMediaChange(
-                                index,
-                                "file",
-                                e.target.files?.[0] || null,
-                              )
-                            }
-                            className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer transition-colors"
-                          />
+
+                          {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
+                          <div className="flex items-center gap-3">
+                            <label
+                              htmlFor={`media-upload-${index}`}
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm"
+                            >
+                              {media.file ? "Re-Crop New Image" : media.url ? "Replace Existing Image" : "Choose Image"}
+                            </label>
+                            <input
+                              id={`media-upload-${index}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleFileSelectForCrop(index, e)}
+                              className="hidden"
+                            />
+                            {media.file && (
+                              <span className="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
+                                ✓ Cropped & Ready
+                              </span>
+                            )}
+                          </div>
+
                         </div>
                       </div>
                     </div>
@@ -751,6 +784,17 @@ export default function AdminComposer({
           </div>
         </form>
       </div>
+
+      {croppingImage && (
+        <ImageCropperModal
+          imageSrc={croppingImage.src}
+          onCropDone={(croppedFile) => {
+            handleMediaChange(croppingImage.index, "file", croppedFile);
+            setCroppingImage(null);
+          }}
+          onCancel={() => setCroppingImage(null)}
+        />
+      )}
     </div>
   );
 }
