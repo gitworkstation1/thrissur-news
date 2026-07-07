@@ -107,41 +107,41 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
               <div className="flex items-center gap-3 flex-1">
                 {article.credits?.reporter?.avatarUrl ? (
                   <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
-                    <Image src={article.credits.reporter.avatarUrl} alt={article.credits?.reporter?.name || "Anonymous"} fill className="object-cover" />
+                    <Image src={article.credits.reporter.avatarUrl} alt={article.credits?.reporter?.name || article.reportedBy || "Anonymous"} fill className="object-cover" />
                   </div>
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
                     <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
-                      {(article.credits?.reporter?.name || "A").charAt(0).toUpperCase()}
+                      {(article.credits?.reporter?.name || article.reportedBy || "A").charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Reporter</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.reporter?.name || "Anonymous"}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.reporter?.name || article.reportedBy || "Anonymous"}</span>
                 </div>
               </div>
 
-              {article.credits?.photographer?.name && (
+              {(article.credits?.photographer?.name || article.photographedBy) && (
                 <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-gray-700/50"></div>
               )}
 
-              {article.credits?.photographer?.name && (
+              {(article.credits?.photographer?.name || article.photographedBy) && (
                 <div className="flex items-center gap-3 flex-1">
-                  {article.credits.photographer.avatarUrl ? (
+                  {article.credits?.photographer?.avatarUrl ? (
                     <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
-                      <Image src={article.credits.photographer.avatarUrl} alt={article.credits.photographer.name} fill className="object-cover" />
+                      <Image src={article.credits.photographer.avatarUrl} alt={article.credits?.photographer?.name || article.photographedBy} fill className="object-cover" />
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
                       <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
-                        {article.credits.photographer.name.charAt(0).toUpperCase()}
+                        {(article.credits?.photographer?.name || article.photographedBy || "A").charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Photographer</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits.photographer.name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.photographer?.name || article.photographedBy}</span>
                   </div>
                 </div>
               )}
@@ -153,7 +153,7 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
                 {imageMedia.map((img: any, index: number) => {
                   
                   // Determine the credit for this specific image, fallback to main photographer, then Anonymous
-                  const photoCredit = img.credit || article.credits?.photographer?.name || "Anonymous";
+                  const photoCredit = img.credit || article.credits?.photographer?.name || article.photographedBy || "Anonymous";
 
                   return (
                     <figure key={index} className="w-full flex flex-col gap-2">

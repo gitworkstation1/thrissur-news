@@ -62,6 +62,20 @@ const articleSchema = new mongoose.Schema({
       maxlength: [100, 'Credit cannot exceed 100 characters']
     } 
   }],
+  
+  // 🛡️ NEW: Nested credits object to match your frontend form exactly!
+  credits: {
+    reporter: {
+      name: { type: String, trim: true, default: "", maxlength: 100 },
+      avatarUrl: { type: String, default: "" }
+    },
+    photographer: {
+      name: { type: String, trim: true, default: "", maxlength: 100 },
+      avatarUrl: { type: String, default: "" }
+    }
+  },
+
+  // (Kept for backwards compatibility with older articles)
   reportedBy: { 
     type: String, 
     default: "",

@@ -152,27 +152,42 @@ router.get('/:id', async (req, res) => {
 // 4. POST: Create a new document (PROTECTED)
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { category } = req.body;
+    const { category, ...rest } = req.body;
     let newDoc;
 
-    if (category === 'Obituary') {
-        newDoc = new Obituary(req.body);
-    } else if (category === 'Advertisement') {
-        newDoc = new Advertisement(req.body);
-    } else if (category === 'Shorts') {
-        newDoc = new Short(req.body);
-    } else {
-        newDoc = new Article(req.body);
-    }
+    // Explicitly pass the full req.body to ensure nested objects like 'credits' are included
+    if (category === 'Obituary') newDoc = new Obituary(req.body);
+    else if (category === 'Advertisement') newDoc = new Advertisement(req.body);
+    else if (category === 'Shorts') newDoc = new Short(req.body);
+    else newDoc = new Article(req.body);
 
     const savedDoc = await newDoc.save();
     res.status(201).json({ success: true, article: savedDoc });
   } catch (error) {
+    console.error("Save error:", error); // ⚡ Look at your backend terminal for this!
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ error: 'Validation failed', details: errors });
     }
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 5. UPDATE (PROTECTED)
+router.put('/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // ... validation logic ...
+    
+    // Ensure req.body contains the full object including 'credits'
+    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { 
+      new: true,
+      runValidators: true // ⚡ This ensures the schema validates the new credits field!
+    });
+    
+    res.json(updatedDoc);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update', error: error.message });
   }
 });
 
