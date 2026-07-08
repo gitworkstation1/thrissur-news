@@ -44,6 +44,7 @@ const INITIAL_FORM_STATE = {
   headline: "",
   body: "",
   isBreaking: false,
+  isTicker: false,
   category: "News",
   location: { ward: "", landmark: "" },
   status: "published",
@@ -116,6 +117,10 @@ export default function AdminDashboard() {
         targetPage,
         12,
         activeView,
+        "All Places", // ward
+        undefined,    // isBreaking
+        undefined,    // date
+        true          // ⚡ ADD THIS TRUE FLAG (isAdmin)
       );
       setArticles(data.articles || []);
       setTotalPages(data.totalPages || 1);
@@ -171,6 +176,7 @@ export default function AdminDashboard() {
       headline: article.headline,
       body: article.body,
       isBreaking: article.isBreaking || false,
+      isTicker: article.isTicker || false, 
       category: article.category || "News",
       location: article.location || { ward: "", landmark: "" },
       status: article.status || "published",

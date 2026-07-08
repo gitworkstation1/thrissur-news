@@ -9,6 +9,7 @@ import AutoScrollToTop from "@/components/ui/AutoScrollToTop";
 import ArticleNavbar from "@/components/layout/ArticleNavbar";
 import { fetchArticleById, fetchArticles } from "@/lib/api";
 import GoogleAd from "@/components/ad/GoogleAd";
+import ArticlePopUpAd from "@/components/ad/ArticlePopUpAd";
 
 const formatDetailedDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -40,6 +41,7 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
   
   const [sidebarAd, setSidebarAd] = useState<any>(null);
   const [inlineAd, setInlineAd] = useState<any>(null);
+  const [popUpAd, setPopUpAd] = useState<any>(null);
 
   const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -59,6 +61,7 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
           const ads = adsData.articles || [];
           setSidebarAd(ads.find((ad: any) => ad.location?.landmark === "Sidebar Banner"));
           setInlineAd(ads.find((ad: any) => ad.location?.landmark === "Article Inline"));
+          setPopUpAd(ads.find((ad: any) => ad.location?.landmark === "Full Coverage Pop-up"));
         });
       });
     });
@@ -71,6 +74,9 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] pb-24 selection:bg-red-200 dark:selection:bg-red-900/50">
+
+      {/* ⚡ NEW: The Pop-Up Ad Component */}
+      <ArticlePopUpAd ad={popUpAd} />
 
       {/* Invisible component that forces scroll to top */}
       <AutoScrollToTop />

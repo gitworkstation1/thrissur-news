@@ -43,6 +43,7 @@ const AD_ZONES = [
   "Sidebar Banner",
   "Article Inline",
   "Shorts Vertical Feed",
+  "Full Coverage Pop-up",
 ];
 
 interface AdminComposerProps {

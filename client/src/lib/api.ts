@@ -16,7 +16,8 @@ export async function fetchArticles(
   status: string = 'published', // Defaults to safe public viewing
   ward: string = 'All Places',  // Brought ward back!
   isBreaking?: boolean,         // <-- NEW: Added breaking parameter
-  date?: string                 // <-- NEW: Added date parameter
+  date?: string,                 // <-- NEW: Added date parameter
+  isAdmin: boolean = false
 ): Promise<{ articles: Article[], totalPages: number, currentPage: number }> {
   
   let url = `${API_URL}/api/news`;
@@ -38,7 +39,11 @@ export async function fetchArticles(
   url += `?${params.toString()}`;
 
   // FIX: Applied Option B (ISR) - Cache for 60 seconds on public pages
-  const res = await fetch(url, { next: { revalidate: 60 } });
+  const fetchOptions = isAdmin 
+    ? { cache: 'no-store' as RequestCache } 
+    : { next: { revalidate: 60 } };
+
+  const res = await fetch(url, fetchOptions);
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -49,11 +54,17 @@ export async function fetchArticles(
 }
 
 // 2. Fetch a Single Article by ID
-export async function fetchArticleById(id: string): Promise<Article> {
-  // FIX: Applied Option B (ISR) - Cache individual articles for 60 seconds
-  const res = await fetch(`${API_URL}/api/news/${id}`, { 
-    next: { revalidate: 60 } 
-  });
+export async function fetchArticleById(
+  id: string, 
+  isEditing: boolean = false // ⚡ NEW: Toggle to bypass cache for admins
+): Promise<Article> {
+  
+  // Admins get fresh data instantly (no-store). Readers get the 60s cache.
+  const fetchOptions = isEditing 
+    ? { cache: 'no-store' as RequestCache } 
+    : { next: { revalidate: 60 } };
+
+  const res = await fetch(`${API_URL}/api/news/${id}`, fetchOptions);
   
   if (!res.ok) {
     const errorText = await res.text();
