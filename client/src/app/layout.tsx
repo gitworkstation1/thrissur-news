@@ -31,11 +31,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* Google AdSense */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
           crossOrigin="anonymous"
           strategy="afterInteractive"
+        />
+        
+        {/* ADDED THIS: Liquid Glass Library */}
+        <Script 
+          src="/liquid-glass.js" 
+          strategy="afterInteractive" 
         />
       </head>
       <body className="bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col">

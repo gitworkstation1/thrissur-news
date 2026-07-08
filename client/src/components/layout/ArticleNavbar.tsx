@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import { useRouter } from "next/navigation"; // <-- IMPORT ROUTER
 import { ChevronLeft, Share2 } from "lucide-react";
 import BookmarkButton from "@/components/ui/BookmarkButton";
+import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; // <-- IMPORT YOUR NEW GLASS BUTTON
 
 export default function ArticleNavbar({ article }: { article: any }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false); 
+  const router = useRouter(); // <-- INITIALIZE ROUTER
 
   useEffect(() => {
     setMounted(true);
@@ -43,10 +45,14 @@ export default function ArticleNavbar({ article }: { article: any }) {
         isScrolled ? "-translate-y-full" : "translate-y-0"
       }`}
     >
-      <Link href="/" className="flex items-center gap-2 p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-black dark:text-white">
+      {/* 1. LIQUID GLASS MAIN BACK BUTTON */}
+      <LiquidGlassButton 
+        onClick={() => router.push('/')} 
+        className="flex items-center gap-2 p-2 -ml-2 text-black dark:text-white"
+      >
         <ChevronLeft className="w-5 h-5" />
         <span className="text-sm font-bold">Back to News</span>
-      </Link>
+      </LiquidGlassButton>
       
       <div className="flex items-center gap-3">
         <button onClick={handleShare} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors group">
@@ -57,8 +63,6 @@ export default function ArticleNavbar({ article }: { article: any }) {
     </div>
   );
 
-  // 2. The Floating Circular Back Pill (Teleported via Portal)
-  // Sizes perfectly matched to standard UI pills (h-10 or h-12)
   const floatingPill = (
     <div 
       className={`transition-opacity duration-300 ease-in-out z-[9999] ${
@@ -66,23 +70,23 @@ export default function ArticleNavbar({ article }: { article: any }) {
       }`}
       style={{
         position: 'fixed',
-        top: '35px', // Change this specific number to match your right-side pill (e.g., 16px, 20px, or 24px)
+        top: '35px', 
         left: '16px'
       }}
     >
-      <Link 
-        href="/" 
-        className="flex items-center justify-center w-11 h-11 bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 rounded-full hover:scale-105 active:scale-95 transition-all text-black dark:text-white"
+      {/* 2. LIQUID GLASS FLOATING BACK BUTTON */}
+      <LiquidGlassButton 
+        onClick={() => router.push('/')} 
+        className="flex items-center justify-center w-11 h-11 text-black dark:text-white"
       >
         <ChevronLeft className="w-6 h-6 -ml-0.5 text-gray-800 dark:text-gray-200" />
-      </Link>
+      </LiquidGlassButton>
     </div>
   );
 
   return (
     <>
       {fullNavbar}
-      {/* This forces the button out of all layouts and pins it to the screen */}
       {mounted && createPortal(floatingPill, document.body)}
     </>
   );

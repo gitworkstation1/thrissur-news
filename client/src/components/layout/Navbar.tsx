@@ -5,6 +5,7 @@ import { MapPin, User, Check, Moon, Sun, Search, PlaySquare, Home, Bookmark, X }
 import Link from "next/link";
 import Image from "next/image"; 
 import { usePathname } from "next/navigation";
+import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; // <-- IMPORTED HERE
 
 const places = [
   "All", "Irinjalakuda", "Kodungallur", "Chalakudy", "Guruvayur",
@@ -251,27 +252,27 @@ export default function Navbar() {
                   : 'relative gap-4 xl:gap-6 bg-transparent border-transparent px-0 py-0 shadow-none'
               }`}
             >
-              {/* Location Button */}
-              <button 
+              {/* LIQUID GLASS: Location Button */}
+              <LiquidGlassButton 
                 onClick={() => setShowLocations(!showLocations)} 
                 className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors relative z-50 ${
                   isScrolled ? 'rounded-full' : 'rounded-lg'
                 } ${showLocations 
-                  ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/30' 
-                  : 'text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'text-[#e3000f]' 
+                  : 'text-[#002244] dark:text-gray-200'
                 }`}
               >
                 <MapPin className="h-5 w-5 mb-0.5" />
                 <span className="text-[8px] font-extrabold tracking-wider uppercase w-full text-center truncate px-1">
                   {selectedLocation}
                 </span>
-              </button>
+              </LiquidGlassButton>
 
-              {/* Animated Theme Button */}
-              <button 
+              {/* LIQUID GLASS: Animated Theme Button */}
+              <LiquidGlassButton 
                 onClick={toggleTheme} 
                 aria-label="Toggle Theme"
-                className={`relative z-10 w-8 h-8 flex items-center justify-center overflow-hidden rounded-full transition-colors text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800`}
+                className={`relative z-10 w-8 h-8 flex items-center justify-center overflow-hidden rounded-full transition-colors text-[#002244] dark:text-gray-200`}
               >
                 <Sun 
                   className={`absolute h-5 w-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
@@ -283,7 +284,7 @@ export default function Navbar() {
                     isDarkMode ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
                   }`} 
                 />
-              </button>
+              </LiquidGlassButton>
 
               <Link href="/dashboard" className={`text-[#002244] dark:text-gray-200 rounded-full transition-all duration-400 hidden sm:flex items-center justify-center overflow-hidden ${
                 isScrolled 
