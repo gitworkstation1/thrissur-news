@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation"; 
-import Link from "next/link"; // Imported Link
+import Link from "next/link"; 
 
 export default function QuickReadButton() {
   const pathname = usePathname(); 
@@ -41,7 +41,8 @@ export default function QuickReadButton() {
     <Link 
       href="/quick-read"
       className={`
-        fixed right-4 bottom-24 z-40 
+        /* ⚡ ULTIMATE FIX: Dropped to z-[5] so it mathematically cannot overlap menus ⚡ */
+        fixed right-4 bottom-24 z-[5] 
         flex items-center justify-center rounded-full
         transition-all duration-300 ease-in-out overflow-hidden h-10 
         

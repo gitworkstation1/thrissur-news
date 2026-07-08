@@ -22,20 +22,25 @@
 
   // Chromium can apply SVG filters via backdrop-filter; Safari and Firefox
   // silently no-op, so they get the frosted fallback instead.
+ // Smart Support Check: Liquid Glass for Android/Desktop, Frosted Glass for iOS/Firefox
   const supported = (() => {
     const ua = navigator.userAgent;
-    const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua);
+
+    // 1. Explicitly block ALL iOS devices (iPhone, iPad, iPod)
+    // Apple forces all iOS browsers to use WebKit, which breaks SVG backdrops.
+    const isIOS = /iP(ad|hone|od)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) return false;
+
+    // 2. Block Firefox and Desktop Safari (they lack support)
     const isFirefox = /Firefox/.test(ua);
-    if (isSafari || isFirefox) return false;
+    const isDesktopSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua);
+    if (isFirefox || isDesktopSafari) return false;
+
+    // 3. Verify CSS support just in case
     if (!CSS.supports("backdrop-filter", "url(#lg)")) return false;
-    try {
-      const c = document.createElement("canvas");
-      c.width = c.height = 4;
-      c.getContext("2d").getImageData(0, 0, 1, 1);
-      return true;
-    } catch (_) {
-      return false;
-    }
+
+    // If it makes it here (like Android Chrome or Desktop Edge), turn on Liquid Glass!
+    return true; 
   })();
 
   function ensureDefs() {

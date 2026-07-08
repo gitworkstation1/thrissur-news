@@ -24,24 +24,18 @@ export default function SearchClient({
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const filteredArticles = initialArticles.filter((article) => {
-    // 1. SAFETY CHECK: Completely hide Ads and Shorts from the search feed
     if (article.category === "Advertisement" || article.category === "Shorts") {
       return false;
     }
 
-    // 2. APPLY SEARCH & FILTER LOGIC
     const query = activeFilter || searchQuery;
     if (!query) return true;
 
     const lowerQuery = query.toLowerCase();
     const matchHeadline = article.headline?.toLowerCase().includes(lowerQuery);
     const matchCategory = article.category?.toLowerCase().includes(lowerQuery);
-    const matchWard = article.location?.ward
-      ?.toLowerCase()
-      .includes(lowerQuery);
-    const matchLandmark = article.location?.landmark
-      ?.toLowerCase()
-      .includes(lowerQuery);
+    const matchWard = article.location?.ward?.toLowerCase().includes(lowerQuery);
+    const matchLandmark = article.location?.landmark?.toLowerCase().includes(lowerQuery);
 
     return matchHeadline || matchCategory || matchWard || matchLandmark;
   });
@@ -52,30 +46,27 @@ export default function SearchClient({
   };
 
   return (
-    <div className="max-w-[96%] 2xl:max-w-[1500px] mx-auto px-4 py-6 flex flex-row gap-8 justify-center items-start relative">
+    <div className="max-w-[96%] 2xl:max-w-[1500px] mx-auto px-4 py-4 flex flex-row gap-8 justify-center items-start relative">
+      
       {/* ================= LEFT AD COLUMN ================= */}
-      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 sticky top-24 flex-col gap-6">
+      {/* ⚡ Hiddent Scrollbar applied here */}
+      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-col gap-6 pb-12">
         {sidebarAd}
       </div>
 
       {/* ================= MAIN SEARCH COLUMN ================= */}
-      <div className="w-full max-w-3xl flex-1">
+      <div className="w-full max-w-3xl flex-1 flex flex-col h-[calc(100dvh-120px)]">
         
-        {/* SEARCH BAR - PILL DESIGN WITH BLACK-TO-RED OUTLINE */}
-        <div className="sticky top-[60px] md:top-[72px] z-40 bg-[#fafafa] dark:bg-[#0a0a0a] pb-4 pt-4 transition-colors duration-300">
+        {/* SEARCH BAR HEAD */}
+        <div className="shrink-0 z-30 bg-[#fafafa] dark:bg-[#0a0a0a] pb-2 transition-colors duration-300">
           
-          {/* The Wrapper that scales up slightly when clicked */}
           <div className="relative group transition-transform duration-300 ease-out focus-within:scale-[1.02]">
-            
-            {/* The main input container */}
             <div className="relative flex items-center bg-white dark:bg-[#111] border-2 border-black dark:border-gray-500 focus-within:border-[#e3000f] dark:focus-within:border-[#e3000f] rounded-full shadow-sm focus-within:shadow-md focus-within:ring-4 focus-within:ring-[#e3000f]/10 dark:focus-within:ring-[#e3000f]/20 transition-all duration-300 p-1.5 overflow-hidden">
               
-              {/* Search Icon */}
               <div className="flex items-center justify-center pl-4 pr-2 text-gray-400 group-focus-within:text-[#e3000f] transition-colors duration-300">
                 <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
 
-              {/* The Input Field */}
               <input
                 type="text"
                 placeholder="Search news, locations, or topics..."
@@ -87,7 +78,6 @@ export default function SearchClient({
                 className="w-full bg-transparent text-gray-900 dark:text-white text-base sm:text-lg font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-600 outline-none px-2 py-2.5"
               />
 
-              {/* Clear Button */}
               {(searchQuery || activeFilter) && (
                 <button
                   onClick={handleClear}
@@ -121,9 +111,11 @@ export default function SearchClient({
           </div>
         </div>
 
-        {/* SEARCH RESULTS (Ad-Free Feed) */}
-        <div className="mt-2 mb-8 min-h-[500px]">
-          <div className="flex items-center justify-between mb-4">
+        {/* SEARCH RESULTS */}
+        {/* ⚡ Hidden Scrollbar applied here */}
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-2 sm:px-4 pb-32">
+          
+          <div className="flex items-center justify-between mb-4 sticky top-0 bg-[#fafafa] dark:bg-[#0a0a0a] z-10 py-2">
             <h2 className="text-sm font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-300">
               {searchQuery || activeFilter
                 ? "Search Results"
@@ -159,9 +151,11 @@ export default function SearchClient({
       </div>
 
       {/* ================= RIGHT AD COLUMN ================= */}
-      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 sticky top-24 flex-col gap-6">
+      {/* ⚡ Hidden Scrollbar applied here */}
+      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-col gap-6 pb-12">
         {sidebarAd}
       </div>
+      
     </div>
   );
 }

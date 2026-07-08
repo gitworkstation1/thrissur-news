@@ -18,8 +18,6 @@ export default function CategoryMenu() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Smart active state: Check if we are on the dedicated obituary route, 
-  // otherwise look for the category search parameter, defaulting to News.
   let selectedCategory = searchParams.get("category") || "News"; 
   if (pathname === "/obituary") {
     selectedCategory = "Obituary";
@@ -29,7 +27,6 @@ export default function CategoryMenu() {
     if (cat === "News") {
       router.push("/"); 
     } else if (cat === "Obituary") {
-      // Route specifically to our custom dedicated page
       router.push("/obituary");
     } else {
       router.push(`/?category=${cat}`);
@@ -64,8 +61,8 @@ export default function CategoryMenu() {
   }, [isOpen]);
 
   return (
-    // FIXED: Changed z-40 to z-[70] to ensure the entire category bar sits above page content
-    <div className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-[999] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+    // ⚡ ELEVATED to z-[9999] so the entire bar and its children sit above the Flash Read button
+    <div className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-[9999] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
       isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
     }`}>
       
@@ -109,8 +106,7 @@ export default function CategoryMenu() {
           </button>
 
           {isOpen && (
-            // FIXED: Changed z-50 to z-[100] so the dropdown escapes its parent boundaries and floats above everything
-<div className="absolute top-[calc(100%+10px)] right-0 w-56 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-200/60 dark:border-gray-700/50 overflow-hidden py-2 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">              
+            <div className="absolute top-[calc(100%+10px)] right-0 w-56 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-200/60 dark:border-gray-700/50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200">              
               <div className="px-4 py-2 mb-1 border-b border-gray-100 dark:border-gray-800/80 flex items-center gap-2 text-gray-500 dark:text-gray-400">
                 <Layers className="w-4 h-4" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">All Categories</span>

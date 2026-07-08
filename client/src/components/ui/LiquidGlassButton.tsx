@@ -1,34 +1,34 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 
+// ⚡ Added glassOptions here
 interface LiquidGlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
+  glassOptions?: any; 
 }
 
-export default function LiquidGlassButton({ children, className = "", ...props }: LiquidGlassButtonProps) {
+export default function LiquidGlassButton({ children, className = "", glassOptions, ...props }: LiquidGlassButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // 1. Check if the element exists and if the script has loaded
-    // @ts-ignore - Ignoring TS error because liquidGlass is attached to the window object
+    // @ts-ignore
     if (!buttonRef.current || typeof window.liquidGlass === "undefined") return;
 
-    // 2. Apply the effect with settings optimized for small buttons/pills
     // @ts-ignore
     const glass = window.liquidGlass(buttonRef.current, {
-      scale: -60,       // Subtle bulge
-      chroma: 4,        // Slight rainbow edge
-      blur: 2,          // Internal blur
-      border: 0.1,      // Neutral center
+      scale: -60,       
+      chroma: 2,        
+      blur: 2,          
+      border: 0.1,      
+      ...glassOptions // ⚡ This lets us override the settings per-button!
     });
 
-    // 3. Clean up the effect if the button is removed from the screen
     return () => {
       if (glass && typeof glass.destroy === "function") {
         glass.destroy();
       }
     };
-  }, []);
+  }, [glassOptions]);
 
   return (
     <button

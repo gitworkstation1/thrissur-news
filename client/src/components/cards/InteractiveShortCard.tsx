@@ -52,7 +52,7 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
       <div className="relative z-10 w-full max-w-2xl flex flex-col bg-white dark:bg-[#121212] rounded-3xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-2xl">
         
         {/* 2. REDUCED IMAGE HEIGHT - 'h-[30vh]' instead of 'h-[40dvh]' to save space */}
-        <div className="relative h-[30vh] w-full overflow-hidden bg-gray-100 dark:bg-neutral-900">
+        <div className="relative h-[25vh] w-full overflow-hidden bg-gray-100 dark:bg-neutral-900">
           <Image 
             src={article.media?.[0]?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600'} 
             alt={article.headline} 
@@ -86,7 +86,7 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
           </h2>
 
           {/* 3. CONSTRAINED TEXT AREA */}
-          <div className="max-h-[35vh] overflow-y-auto text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 hide-scrollbar">
+          <div className="max-h-[30vh] overflow-y-auto text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 hide-scrollbar">
             <p>{article.body || "Swipe to read more..."}</p>
           </div>
 
