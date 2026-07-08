@@ -21,7 +21,14 @@ export default function RegionManager() {
     try {
       // ⚡ Explicitly adding /api/ to the path
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/regions`);
+      const res = await fetch(`${baseUrl}/api/regions/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // ⚡ THE MAGIC KEY: Tells the browser to send your admin cookie!
+        body: JSON.stringify({ regions }),
+      });
       
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
