@@ -1,4 +1,3 @@
-// server/src/index.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -6,22 +5,23 @@ const cors = require('cors');
 const helmet = require('helmet'); 
 const rateLimit = require('express-rate-limit');
 
+// Import routes
+const regionRoutes = require('./routes/regions');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- 1. THE REVERSE PROXY FIX ---
-// REQUIRED for Render/Heroku/DigitalOcean so the Rate Limiter reads the REAL user's IP, not the server's IP.
 app.set('trust proxy', 1);
 
 // --- 2. GLOBAL SECURITY SHIELDS ---
-// The Helmet Fix: Allows your Vercel frontend to load images from this backend
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" } 
 }));
 
 // Global Rate Limiter
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, 
   max: 1000, 
   message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
   standardHeaders: true, 
@@ -29,7 +29,7 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// --- 3. MIDDLEWARE ---
+// --- 3. MIDDLEWARE (MUST BE BEFORE ROUTES) ---
 const allowedOrigins = [
   'http://localhost:3000',
   'https://thrissur-news-tau.vercel.app' 
@@ -54,9 +54,10 @@ mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Atlas connected successfully'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// --- 5. ROUTES ---
+// --- 5. ROUTES (MUST BE AFTER MIDDLEWARE) ---
 app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
+app.use('/api/regions', regionRoutes); // ⚡ MOVED HERE!
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend Engine running on port ${PORT}`);

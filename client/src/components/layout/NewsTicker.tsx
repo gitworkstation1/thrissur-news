@@ -3,13 +3,25 @@ import { fetchArticles } from "@/lib/api";
 
 export default async function NewsTicker() {
   let articles: any[] = [];
+  
   try {
-    // 1. Fetch the latest published articles
-    const res = await fetchArticles("All", "", 1, 10, "published", "All Places");
+    // 1. Fetch a larger pool of recent articles (top 20) to ensure we catch flagged ones
+    const res = await fetchArticles("All", "", 1, 20, "published", "All Places");
+    const allArticles = res.articles || [];
+
+    // 2. Separate into priority buckets
+    // Highest Priority: Admin manually selected for the ticker
+    const adminSelected = allArticles.filter((a: any) => a.isTicker);
     
-    // 2. Prioritize breaking news if it exists, otherwise fallback to the 8 most recent articles
-    const breaking = (res.articles || []).filter((a: any) => a.isBreaking);
-    articles = breaking.length > 0 ? breaking : (res.articles || []).slice(0, 8);
+    // Secondary Priority: Breaking News (filtering out ones already in adminSelected to prevent duplicates)
+    const breakingNews = allArticles.filter((a: any) => a.isBreaking && !a.isTicker);
+
+    // 3. Combine them. 
+    const combinedTicker = [...adminSelected, ...breakingNews];
+
+    // 4. Fallback: If nothing is selected and there's no breaking news, show the 8 latest
+    articles = combinedTicker.length > 0 ? combinedTicker : allArticles.slice(0, 8);
+    
   } catch (error) {
     console.error("Failed to fetch ticker news", error);
   }

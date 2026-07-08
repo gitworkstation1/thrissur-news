@@ -152,22 +152,19 @@ router.get('/:id', async (req, res) => {
 // 4. POST: Create a new document (PROTECTED)
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { category } = req.body;
+    const { category, ...rest } = req.body;
     let newDoc;
 
-    if (category === 'Obituary') {
-        newDoc = new Obituary(req.body);
-    } else if (category === 'Advertisement') {
-        newDoc = new Advertisement(req.body);
-    } else if (category === 'Shorts') {
-        newDoc = new Short(req.body);
-    } else {
-        newDoc = new Article(req.body);
-    }
+    // Explicitly pass the full req.body to ensure nested objects like 'credits' are included
+    if (category === 'Obituary') newDoc = new Obituary(req.body);
+    else if (category === 'Advertisement') newDoc = new Advertisement(req.body);
+    else if (category === 'Shorts') newDoc = new Short(req.body);
+    else newDoc = new Article(req.body);
 
     const savedDoc = await newDoc.save();
     res.status(201).json({ success: true, article: savedDoc });
   } catch (error) {
+    console.error("Save error:", error); // ⚡ Look at your backend terminal for this!
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ error: 'Validation failed', details: errors });
@@ -177,6 +174,7 @@ router.post('/', requireAdmin, async (req, res) => {
 });
 
 // 5. UPDATE (PROTECTED)
+// 5. UPDATE (PROTECTED)
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -185,20 +183,34 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Document not found (Invalid ID format)' });
     }
 
+    // 1. Explicitly declare the variable here so JavaScript doesn't panic
     let ModelToUse = null;
-    if (await Article.findById(id)) ModelToUse = Article;
-    else if (await Obituary.findById(id)) ModelToUse = Obituary;
-    else if (await Advertisement.findById(id)) ModelToUse = Advertisement;
-    else if (await Short.findById(id)) ModelToUse = Short;
+
+    // 2. Figure out which collection this ID belongs to
+    if (await Article.findById(id)) {
+        ModelToUse = Article;
+    } else if (await Obituary.findById(id)) {
+        ModelToUse = Obituary;
+    } else if (await Advertisement.findById(id)) {
+        ModelToUse = Advertisement;
+    } else if (await Short.findById(id)) {
+        ModelToUse = Short;
+    }
 
     if (!ModelToUse) {
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { new: true });
+    // 3. Update the document, ensuring new schema fields (like isTicker) are validated
+    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { 
+      new: true,
+      runValidators: true 
+    });
+    
     res.json(updatedDoc);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update document', error: error.message });
+    // This safely catches errors and sends them to your frontend instead of crashing Node!
+    res.status(500).json({ message: 'Failed to update', error: error.message });
   }
 });
 

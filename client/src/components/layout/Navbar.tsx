@@ -1,28 +1,65 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
-import { MapPin, User, Check, Moon, Sun, Search, PlaySquare, Home, Bookmark, X } from "lucide-react"; 
+import { 
+  MapPin, User, Check, Moon, Sun, Search, PlaySquare, Home, Bookmark, X, 
+  ChevronDown, ChevronRight 
+} from "lucide-react"; 
 import Link from "next/link";
 import Image from "next/image"; 
 import { usePathname } from "next/navigation";
 import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; // <-- IMPORTED HERE
 
-const places = [
-  "All", "Irinjalakuda", "Kodungallur", "Chalakudy", "Guruvayur",
-  "Wadakkanchery", "Kunnamkulam", "Ollur", "Thrissur Town",
-  "Mala", "Chavakkad", "Puthukkad", "Anthikad",
-];
-
 export default function Navbar() {
   const pathname = usePathname();
   const [showLocations, setShowLocations] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("All"); 
+  const [selectedLocation, setSelectedLocation] = useState("All Regions"); 
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ⚡ NEW: Live Database States
+  const [regionData, setRegionData] = useState<any[]>([]);
+  const [expandedState, setExpandedState] = useState<string>("");
+  const [expandedDistrict, setExpandedDistrict] = useState<string>("");
   
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ⚡ NEW: Fetch Regions from your backend on Load
+  // ⚡ FETCH REGIONS ON LOAD (BULLETPROOF VERSION)
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        // 1. Clean the URL
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+        const res = await fetch(`${baseUrl}/api/regions`);
+        
+        if (!res.ok) throw new Error("Failed to fetch regions");
+        const data = await res.json();
+        
+        // 2. Prevent the .map() crash
+        if (data && Array.isArray(data) && data.length > 0) {
+          setRegionData(data);
+          
+          setExpandedState(data[0].state);
+          if (data[0].districts && data[0].districts.length > 0) {
+            setExpandedDistrict(data[0].districts[0].name);
+            if (selectedLocation === "All Regions" && data[0].districts[0].locals[0]) {
+              setSelectedLocation(data[0].districts[0].locals[0]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Navbar region fetch bypassed safely:", error);
+        // Fallback so the UI never breaks
+        setRegionData([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
+      }
+    };
+    fetchRegions();
+  }, [selectedLocation]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -260,6 +297,8 @@ export default function Navbar() {
                 } ${showLocations 
                   ? 'text-[#e3000f]' 
                   : 'text-[#002244] dark:text-gray-200'
+                  ? 'bg-[#FF6B6B]/10 text-[#FF6B6B]' 
+                  : 'text-[#002244] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 <MapPin className="h-5 w-5 mb-0.5" />
@@ -294,8 +333,6 @@ export default function Navbar() {
                 <User className="h-6 w-6 flex-shrink-0" />
               </Link>
               
-              {/* Location Dropdown Menu (Always Mounted, Animated via CSS) */}
-              
               {/* FOOLPROOF MOBILE OVERLAY */}
               <div 
                 className={`fixed inset-0 z-40 transition-opacity duration-300 ${
@@ -311,27 +348,83 @@ export default function Navbar() {
                 }}
               />
               
-              {/* BOUNCY DROPDOWN CONTAINER */}
+              {/* DRILL-DOWN HIERARCHICAL DROPDOWN CONTAINER */}
               <div 
-                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-56 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[70vh] overflow-y-auto z-50 origin-top-right transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[75vh] overflow-y-auto z-50 origin-top-right transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] custom-scrollbar ${
                   showLocations ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-75 -translate-y-4 pointer-events-none"
                 }`}
               >
-                <div className="bg-gray-50 dark:bg-[#111] px-4 py-2 border-b border-gray-100 dark:border-gray-800 sticky top-0">
+                <div className="bg-gray-50 dark:bg-[#111] px-4 py-3 border-b border-gray-100 dark:border-gray-800/50 sticky top-0 z-10 flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Select Region</span>
                 </div>
-                <div className="flex flex-col relative z-50">
-                  {places.map((place) => (
-                    <button 
-                      key={place} 
-                      onClick={() => { setSelectedLocation(place); setShowLocations(false); }}
-                      className={`flex items-center justify-between w-full text-left px-4 py-3 text-sm font-semibold border-b border-gray-50 dark:border-gray-800/50 last:border-none transition-colors outline-none
-                        ${selectedLocation === place ? 'bg-red-50 text-[#e3000f] dark:bg-red-900/20' : 'hover:bg-blue-50 dark:hover:bg-gray-800 hover:text-[#2b3582] dark:hover:text-blue-400 text-gray-700 dark:text-gray-200'}`}
-                    >
-                      <span>{place}</span>
-                      {selectedLocation === place && <Check className="w-4 h-4" />}
-                    </button>
-                  ))}
+                
+                <div className="flex flex-col relative z-0">
+                  {/* ⚡ NEW: Mapping over live database fetch */}
+                  {regionData.length === 0 ? (
+                    <div className="p-8 text-center text-sm font-bold text-gray-400">Loading regions...</div>
+                  ) : (
+                    regionData.map((stateObj) => (
+                      <div key={stateObj.state} className="flex flex-col border-b border-gray-100 dark:border-gray-800/50 last:border-none">
+                        
+                        {/* State Level */}
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setExpandedState(expandedState === stateObj.state ? "" : stateObj.state); 
+                          }}
+                          className="flex items-center justify-between w-full px-4 py-3 text-sm font-black text-[#547A6B] dark:text-[#7DA492] bg-gray-50/50 dark:bg-[#111] hover:bg-[#547A6B]/10 transition-colors outline-none"
+                        >
+                          <span className="uppercase tracking-wider">{stateObj.state}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedState === stateObj.state ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {/* District Level (Accordion) */}
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedState === stateObj.state ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}>
+                          {stateObj.districts.map((district: any) => (
+                            <div key={district.name} className="flex flex-col">
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setExpandedDistrict(expandedDistrict === district.name ? "" : district.name); 
+                                }}
+                                className="flex items-center justify-between w-full px-4 py-3 pl-6 text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1a1a1a] hover:bg-gray-50 dark:hover:bg-[#222] border-t border-gray-50 dark:border-gray-800/50 transition-colors outline-none"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 bg-[#FF6B6B] rounded-full shadow-[0_0_8px_rgba(255,107,107,0.6)]"></span>
+                                  {district.name}
+                                </span>
+                                <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${expandedDistrict === district.name ? "rotate-90" : ""}`} />
+                              </button>
+
+                              {/* Locals Level (Accordion) */}
+                              <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50/50 dark:bg-black/20 ${expandedDistrict === district.name ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"}`}>
+                                {district.locals.map((local: string) => {
+                                  const isSelected = selectedLocation === local;
+                                  return (
+                                    <button
+                                      key={local}
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setSelectedLocation(local); 
+                                        setShowLocations(false); 
+                                      }}
+                                      className={`flex items-center justify-between w-full px-4 py-2.5 pl-11 text-sm font-semibold transition-colors outline-none
+                                        ${isSelected 
+                                          ? 'bg-[#FF6B6B]/10 text-[#FF6B6B] dark:bg-[#FF6B6B]/20' 
+                                          : 'hover:bg-white dark:hover:bg-gray-800 hover:text-[#547A6B] dark:hover:text-[#7DA492] text-gray-600 dark:text-gray-400'}`}
+                                    >
+                                      <span>{local}</span>
+                                      {isSelected && <Check className="w-4 h-4 text-[#FF6B6B]" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
               

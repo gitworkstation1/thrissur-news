@@ -7,7 +7,7 @@ interface VisualAdManagerProps {
   activeAds: any[];
   onRefresh: () => void;
   onDeleteAd: (id: string) => void;
-  onToggleStatus: (ad: any) => void; // <-- Added this new prop
+  onToggleStatus: (ad: any) => void;
 }
 
 export default function VisualAdManager({ activeAds, onRefresh, onDeleteAd, onToggleStatus }: VisualAdManagerProps) {
@@ -32,7 +32,6 @@ export default function VisualAdManager({ activeAds, onRefresh, onDeleteAd, onTo
     setIsModalOpen(true);
   };
 
-  // Smart Ad Slot: Renders the Ad if it exists, otherwise renders the "+ Add" button
   // Smart Ad Slot: Renders the Ad, and turns into a Carousel if there are multiples!
   const AdSlot = ({ zone, adIndex = 0, className, label }: { zone: string; adIndex?: number; className: string; label?: string }) => {
     const zoneAds = activeAds.filter((a) => a.location?.landmark === zone);
@@ -105,7 +104,7 @@ export default function VisualAdManager({ activeAds, onRefresh, onDeleteAd, onTo
             {isDraft ? 'Draft' : 'Live'}
           </div>
 
-          {/* NEW: Rotation Layer Badge (Only shows if multiple ads exist in this spot) */}
+          {/* Rotation Layer Badge (Only shows if multiple ads exist in this spot) */}
           {zoneAds.length > 1 && (
             <div className="absolute top-2 right-2 bg-blue-600/90 backdrop-blur-sm text-white text-[8px] font-black px-1.5 py-0.5 rounded-[3px] uppercase tracking-widest z-10 pointer-events-none shadow-sm flex items-center gap-1">
               <Layers className="w-2 h-2" />
@@ -191,17 +190,49 @@ export default function VisualAdManager({ activeAds, onRefresh, onDeleteAd, onTo
 
         {/* ARTICLE BLUEPRINT */}
         {activeLayout === "article" && (
-          <div className="w-full max-w-3xl bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-white/5 flex flex-col md:flex-row animate-in fade-in zoom-in duration-300">
+          // ⚡ ADDED 'relative' to this wrapper so the modal overlay positions correctly inside it!
+          <div className="w-full max-w-3xl bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-white/5 flex flex-col md:flex-row relative animate-in fade-in zoom-in duration-300">
+            
+            {/* The Main Content Skeleton */}
             <div className="flex-1 p-4 sm:p-6 space-y-6">
               <div className="space-y-3"><div className="w-16 h-4 bg-red-100 dark:bg-red-900/30 rounded" /><div className="w-5/6 h-6 sm:h-8 bg-gray-200 dark:bg-white/10 rounded-md" /><div className="w-3/4 h-6 sm:h-8 bg-gray-200 dark:bg-white/10 rounded-md" /></div>
               <div className="w-full h-32 sm:h-48 bg-gray-100 dark:bg-white/5 rounded-xl" />
               <div className="space-y-3"><div className="w-full h-2 sm:h-3 bg-gray-100 dark:bg-white/5 rounded-full" /><div className="w-full h-2 sm:h-3 bg-gray-100 dark:bg-white/5 rounded-full" /><div className="w-4/5 h-2 sm:h-3 bg-gray-100 dark:bg-white/5 rounded-full" /></div>
+              
               <AdSlot zone="Article Inline" className="w-full h-24 sm:h-28 rounded-lg" />
+              
               <div className="space-y-3"><div className="w-full h-2 sm:h-3 bg-gray-100 dark:bg-white/5 rounded-full" /><div className="w-11/12 h-2 sm:h-3 bg-gray-100 dark:bg-white/5 rounded-full" /></div>
             </div>
+            
+            {/* The Sidebar Skeleton */}
             <div className="w-full md:w-56 bg-gray-50 dark:bg-black/20 border-l border-gray-100 dark:border-white/5 p-4 sm:p-6 hidden md:block">
               <AdSlot zone="Sidebar Banner" className="w-full h-[300px] sm:h-[400px] rounded-xl" />
             </div>
+
+            {/* ⚡ NEW: THE POP-UP SIMULATOR OVERLAY */}
+            {/* Notice pointer-events-none on the wrapper so you can still click the Inline and Sidebar ads "through" it */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none p-4">
+              <div className="w-full max-w-sm bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-white/20 shadow-2xl rounded-2xl p-4 pointer-events-auto flex flex-col items-center animate-pulse">
+                
+                {/* Simulated Modal Header */}
+                <div className="w-full flex justify-between items-center mb-3 px-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded">
+                    Session Pop-up Layer
+                  </span>
+                  <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center">
+                    <span className="text-[8px] font-bold text-gray-500">X</span>
+                  </div>
+                </div>
+
+                {/* The Actual Ad Slot */}
+                <AdSlot 
+                  zone="Full Coverage Pop-up" 
+                  label="Pop-up Image" 
+                  className="w-full h-40 sm:h-48 rounded-xl shadow-inner" 
+                />
+              </div>
+            </div>
+
           </div>
         )}
 

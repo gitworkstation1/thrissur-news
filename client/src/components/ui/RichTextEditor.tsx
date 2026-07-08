@@ -1,12 +1,14 @@
 // client/src/components/RichTextEditor.tsx
 'use client';
 
-import React from 'react';
+// 1. ADD useMemo to your React import
+import React, { useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Youtube from '@tiptap/extension-youtube'; // <-- NEW IMPORT
+import Youtube from '@tiptap/extension-youtube'; 
 import { Bold, Italic, List, ListOrdered, Quote, Heading2, Heading3, Link as LinkIcon, RemoveFormatting, Video } from 'lucide-react';
+
 interface RichTextEditorProps {
   value: string;
   onChange: (content: string) => void;
@@ -14,20 +16,24 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+  
+  // --- ⚡ THE FIX: Wrap extensions in useMemo so they only load ONCE ---
+  const extensions = useMemo(() => [
+    StarterKit,
+    Link.configure({
+      openOnClick: false,
+    }),
+    Youtube.configure({
+      HTMLAttributes: {
+        class: 'w-full aspect-video rounded-xl shadow-sm my-6',
+      },
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
-      }),
-      Youtube.configure({
-        HTMLAttributes: {
-          class: 'w-full aspect-video rounded-xl shadow-sm my-6',
-        },
-      }),
-    ],
+    extensions: extensions, // <-- Pass the memoized array here
     content: value || `<p>${placeholder || 'Write your story here...'}</p>`,
-    immediatelyRender: false, // <--- ADD THIS LINE HERE
+    immediatelyRender: false, 
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -53,7 +59,6 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
-  // --- NEW YOUTUBE PROMPT FUNCTION ---
   const addYoutubeVideo = () => {
     const url = prompt('Enter YouTube Video URL:');
     if (url) {
@@ -125,7 +130,6 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           />
         </div>
 
-        {/* --- NEW YOUTUBE BUTTON --- */}
         <div className="flex items-center border-r border-gray-200 dark:border-white/10 pr-2 mr-1">
           <ToolbarButton 
             onClick={addYoutubeVideo}
@@ -167,7 +171,6 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         .dark .ProseMirror blockquote { color: #9ca3af; border-left-color: #ef4444; }
         .ProseMirror a { color: #2563eb; text-decoration: underline; cursor: pointer; }
         .dark .ProseMirror a { color: #60a5fa; }
-        /* Ensures the iframe wrapper behaves well */
         .ProseMirror div[data-youtube-video] {
           cursor: default;
           display: flex;

@@ -1,13 +1,6 @@
 // server/src/models/Article.js
 const mongoose = require('mongoose');
 
-const THRISSUR_WARDS = [
-  "Thrissur Central", "East Fort", "Viyyur", "Ollur", 
-  "Cheruthuruthy", "Kodungallur", "Guruvayur", "Puthukkad",
-  "Chavakkad", "Kunnamkulam", "Wadakkanchery", "Anthikkad",
-  "All Places", ""
-];
-
 const articleSchema = new mongoose.Schema({
   headline: { 
     type: String, 
@@ -19,16 +12,20 @@ const articleSchema = new mongoose.Schema({
     type: String, 
     required: [true, 'Article body is required'],
     trim: true,
-    maxlength: [50000, 'Article body cannot exceed 50,000 characters'] // 🛡️ Huge allowance, but strictly bounded
+    maxlength: [50000, 'Article body cannot exceed 50,000 characters']
   },
   isBreaking: { 
+    type: Boolean, 
+    default: false 
+  },
+  // 📌 NEW: Ticker Pin Flag
+  isTicker: { 
     type: Boolean, 
     default: false 
   },
   category: { 
     type: String, 
     required: true,
-    // EXCLUSIVELY NEWS CATEGORIES
     enum: ['News', 'Crime', 'Politics', 'Sports', 'Business', 'Education', 'Local', 'Health'], 
     default: "News"
   },
@@ -38,7 +35,9 @@ const articleSchema = new mongoose.Schema({
     default: 'published'
   },
   location: {
-    ward: { type: String, required: false, enum: THRISSUR_WARDS },
+    // ⚡ DYNAMIC UPGRADE: Removed the hardcoded enum. 
+    // MongoDB will now accept ANY region you create in your Territory Manager!
+    ward: { type: String, required: false, trim: true },
     landmark: { 
       type: String,
       trim: true,
@@ -62,6 +61,18 @@ const articleSchema = new mongoose.Schema({
       maxlength: [100, 'Credit cannot exceed 100 characters']
     } 
   }],
+  
+  credits: {
+    reporter: {
+      name: { type: String, trim: true, default: "", maxlength: 100 },
+      avatarUrl: { type: String, default: "" }
+    },
+    photographer: {
+      name: { type: String, trim: true, default: "", maxlength: 100 },
+      avatarUrl: { type: String, default: "" }
+    }
+  },
+
   reportedBy: { 
     type: String, 
     default: "",
@@ -82,5 +93,7 @@ const articleSchema = new mongoose.Schema({
 articleSchema.index({ status: 1, category: 1, createdAt: -1 });
 // 2. Breaking News Carousel filtering
 articleSchema.index({ status: 1, isBreaking: 1, createdAt: -1 });
+// 3. Ticker filtering (Ensures blazing fast queries for the ticker)
+articleSchema.index({ status: 1, isTicker: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Article', articleSchema);

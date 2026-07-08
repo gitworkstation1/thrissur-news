@@ -1,7 +1,11 @@
 import { Article } from './types';
 
-// Use a single, unified base URL for all functions
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// ⚡ BULLETPROOF URL CLEANER
+// We strip out any trailing "/api" so it doesn't double-stack with your fetch functions!
+let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+API_URL = API_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+// Leave the rest of your file (fetchArticles, etc.) exactly as it is below this line!
 
 // 1. Fetch Articles (Now handles category, ward, breaking status, and date)
 export async function fetchArticles(
@@ -12,7 +16,8 @@ export async function fetchArticles(
   status: string = 'published', // Defaults to safe public viewing
   ward: string = 'All Places',  // Brought ward back!
   isBreaking?: boolean,         // <-- NEW: Added breaking parameter
-  date?: string                 // <-- NEW: Added date parameter
+  date?: string,                 // <-- NEW: Added date parameter
+  isAdmin: boolean = false
 ): Promise<{ articles: Article[], totalPages: number, currentPage: number }> {
   
   let url = `${API_URL}/api/news`;
@@ -34,7 +39,11 @@ export async function fetchArticles(
   url += `?${params.toString()}`;
 
   // FIX: Applied Option B (ISR) - Cache for 60 seconds on public pages
-  const res = await fetch(url, { next: { revalidate: 60 } });
+  const fetchOptions = isAdmin 
+    ? { cache: 'no-store' as RequestCache } 
+    : { next: { revalidate: 60 } };
+
+  const res = await fetch(url, fetchOptions);
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -45,11 +54,17 @@ export async function fetchArticles(
 }
 
 // 2. Fetch a Single Article by ID
-export async function fetchArticleById(id: string): Promise<Article> {
-  // FIX: Applied Option B (ISR) - Cache individual articles for 60 seconds
-  const res = await fetch(`${API_URL}/api/news/${id}`, { 
-    next: { revalidate: 60 } 
-  });
+export async function fetchArticleById(
+  id: string, 
+  isEditing: boolean = false // ⚡ NEW: Toggle to bypass cache for admins
+): Promise<Article> {
+  
+  // Admins get fresh data instantly (no-store). Readers get the 60s cache.
+  const fetchOptions = isEditing 
+    ? { cache: 'no-store' as RequestCache } 
+    : { next: { revalidate: 60 } };
+
+  const res = await fetch(`${API_URL}/api/news/${id}`, fetchOptions);
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -59,10 +74,11 @@ export async function fetchArticleById(id: string): Promise<Article> {
   return await res.json();
 }
 
-// 3. Create Article
+// 3. Create Article (Tunnel)
 export async function createArticle(articleData: Partial<Article>): Promise<any> {
-  const res = await fetch(`${API_URL}/api/news`, {
+  const res = await fetch('/backend/news', { // ⚡ CHANGED to use the proxy tunnel
     method: 'POST',
+    credentials: 'include', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(articleData)
   });
@@ -75,10 +91,11 @@ export async function createArticle(articleData: Partial<Article>): Promise<any>
   return await res.json();
 }
 
-// 4. Update Article
+// 4. Update Article (Tunnel)
 export async function updateArticle(id: string, articleData: Partial<Article>): Promise<Article> {
-  const res = await fetch(`${API_URL}/api/news/${id}`, {
+  const res = await fetch(`/backend/news/${id}`, { // ⚡ CHANGED
     method: 'PUT',
+    credentials: 'include', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(articleData),
   });
@@ -91,10 +108,11 @@ export async function updateArticle(id: string, articleData: Partial<Article>): 
   return await res.json();
 }
 
-// 5. Delete Article
+// 5. Delete Article (Tunnel)
 export async function deleteArticle(id: string): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/api/news/${id}`, {
+  const res = await fetch(`/backend/news/${id}`, { // ⚡ CHANGED
     method: 'DELETE',
+    credentials: 'include', 
   });
 
   if (!res.ok) {
@@ -105,14 +123,15 @@ export async function deleteArticle(id: string): Promise<{ message: string }> {
   return await res.json();
 }
 
-// 6. Upload Image 
+// 6. Upload Image (Tunnel)
 export async function uploadImage(file: File, headline: string): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
   formData.append('headline', headline || 'Untitled-Story'); 
 
-  const res = await fetch(`${API_URL}/api/media/upload`, {
+  const res = await fetch('/backend/media/upload', { // ⚡ CHANGED
     method: 'POST',
+    credentials: 'include', 
     body: formData 
   });
   
