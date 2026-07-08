@@ -19,8 +19,9 @@ export default function RegionManager() {
 
   const fetchRegions = async () => {
     try {
-      // ⚡ HARDCODED TO PORT 5000 - Bypassing .env entirely
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/regions`);
+      // ⚡ Explicitly adding /api/ to the path
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${baseUrl}/api/regions`);
       
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
@@ -32,7 +33,7 @@ export default function RegionManager() {
       }
     } catch (error) {
       console.error("Fetch error details:", error);
-      setMessage({ text: "Failed to load regions. Is backend running on port 5000?", type: "error" });
+      setMessage({ text: "Failed to load regions. Is backend running?", type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +85,9 @@ export default function RegionManager() {
     setIsSaving(true);
     setMessage({ text: "", type: "" });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/regions/sync`, {
+      // ⚡ Explicitly adding /api/ to the path
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${baseUrl}/api/regions/sync`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +95,6 @@ export default function RegionManager() {
         body: JSON.stringify({ regions }),
       });
 
-      // ⚡ NEW: Capture the exact error from the backend
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Server returned Status ${res.status} - ${text}`);
