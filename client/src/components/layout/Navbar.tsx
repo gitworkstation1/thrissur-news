@@ -26,31 +26,39 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // ⚡ NEW: Fetch Regions from your backend on Load
+  // ⚡ FETCH REGIONS ON LOAD (BULLETPROOF VERSION)
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/regions`);
+        // 1. Clean the URL
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+        const res = await fetch(`${baseUrl}/api/regions`);
+        
+        if (!res.ok) throw new Error("Failed to fetch regions");
         const data = await res.json();
         
-        if (data && data.length > 0) {
+        // 2. Prevent the .map() crash
+        if (data && Array.isArray(data) && data.length > 0) {
           setRegionData(data);
           
-          // Auto-expand the first state and district so the menu doesn't look empty
           setExpandedState(data[0].state);
           if (data[0].districts && data[0].districts.length > 0) {
             setExpandedDistrict(data[0].districts[0].name);
-            // Optional: Set default location to the first available local
             if (selectedLocation === "All Regions" && data[0].districts[0].locals[0]) {
               setSelectedLocation(data[0].districts[0].locals[0]);
             }
           }
         }
       } catch (error) {
-        console.error("Failed to fetch regions from database:", error);
+        console.error("Navbar region fetch bypassed safely:", error);
+        // Fallback so the UI never breaks
+        setRegionData([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
       }
     };
     fetchRegions();
-  }, []);
+  }, [selectedLocation]);
 
   useEffect(() => {
     const handleScroll = () => {

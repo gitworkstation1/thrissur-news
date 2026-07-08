@@ -93,15 +93,26 @@ export default function AdminComposer({
   // ⚡ LIVE REGION DATA STATE
   const [regionData, setRegionData] = useState<any[]>([]);
 
-  // ⚡ FETCH REGIONS ON LOAD
+  // ⚡ FETCH REGIONS ON LOAD (BULLETPROOF VERSION)
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/regions`);
+        // 1. Clean the URL exactly like we did in the Navbar
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+        const res = await fetch(`${baseUrl}/api/regions`);
+        
+        if (!res.ok) throw new Error("Failed to fetch regions");
         const data = await res.json();
-        if (data && Array.isArray(data)) setRegionData(data);
+        
+        if (data && Array.isArray(data)) {
+          setRegionData(data);
+        }
       } catch (error) {
-        console.error("Failed to load regions");
+        console.error("Composer region fetch bypassed safely:", error);
+        // Fallback so the dropdown is never completely empty
+        setRegionData([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
       }
     };
     fetchRegions();
@@ -746,21 +757,48 @@ export default function AdminComposer({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 mt-4">
-                <input
-                  type="checkbox"
-                  name="isBreaking"
-                  id="isBreaking"
-                  checked={formData.isBreaking}
-                  onChange={handleChange}
-                  className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
-                />
-                <label
-                  htmlFor="isBreaking"
-                  className="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer select-none"
-                >
-                  🚨 Mark as Breaking News
-                </label>
+              {/* ⚡ PUBLISHING CONTROLS (Breaking & Ticker) */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-6 bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm">
+                
+                {/* Breaking News Toggle */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    name="isBreaking"
+                    id="isBreaking"
+                    checked={formData.isBreaking || false}
+                    onChange={handleChange}
+                    className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="isBreaking"
+                    className="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer select-none"
+                  >
+                    🚨 Mark as Breaking News
+                  </label>
+                </div>
+
+                {/* Vertical Divider (Hidden on mobile) */}
+                <div className="hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-700"></div>
+
+                {/* Pin to Ticker Toggle */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    name="isTicker"
+                    id="isTicker"
+                    checked={formData.isTicker || false}
+                    onChange={handleChange}
+                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="isTicker"
+                    className="text-sm font-bold text-blue-600 dark:text-blue-400 cursor-pointer select-none"
+                  >
+                    📌 Pin to News Ticker
+                  </label>
+                </div>
+
               </div>
             </>
           )}

@@ -1,7 +1,11 @@
 import { Article } from './types';
 
-// Use a single, unified base URL for all functions
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// ⚡ BULLETPROOF URL CLEANER
+// We strip out any trailing "/api" so it doesn't double-stack with your fetch functions!
+let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+API_URL = API_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+// Leave the rest of your file (fetchArticles, etc.) exactly as it is below this line!
 
 // 1. Fetch Articles (Now handles category, ward, breaking status, and date)
 export async function fetchArticles(

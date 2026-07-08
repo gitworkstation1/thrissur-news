@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // <-- Added Next.js Link import
 import {
   Newspaper,
   Megaphone,
   PenTool,
-  Feather, // <-- Added for the Obituary icon
+  MapPin,
+  Feather,
   LayoutDashboard,
   Users,
   Settings,
@@ -13,9 +15,9 @@ import {
 } from "lucide-react";
 
 interface AdminSidebarProps {
-  currentView: "library" | "compose" | "ads" | "obituary"; // <-- Added obituary
+  currentView: "library" | "compose" | "ads" | "obituary";
   setCurrentView: (view: "library" | "compose" | "ads" | "obituary") => void;
-  startNewPost: (mode: "news" | "ad" | "obituary") => void; // <-- Added obituary
+  startNewPost: (mode: "news" | "ad" | "obituary") => void;
 }
 
 export default function AdminSidebar({
@@ -96,13 +98,22 @@ export default function AdminSidebar({
           <span>Compose Obituary</span>
         </button>
 
+        {/* --- TERRITORY MANAGER LINK --- */}
+        <Link
+          href="/dashboard/regions"
+          className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all"
+        >
+          <MapPin className="w-5 h-5" />
+          <span>Territory Manager</span>
+        </Link>
+
         <div className="my-4 border-t border-white/10" />
 
         <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
           <LayoutDashboard className="w-5 h-5" />
           <span>Analytics Hub</span>
         </button>
-        {/* ... Keep remaining buttons identical ... */}
+        
         <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
           <Users className="w-5 h-5" />
           <span>Journalists</span>

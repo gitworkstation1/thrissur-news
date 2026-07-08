@@ -19,28 +19,37 @@ export default function RegionManager() {
 
   const fetchRegions = async () => {
     try {
-      // ⚡ Explicitly adding /api/ to the path
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/regions/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // ⚡ THE MAGIC KEY: Tells the browser to send your admin cookie!
-        body: JSON.stringify({ regions }),
-      });
+      // 1. Bulletproof the URL (Strips accidental /api from Vercel env variable)
+      let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+      const res = await fetch(`${baseUrl}/api/regions`);
       
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      if (!res.ok) {
+         const errText = await res.text();
+         throw new Error(`Status ${res.status}: ${errText}`);
+      }
+      
       const data = await res.json();
       
-      if (data.length === 0) {
-        setRegions([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
+      // 2. Bulletproof the Array Check (Prevents the e.map crash!)
+      if (Array.isArray(data)) {
+        if (data.length === 0) {
+          // Database is empty, provide default template
+          setRegions([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
+        } else {
+          // Database has data, load it
+          setRegions(data);
+        }
       } else {
-        setRegions(data);
+        throw new Error(data.error || "Backend did not return an array.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch error details:", error);
-      setMessage({ text: "Failed to load regions. Is backend running?", type: "error" });
+      setMessage({ text: `Connection Issue: ${error.message}`, type: "error" });
+      
+      // 3. Fallback: Safely load a blank template so the UI NEVER crashes
+      setRegions([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
     } finally {
       setIsLoading(false);
     }
