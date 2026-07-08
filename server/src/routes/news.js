@@ -174,23 +174,6 @@ router.post('/', requireAdmin, async (req, res) => {
 });
 
 // 5. UPDATE (PROTECTED)
-router.put('/:id', requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    // ... validation logic ...
-    
-    // Ensure req.body contains the full object including 'credits'
-    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { 
-      new: true,
-      runValidators: true // ⚡ This ensures the schema validates the new credits field!
-    });
-    
-    res.json(updatedDoc);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update', error: error.message });
-  }
-});
-
 // 5. UPDATE (PROTECTED)
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
@@ -200,9 +183,10 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Document not found (Invalid ID format)' });
     }
 
-    // ⚡ THE FIX: Explicitly declare the variable here so JavaScript doesn't panic
+    // 1. Explicitly declare the variable here so JavaScript doesn't panic
     let ModelToUse = null;
 
+    // 2. Figure out which collection this ID belongs to
     if (await Article.findById(id)) {
         ModelToUse = Article;
     } else if (await Obituary.findById(id)) {
@@ -217,10 +201,15 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { new: true });
+    // 3. Update the document, ensuring new schema fields (like isTicker) are validated
+    const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { 
+      new: true,
+      runValidators: true 
+    });
+    
     res.json(updatedDoc);
   } catch (error) {
-    // This is where your red error box came from!
+    // This safely catches errors and sends them to your frontend instead of crashing Node!
     res.status(500).json({ message: 'Failed to update', error: error.message });
   }
 });
