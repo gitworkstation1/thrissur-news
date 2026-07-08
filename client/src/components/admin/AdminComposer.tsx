@@ -24,20 +24,6 @@ const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), {
   ),
 });
 
-const THRISSUR_WARDS = [
-  "Thrissur Central",
-  "East Fort",
-  "Viyyur",
-  "Ollur",
-  "Cheruthuruthy",
-  "Kodungallur",
-  "Guruvayur",
-  "Puthukkad",
-  "Chavakkad",
-  "Kunnamkulam",
-  "Wadakkanchery",
-  "Anthikkad",
-];
 const CATEGORIES = [
   "News",
   "Crime",
@@ -103,6 +89,23 @@ export default function AdminComposer({
   });
 
   const [croppingImage, setCroppingImage] = useState<{ src: string; index: number } | null>(null);
+
+  // ⚡ LIVE REGION DATA STATE
+  const [regionData, setRegionData] = useState<any[]>([]);
+
+  // ⚡ FETCH REGIONS ON LOAD
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/regions`);
+        const data = await res.json();
+        if (data && Array.isArray(data)) setRegionData(data);
+      } catch (error) {
+        console.error("Failed to load regions");
+      }
+    };
+    fetchRegions();
+  }, []);
 
   useEffect(() => {
     const normalizedCredits = {
@@ -490,7 +493,6 @@ export default function AdminComposer({
                     </div>
                   )}
 
-                  {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
                   <div className="flex items-center gap-3">
                     <label htmlFor="ad-media-upload" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm">
                       {mediaList[0]?.file ? "Re-Crop New Image" : mediaList[0]?.url ? "Replace Ad Image" : "Choose Image"}
@@ -519,7 +521,6 @@ export default function AdminComposer({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
-                  {/* Reporter Assignment */}
                   <div className="space-y-2">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       {editorMode === "obituary" ? "Submitted By / Family Contact" : "Reporter Name"}
@@ -536,7 +537,6 @@ export default function AdminComposer({
                       Avatar / Photo (Optional)
                     </label>
                     
-                    {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
                     <div className="flex items-center gap-3">
                       <label htmlFor="reporter-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
                         {creditFiles.reporter ? "Change Avatar" : "Choose Avatar"}
@@ -554,7 +554,6 @@ export default function AdminComposer({
                     </div>
                   </div>
 
-                  {/* Photographer Assignment */}
                   <div className="space-y-2">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Lead Photographer Name
@@ -571,7 +570,6 @@ export default function AdminComposer({
                       Avatar / Photo (Optional)
                     </label>
                     
-                    {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
                     <div className="flex items-center gap-3">
                       <label htmlFor="photographer-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
                         {creditFiles.photographer ? "Change Avatar" : "Choose Avatar"}
@@ -643,7 +641,6 @@ export default function AdminComposer({
                             </div>
                           )}
 
-                          {/* ⚡ UI FIX: HIDDEN INPUT & CUSTOM BUTTON */}
                           <div className="flex items-center gap-3">
                             <label
                               htmlFor={`media-upload-${index}`}
@@ -699,24 +696,41 @@ export default function AdminComposer({
                     ))}
                   </select>
                 </div>
+                
+                {/* ⚡ THE DYNAMIC LOCATION OPTGROUP DROPDOWN */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                    Ward
+                    Ward / Target Region
                   </label>
                   <select
                     name="location.ward"
-                    value={formData.location.ward}
+                    value={formData.location.ward || ""}
                     onChange={handleChange}
                     className="w-full p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm outline-none cursor-pointer"
                   >
-                    <option value="">-- Select --</option>
-                    {THRISSUR_WARDS.map((ward) => (
-                      <option key={ward} value={ward}>
-                        {ward}
-                      </option>
-                    ))}
+                    <option value="">-- Select Target --</option>
+                    {regionData.map((stateObj) => 
+                      stateObj.districts.map((district: any) => (
+                        <optgroup 
+                          key={district.name} 
+                          label={`${district.name} District`} 
+                          className="font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800"
+                        >
+                          {district.locals.map((local: string) => (
+                            <option 
+                              key={local} 
+                              value={local} 
+                              className="font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#111]"
+                            >
+                              {local}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))
+                    )}
                   </select>
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                     Landmark
