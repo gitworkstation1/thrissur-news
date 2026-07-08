@@ -92,9 +92,9 @@ export default function RegionManager() {
     setIsSaving(true);
     setMessage({ text: "", type: "" });
     try {
-      // ⚡ Explicitly adding /api/ to the path
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${baseUrl}/api/regions/sync`, {
+      // ⚡ CHANGED: We now fetch from a relative URL so it hits the Vercel Middleman!
+      // We removed baseUrl and credentials entirely.
+      const res = await fetch('/api/regions/sync', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,8 +103,8 @@ export default function RegionManager() {
       });
 
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Server returned Status ${res.status} - ${text}`);
+        const data = await res.json();
+        throw new Error(data.error || `Server returned Status ${res.status}`);
       }
 
       setMessage({ text: "Region hierarchy saved successfully!", type: "success" });

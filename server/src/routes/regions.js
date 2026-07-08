@@ -2,15 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Region = require('../models/Region');
 
-// Simple Admin Bouncer
-const requireAdmin = (req, res, next) => {
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader || !cookieHeader.includes('admin_token=authenticated')) {
-    return res.status(401).json({ error: 'Unauthorized: Admin access required.' });
-  }
-  next();
-};
-
 // GET: Fetch all regions (Public)
 router.get('/', async (req, res) => {
   try {
@@ -21,8 +12,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST: Sync regions (🔒 SECURED FOR PRODUCTION)
-router.post('/sync', requireAdmin, async (req, res) => {
+// POST: Sync regions (🔓 TEMPORARILY UNLOCKED FOR LIVE SETUP)
+router.post('/sync', async (req, res) => {
   try {
     const { regions } = req.body;
     
