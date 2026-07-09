@@ -4,6 +4,7 @@ import { Metadata, Viewport } from "next";
 
 // ⚡ 1. IMPORT THE FONTS
 import { Anek_Malayalam, Mukta_Malar } from 'next/font/google';
+import { Noto_Sans_Malayalam } from 'next/font/google';
 
 import ScrollToTopButton from "@/components/layout/ScrollToTopButton";
 import Navbar from "@/components/layout/Navbar";
@@ -22,10 +23,11 @@ const anek = Anek_Malayalam({
   display: 'swap',
 });
 
-const mukta = Mukta_Malar({
+// 2. Update the font configuration:
+const malayalamFont = Noto_Sans_Malayalam({
   weight: ['400', '500', '600', '700', '800'],
-  subsets: ['malayalam'],
-  variable: '--font-mukta',
+  subsets: ['malayalam'], // ✅ This is now perfectly valid!
+  variable: '--font-malayalam',
   display: 'swap',
 });
 
@@ -66,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       {/* ⚡ 3. INJECT FONT VARIABLES INTO THE BODY */}
-      <body className={`bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col ${anek.variable} ${mukta.variable}`}>
+      <body className={`bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col ${anek.variable} ${malayalamFont.variable}`}>
         
         <HideOnShorts>
           <HideOnDashboard>
