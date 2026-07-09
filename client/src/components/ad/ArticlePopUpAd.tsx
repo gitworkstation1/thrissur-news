@@ -1,37 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom"; 
 import { X } from "lucide-react";
 import Link from "next/link";
 
 export default function ArticlePopUpAd({ ad }: { ad: any }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false); 
+
+  // Safely mount on the client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    // If there is no ad assigned to this zone, do nothing
     if (!ad) return;
 
-    // Check if the user has already seen the pop-up this session
-    const hasSeenPopup = sessionStorage.getItem("hasSeenArticlePopup");
+    // ⚡ THE FIX: Removed sessionStorage so it fires every time the component loads!
+    // Triggers 2 seconds after the article page opens
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 2000);
 
-    if (!hasSeenPopup) {
-      // 3-second delay so they can start reading before the pop-up appears
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        sessionStorage.setItem("hasSeenArticlePopup", "true");
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, [ad]);
 
-  if (!isOpen || !ad) return null;
+  // Lock the background from scrolling when the pop-up is active
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isOpen]);
+
+  // Don't render anything if it's closed, there's no ad, or it hasn't mounted yet
+  if (!isOpen || !ad || !mounted) return null;
 
   // Safely extract the image URL
   const imageUrl = Array.isArray(ad.media) ? ad.media[0]?.url : ad.media?.url;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+  // Package the entire pop-up into a variable
+  const popupContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 sm:p-6 pointer-events-auto">
       <div className="relative max-w-lg w-full bg-white dark:bg-[#121212] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
         
         {/* Close Button */}
@@ -52,13 +62,13 @@ export default function ArticlePopUpAd({ ad }: { ad: any }) {
           <img
             src={imageUrl}
             alt={ad.headline || "Advertisement"}
-            className="w-full h-auto object-cover max-h-[60vh]"
+            className="w-full h-auto object-cover max-h-[50vh] sm:max-h-[60vh]"
           />
-          <div className="p-5 text-center bg-gray-50 dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-white/10">
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-red-600 transition-colors">
+          <div className="p-4 sm:p-5 text-center bg-gray-50 dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-white/10">
+            <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white group-hover:text-red-600 transition-colors">
               {ad.headline}
             </h3>
-            <span className="inline-block mt-3 px-6 py-2 bg-red-600 text-white text-sm font-bold rounded-full hover:bg-red-700 transition-colors shadow-md">
+            <span className="inline-block mt-3 px-6 py-2 bg-red-600 text-white text-xs sm:text-sm font-bold rounded-full hover:bg-red-700 transition-colors shadow-md">
               Learn More
             </span>
           </div>
@@ -66,4 +76,7 @@ export default function ArticlePopUpAd({ ad }: { ad: any }) {
       </div>
     </div>
   );
+
+  // Teleport the packaged pop-up directly to the document body!
+  return createPortal(popupContent, document.body);
 }
