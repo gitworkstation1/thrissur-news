@@ -2,6 +2,9 @@ import "./globals.css";
 import Script from "next/script";
 import { Metadata, Viewport } from "next";
 
+// ⚡ 1. IMPORT THE FONTS
+import { Anek_Malayalam, Mukta_Malar } from 'next/font/google';
+
 import ScrollToTopButton from "@/components/layout/ScrollToTopButton";
 import Navbar from "@/components/layout/Navbar";
 import BottomNav from "@/components/layout/BottomNav";
@@ -11,6 +14,20 @@ import TopBannerAd from "@/components/ad/TopBannerAd";
 import HideOnShorts from "@/components/layout/HideOnShorts";
 import HideOnDashboard from "@/components/layout/HideOnDashboard";
 import Footer from "@/components/layout/Footer";
+
+// ⚡ 2. CONFIGURE THE FONTS
+const anek = Anek_Malayalam({ 
+  subsets: ['malayalam'],
+  variable: '--font-anek',
+  display: 'swap',
+});
+
+const mukta = Mukta_Malar({
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['malayalam'],
+  variable: '--font-mukta',
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   themeColor: [
@@ -48,7 +65,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="afterInteractive" 
         />
       </head>
-      <body className="bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col">
+      {/* ⚡ 3. INJECT FONT VARIABLES INTO THE BODY */}
+      <body className={`bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col ${anek.variable} ${mukta.variable}`}>
         
         <HideOnShorts>
           <HideOnDashboard>
@@ -58,7 +76,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NewsTicker />
         </HideOnShorts>
         
-        {/* Removed pb-28 from here */}
         <main className="w-full relative flex-grow"> 
           {children}
         </main>

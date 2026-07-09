@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, Fragment } from "react";
 import { Search, X, MapPin, TrendingUp } from "lucide-react";
 import NewsCard from "@/components/cards/NewsCard";
 import { Article } from "@/lib/types";
@@ -48,9 +48,21 @@ export default function SearchClient({
   return (
     <div className="max-w-[96%] 2xl:max-w-[1500px] mx-auto px-4 py-4 flex flex-row gap-8 justify-center items-start relative">
       
+      {/* ⚡ THE ULTIMATE SCROLLBAR KILLER ⚡ */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}} />
+
       {/* ================= LEFT AD COLUMN ================= */}
-      {/* ⚡ Hiddent Scrollbar applied here */}
-      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-col gap-6 pb-12">
+      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto hide-scrollbar flex-col gap-6 pb-12">
         {sidebarAd}
       </div>
 
@@ -90,7 +102,7 @@ export default function SearchClient({
           </div>
 
           {/* QUICK FILTERS */}
-          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap mt-6 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap mt-6 pb-2 hide-scrollbar">
             <TrendingUp className="w-4 h-4 text-[#e3000f] dark:text-red-500 flex-shrink-0 mr-1" />
             {quickFilters.map((filter) => (
               <button
@@ -112,8 +124,7 @@ export default function SearchClient({
         </div>
 
         {/* SEARCH RESULTS */}
-        {/* ⚡ Hidden Scrollbar applied here */}
-        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-2 sm:px-4 pb-32">
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-2 sm:px-4 pb-32">
           
           <div className="flex items-center justify-between mb-4 sticky top-0 bg-[#fafafa] dark:bg-[#0a0a0a] z-10 py-2">
             <h2 className="text-sm font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-300">
@@ -121,15 +132,25 @@ export default function SearchClient({
                 ? "Search Results"
                 : "Recent Articles"}
             </h2>
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md transition-colors duration-300">
+            <span className="text-xs font-bold text-red-800 dark:text-red-100 bg-red-100 dark:bg-red-900/50 px-3 py-1.5 rounded-full border border-red-200 dark:border-red-700 shadow-sm transition-colors duration-300">
               {filteredArticles.length} found
             </span>
           </div>
 
           {filteredArticles.length > 0 ? (
             <div className="space-y-3">
-              {filteredArticles.map((article) => (
-                <NewsCard key={article._id} article={article} />
+              {filteredArticles.map((article, index) => (
+                <Fragment key={article._id}>
+                  {/* 1. Render the actual News Card */}
+                  <NewsCard article={article} />
+                  
+                  {/* ⚡ 2. IN-FEED MOBILE AD: Shows up after EVERY 4th card (index 3, 7, 11, etc.) ⚡ */}
+                  {(index + 1) % 4 === 0 && (
+                    <div className="flex lg:hidden w-full justify-center my-4 overflow-hidden rounded-2xl shadow-sm border border-red-500/30">
+                      {sidebarAd}
+                    </div>
+                  )}
+                </Fragment>
               ))}
             </div>
           ) : (
@@ -151,8 +172,7 @@ export default function SearchClient({
       </div>
 
       {/* ================= RIGHT AD COLUMN ================= */}
-      {/* ⚡ Hidden Scrollbar applied here */}
-      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-col gap-6 pb-12">
+      <div className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 h-[calc(100dvh-120px)] overflow-y-auto hide-scrollbar flex-col gap-6 pb-12">
         {sidebarAd}
       </div>
       

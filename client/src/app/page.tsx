@@ -328,8 +328,21 @@ export default async function Home({
                 </Link>
               )}
 
+              {/* ⚡ THE ULTIMATE SCROLLBAR KILLER FOR THIS SECTION ⚡ */}
+              <style dangerouslySetInnerHTML={{__html: `
+                .hide-top10-scroll::-webkit-scrollbar {
+                  display: none !important;
+                  width: 0 !important;
+                  height: 0 !important;
+                }
+                .hide-top10-scroll {
+                  -ms-overflow-style: none !important;
+                  scrollbar-width: none !important;
+                }
+              `}} />
+
               {/* Scrolling List Container */}
-              <div className="flex-1 overflow-y-auto relative min-h-0">
+              <div className="flex-1 max-h-[350px] lg:max-h-[none] overflow-y-auto relative min-h-0 hide-top10-scroll">
                 <div className="flex flex-col">
                   {scrollingArticles.map((item, idx) => {
                     const hasVideo =

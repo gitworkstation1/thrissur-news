@@ -19,6 +19,19 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  /* ⚡ ADD THIS THEME BLOCK */
+@theme {
+  --font-headline: var(--font-anek), sans-serif;
+  --font-body: var(--font-mukta), sans-serif;
+}
+
+/* Your existing CSS below... */
+@layer base {
+  :root {
+    /* ... */
+  }
+}
+
   @layer utilities {
     .hide-scrollbar {
       -ms-overflow-style: none !important;

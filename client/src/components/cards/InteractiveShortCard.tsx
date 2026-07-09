@@ -44,6 +44,9 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
     }
   };
 
+  // ⚡ NEW: Detect if the headline contains Malayalam characters
+  const isMalayalam = /[\u0D00-\u0D7F]/.test(article.headline || "");
+
   return (
     // 1. Changed h-dvh to min-h-dvh and adjusted padding to allow the card to move up
     <div className="relative w-full min-h-dvh snap-start bg-gray-50 dark:bg-[#0a0a0a] flex flex-col md:items-center md:justify-center p-2 sm:p-4 md:p-8 overflow-hidden">
@@ -67,7 +70,8 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
           
           {/* Header Row */}
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-[#e3000f] bg-[#e3000f]/10 border border-[#e3000f]/20 px-3 py-1 rounded-full tracking-wider uppercase">
+            {/* ⚡ Added font-body */}
+            <span className="font-body text-[10px] font-black text-[#e3000f] bg-[#e3000f]/10 border border-[#e3000f]/20 px-3 py-1 rounded-full tracking-wider uppercase">
               {article.category || 'NEWS'}
             </span>
             
@@ -81,20 +85,28 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
             </div>
           </div>
 
-          <h2 className="text-black dark:text-white font-extrabold text-xl leading-snug tracking-tight mb-4">
+          {/* ⚡ Added font-headline & dynamic Malayalam styling */}
+          <h2 
+            lang={isMalayalam ? "ml" : "en"}
+            className={`font-headline font-extrabold leading-snug mb-4 hyphens-auto text-black dark:text-white ${
+              isMalayalam ? 'text-[18px] tracking-normal' : 'text-xl tracking-tight'
+            }`}
+          >
             {article.headline}
           </h2>
 
           {/* 3. CONSTRAINED TEXT AREA */}
-          <div className="max-h-[30vh] overflow-y-auto text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 hide-scrollbar">
+          {/* ⚡ Added font-body */}
+          <div className="font-body max-h-[30vh] overflow-y-auto text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 hide-scrollbar">
             <p>{article.body || "Swipe to read more..."}</p>
           </div>
 
           {/* 4. VISIBLE BUTTON - Positioned relative to content, not fixed to screen */}
           <div className="mt-auto pb-4">
+            {/* ⚡ Added font-body */}
             <Link 
               href={`/article/${article._id}`}
-              className="block w-full py-4 text-center bg-black dark:bg-white text-white dark:text-black font-bold text-sm rounded-2xl shadow-lg hover:opacity-90 transition-opacity"
+              className="font-body block w-full py-4 text-center bg-black dark:bg-white text-white dark:text-black font-bold text-sm rounded-2xl shadow-lg hover:opacity-90 transition-opacity"
             >
               Read Full Detailed Coverage
             </Link>

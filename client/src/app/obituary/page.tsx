@@ -33,7 +33,6 @@ function ObituaryContent() {
   const [activeObituary, setActiveObituary] = useState<any | null>(null);
   const [hasLitCandle, setHasLitCandle] = useState(false);
   
-  // NEW: State to track if the image is being viewed in fullscreen
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   
   const [particles, setParticles] = useState<Array<{left: string, top: string, duration: string, delay: string, size: string, isPetal: boolean}>>([]);
@@ -48,14 +47,11 @@ function ObituaryContent() {
         duration: `${15 + Math.random() * 20}s`,
         delay: `-${Math.random() * 20}s`,
         size: `${2 + Math.random() * 4}px`,
-        // Every 4th ambient particle drifts up as a tiny bare flower silhouette
-        // instead of a plain dust mote, echoing the memorial-flower motif.
         isPetal: i % 4 === 0
       }))
     );
   }, []);
 
-  // Lock body scroll when either the popup OR the fullscreen image is open
   useEffect(() => {
     if (activeObituary || fullscreenImage) {
       document.body.style.overflow = "hidden";
@@ -139,41 +135,20 @@ function ObituaryContent() {
           }
         `}</style>
         
-        {/* FIXED: Elevated the Z-Index of the CategoryMenu wrapper to sit above the main content */}
         <div className="relative z-[100]">
           <CategoryMenu />
         </div>
 
-        {/* This main wrapper stays at z-10, meaning it will now slide properly under the z-[100] menu */}
         <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 py-8 md:py-12">
           
-          {/* UPDATED: In Loving Memory Header Card with Flowers & Fire */}
-          <div className="relative pt-16 pb-14 mb-8 sm:mb-12 flex flex-col items-center justify-center text-center overflow-hidden rounded-3xl bg-white dark:bg-[#111] shadow-sm border border-gray-200/50 dark:border-white/5">
+          {/* Plain Card with Glowing Flame and Colored Flower */}
+          <div className="relative pt-16 pb-14 mb-8 sm:mb-12 flex flex-col items-center justify-center text-center rounded-3xl bg-white dark:bg-[#111] shadow-sm border border-gray-200/50 dark:border-white/5">
             
-            {/* 1. Floral Background Image */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-              {/* Subtle white/soft floral image from Unsplash */}
-              <Image 
-                src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&q=80&w=1200"
-                alt="Memorial Flowers"
-                fill
-                className="object-cover opacity-[0.25] dark:opacity-[0.15] mix-blend-multiply dark:mix-blend-screen grayscale-[40%]"
-              />
-              {/* Gradient overlays to ensure text readability */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-white/95 dark:from-[#111]/90 dark:via-[#111]/70 dark:to-[#111]/95" />
-            </div>
-
-            {/* 2. Subtle Ambient Fire Glow at the base */}
-            <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-orange-500/15 dark:bg-orange-500/20 blur-[50px] rounded-full animate-pulse z-0 pointer-events-none" />
-
-            {/* 3. Main Content */}
             <div className="relative z-10 flex flex-col items-center">
               
-              {/* Enhanced Flame Icon with localized glow */}
-              <div className="relative mb-4">
-                <Flame className="w-8 h-8 text-orange-400 animate-[pulse_2s_ease-in-out_infinite] relative z-10 drop-shadow-md" />
-                {/* Tiny inner glow behind the flame */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-orange-400/40 blur-md rounded-full animate-pulse" />
+              <div className="relative mb-4 flex items-center justify-center">
+                <Flame className="w-8 h-8 text-orange-500 relative z-10 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] " fill="currentColor" />
+                <div className="absolute w-8 h-8 bg-orange-500/50 blur-md rounded-full " />
               </div>
               
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-serif text-gray-900 dark:text-white mb-4 sm:mb-5 tracking-tight drop-shadow-sm">
@@ -182,7 +157,7 @@ function ObituaryContent() {
               
               <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-4 sm:mb-6" aria-hidden="true">
                 <div className="w-10 sm:w-16 h-[1px] bg-gradient-to-r from-transparent to-gray-400 dark:to-gray-500 rounded-full" />
-                <Flower2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
+                <Flower2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 dark:text-rose-400" strokeWidth={2} />
                 <div className="w-10 sm:w-16 h-[1px] bg-gradient-to-l from-transparent to-gray-400 dark:to-gray-500 rounded-full" />
               </div>
               
@@ -219,10 +194,11 @@ function ObituaryContent() {
                   </div>
                   
                   <div className="p-3 sm:p-6 relative flex flex-col flex-grow justify-between overflow-hidden">
+                    {/* ⚡ UPDATED: Changed from gray to a subtle red watermark */}
                     <Flower2
                       aria-hidden="true"
                       strokeWidth={1}
-                      className="absolute -bottom-2 -right-2 w-14 h-14 sm:w-20 sm:h-20 text-gray-900 dark:text-white opacity-[0.04] dark:opacity-[0.06] pointer-events-none"
+                      className="absolute -bottom-2 -right-2 w-14 h-14 sm:w-20 sm:h-20 text-red-500 opacity-10 dark:opacity-20 pointer-events-none"
                     />
                     <div className="relative z-10">
                       <h2 className="text-sm sm:text-xl font-bold font-serif text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2 leading-snug">{obituary.headline}</h2>
@@ -244,7 +220,8 @@ function ObituaryContent() {
             onClick={() => { setActiveObituary(null); setHasLitCandle(false); }} 
           />
           
-          <div className="relative bg-[#fafafa] dark:bg-[#111] max-w-lg w-full max-h-[85vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-0 shadow-2xl border border-gray-200 dark:border-white/10 animate-in fade-in zoom-in duration-300 pointer-events-auto">
+          {/* ⚡ UPDATED: Added hidden scrollbar classes to this container */}
+          <div className="relative bg-[#fafafa] dark:bg-[#111] max-w-lg w-full max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-2xl sm:rounded-3xl p-0 shadow-2xl border border-gray-200 dark:border-white/10 animate-in fade-in zoom-in duration-300 pointer-events-auto">
             
             <div 
               className="relative w-full h-80 sm:h-[400px] overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in group"
