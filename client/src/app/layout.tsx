@@ -2,9 +2,9 @@ import "./globals.css";
 import Script from "next/script";
 import { Metadata, Viewport } from "next";
 
-// ⚡ 1. IMPORT THE FONTS
+// ⚡ 1. Import NextTopLoader
+import NextTopLoader from 'nextjs-toploader';
 import { Anek_Malayalam, Mukta_Malar } from 'next/font/google';
-import { Noto_Sans_Malayalam } from 'next/font/google';
 
 import ScrollToTopButton from "@/components/layout/ScrollToTopButton";
 import Navbar from "@/components/layout/Navbar";
@@ -16,18 +16,16 @@ import HideOnShorts from "@/components/layout/HideOnShorts";
 import HideOnDashboard from "@/components/layout/HideOnDashboard";
 import Footer from "@/components/layout/Footer";
 
-// ⚡ 2. CONFIGURE THE FONTS
 const anek = Anek_Malayalam({ 
   subsets: ['malayalam'],
   variable: '--font-anek',
   display: 'swap',
 });
 
-// 2. Update the font configuration:
-const malayalamFont = Noto_Sans_Malayalam({
+const mukta = Mukta_Malar({
   weight: ['400', '500', '600', '700', '800'],
-  subsets: ['malayalam'], // ✅ This is now perfectly valid!
-  variable: '--font-malayalam',
+  subsets: ['malayalam'],
+  variable: '--font-mukta',
   display: 'swap',
 });
 
@@ -50,8 +48,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* Google AdSense */}
-        {/* ⚡ THE BULLETPROOF CDN LINK */}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
         
         <Script
@@ -61,14 +57,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="afterInteractive"
         />
         
-        {/* ADDED THIS: Liquid Glass Library */}
         <Script 
           src="/liquid-glass.js" 
           strategy="afterInteractive" 
         />
       </head>
-      {/* ⚡ 3. INJECT FONT VARIABLES INTO THE BODY */}
-      <body className={`bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col ${anek.variable} ${malayalamFont.variable}`}>
+      <body className={`bg-white dark:bg-[#111] transition-colors duration-300 antialiased overflow-x-hidden min-h-screen flex flex-col ${anek.variable} ${mukta.variable}`}>
+        
+        {/* ⚡ 2. Add the TopLoader component with your brand color! */}
+        <NextTopLoader 
+          color="#e3000f" 
+          initialPosition={0.08} 
+          crawlSpeed={200} 
+          height={3} 
+          crawl={true} 
+          showSpinner={false} 
+          easing="ease" 
+          speed={200} 
+          shadow="0 0 10px #e3000f,0 0 5px #e3000f" 
+        />
         
         <HideOnShorts>
           <HideOnDashboard>

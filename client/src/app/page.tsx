@@ -276,8 +276,8 @@ export default async function Home({
               TOP TEN NEWS
             </h2>
 
-            <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-hidden flex flex-col flex-1 min-h-0 shadow-sm">
-              {/* Main Article */}
+            {/* ⚡ THE FIX: Replaced gray borders with border-[#e3000f]/30 and bumped rounded-xl to rounded-2xl to perfectly match the carousel */}
+            <div className="border border-[#e3000f]/70 dark:border-[#e3000f]/70 rounded-2xl bg-white dark:bg-[#111] overflow-hidden flex flex-col flex-1 min-h-0 shadow-sm">              {/* Main Article */}
               {mainArticle && (
                 <Link
                   href={`/full-coverage/${mainArticle._id}`}
@@ -329,7 +329,8 @@ export default async function Home({
               )}
 
               {/* ⚡ THE ULTIMATE SCROLLBAR KILLER FOR THIS SECTION ⚡ */}
-              <style dangerouslySetInnerHTML={{__html: `
+              <style dangerouslySetInnerHTML={{
+                __html: `
                 .hide-top10-scroll::-webkit-scrollbar {
                   display: none !important;
                   width: 0 !important;
@@ -411,7 +412,7 @@ export default async function Home({
       </PageTransition>
 
       {/* --- WIDE DIVIDER (Doesn't touch corners) --- */}
-      <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/10 my-10"></div>
+      <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/80 my-10"></div>
 
 
       {/* --- INJECTED LIVE TV SECTION --- */}

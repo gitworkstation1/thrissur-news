@@ -30,7 +30,8 @@ export default async function NewsTicker() {
   if (articles.length === 0) return null;
 
   return (
-    <div className="w-full bg-gray-900 dark:bg-black text-gray-200 flex items-center h-10 md:h-11 overflow-hidden border-b border-gray-800 relative z-30">
+    // ⚡ FIX 1: bg-black in light mode, bg-white in dark mode. Text colors inverted to match!
+    <div className="w-full bg-black dark:bg-white text-white dark:text-black flex items-center h-10 md:h-11 overflow-hidden border-b border-gray-900 dark:border-gray-200 relative z-30 transition-colors duration-300">
       
       {/* --- FIXED BADGE ON LEFT --- */}
       <div className="absolute left-0 top-0 bottom-0 bg-[#e3000f] text-white font-black text-[10px] md:text-xs uppercase px-3 md:px-5 flex items-center z-20 shadow-[8px_0_20px_-5px_rgba(0,0,0,0.8)] tracking-widest">
@@ -66,20 +67,21 @@ export default async function NewsTicker() {
           {articles.map((article, index) => (
             <div key={article._id || index} className="flex items-center">
               <Link 
-                href={`/news/${article.slug || article._id}`}
-                className="hover:text-white hover:underline underline-offset-4 transition-all text-xs md:text-sm font-medium tracking-wide"
+                href={`/full-coverage/${article._id}`}
+                // ⚡ FIX 2: Used hover:opacity-70 so the hover state works flawlessly on both black AND white text
+                className="hover:opacity-70 hover:underline underline-offset-4 transition-all text-xs md:text-sm font-bold tracking-wide"
               >
                 {article.headline}
               </Link>
               {/* Separator Pipe */}
-              <span className="mx-6 text-gray-600">|</span>
+              <span className="mx-6 text-gray-500 dark:text-gray-400 font-light">|</span>
             </div>
           ))}
         </div>
 
         {/* --- RIGHT EDGE FADE OUT --- */}
-        {/* Adds a premium gradient fade so text doesn't sharply clip at the edge of the screen */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-gray-900 dark:from-black to-transparent z-10 pointer-events-none"></div>
+        {/* ⚡ FIX 3: Gradient mapped to from-black dark:from-white so it perfectly masks the text! */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-black dark:from-white to-transparent z-10 pointer-events-none transition-colors duration-300"></div>
       </div>
 
     </div>

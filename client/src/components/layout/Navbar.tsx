@@ -8,7 +8,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; // <-- Using your component!
+import LiquidGlassButton from "@/components/ui/LiquidGlassButton";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -19,18 +19,15 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ⚡ NEW: Live Database States
   const [regionData, setRegionData] = useState<any[]>([]);
   const [expandedState, setExpandedState] = useState<string>("");
   const [expandedDistrict, setExpandedDistrict] = useState<string>("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ⚡ FETCH REGIONS ON LOAD (BULLETPROOF VERSION)
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        // 1. Clean the URL
         let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
         baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
 
@@ -39,7 +36,6 @@ export default function Navbar() {
         if (!res.ok) throw new Error("Failed to fetch regions");
         const data = await res.json();
 
-        // 2. Prevent the .map() crash
         if (data && Array.isArray(data) && data.length > 0) {
           setRegionData(data);
 
@@ -53,7 +49,6 @@ export default function Navbar() {
         }
       } catch (error) {
         console.error("Navbar region fetch bypassed safely:", error);
-        // Fallback so the UI never breaks
         setRegionData([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
       }
     };
@@ -223,12 +218,13 @@ export default function Navbar() {
                 }`}
               aria-label="Open Menu"
             >
+              {/* ⚡ ADDED: dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] to add white outline in dark mode */}
               <Image
                 src="/fides-logo.png"
                 alt="Fides Menu"
                 width={120}
                 height={56}
-                className="h-full w-auto object-contain transform transition-all duration-300 origin-left group-hover:scale-105 group-active:scale-95"
+                className="h-full w-auto object-contain transform transition-all duration-300 origin-left group-hover:scale-105 group-active:scale-95 dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]"
                 priority
               />
             </button>
@@ -273,17 +269,20 @@ export default function Navbar() {
                 }`}
             >
 
-              {/* ⚡ SINGLE UNIFIED GLASS PILL (Using your LiquidGlassButton) ⚡ */}
-              {/* ⚡ Added glassOptions to make the curved rim thicker (border: 0.3) and the bulge stronger (scale: -90) */}
-              {/* Updated options to prevent focal inversion while retaining edge refraction */}
+              {/* ⚡ SINGLE UNIFIED GLASS PILL ⚡ */}
               <LiquidGlassButton
                 glassOptions={{ scale: -40, border: 0.15, mapBlur: 8 }}
-                className="flex items-center gap-1 rounded-full p-1 shadow-md cursor-default"
+                className="flex items-center gap-1 rounded-full p-1 shadow-md cursor-default relative z-50"
               >
-                {/* Location Div (Acts like a button but keeps HTML valid) */}
+                {/* Location Div */}
                 <div
-                  onClick={(e) => { e.stopPropagation(); setShowLocations(!showLocations); }}
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    setShowLocations((prev) => !prev); 
+                  }}
                   role="button"
+                  tabIndex={0}
                   className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors relative z-50 rounded-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${showLocations
                     ? 'text-[#e3000f]'
                     : 'text-[#002244] dark:text-gray-200'
@@ -298,7 +297,7 @@ export default function Navbar() {
                 {/* Subtle Divider Line */}
                 <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 rounded-full" />
 
-                {/* Animated Theme Div (Acts like a button but keeps HTML valid) */}
+                {/* Animated Theme Div */}
                 <div
                   onClick={(e) => { e.stopPropagation(); toggleTheme(e); }}
                   aria-label="Toggle Theme"
@@ -340,7 +339,9 @@ export default function Navbar() {
 
               {/* DRILL-DOWN HIERARCHICAL DROPDOWN CONTAINER */}
               <div
-                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[75vh] overflow-y-auto z-50 origin-top-right transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] custom-scrollbar ${showLocations ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-75 -translate-y-4 pointer-events-none"
+                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#1a1a1a] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[75vh] overflow-y-auto z-50 transition-all duration-[600ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-[80%_-10%] custom-scrollbar ${showLocations 
+                    ? "opacity-100 scale-100 translate-y-0 rounded-xl blur-0 pointer-events-auto" 
+                    : "opacity-0 scale-75 scale-y-50 -translate-y-8 rounded-[4rem] blur-sm pointer-events-none"
                   }`}
               >
                 <div className="bg-gray-50 dark:bg-[#111] px-4 py-3 border-b border-gray-100 dark:border-gray-800/50 sticky top-0 z-10 flex justify-between items-center">

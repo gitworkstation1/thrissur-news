@@ -3,6 +3,8 @@ import React, { useState, Fragment } from "react";
 import { Search, X, MapPin, TrendingUp } from "lucide-react";
 import NewsCard from "@/components/cards/NewsCard";
 import { Article } from "@/lib/types";
+// ⚡ 1. Import Link from next/link
+import Link from "next/link";
 
 const quickFilters = [
   "Kodungallur",
@@ -141,10 +143,12 @@ export default function SearchClient({
             <div className="space-y-3">
               {filteredArticles.map((article, index) => (
                 <Fragment key={article._id}>
-                  {/* 1. Render the actual News Card */}
-                  <NewsCard article={article} />
+                  {/* ⚡ 2. Wrap the NewsCard in a Link tag */}
+                  <Link href={`/full-coverage/${article._id}`} className="block w-full">
+                    <NewsCard article={article} />
+                  </Link>
                   
-                  {/* ⚡ 2. IN-FEED MOBILE AD: Shows up after EVERY 4th card (index 3, 7, 11, etc.) ⚡ */}
+                  {/* ⚡ IN-FEED MOBILE AD: Shows up after EVERY 4th card (index 3, 7, 11, etc.) ⚡ */}
                   {(index + 1) % 4 === 0 && (
                     <div className="flex lg:hidden w-full justify-center my-4 overflow-hidden rounded-2xl shadow-sm border border-red-500/30">
                       {sidebarAd}
