@@ -57,7 +57,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
 
   return (
     // ⚡ FIX: Added rounded-2xl, border-[#e3000f]/30, and overflow-hidden to the parent container
-    <div className="w-full flex flex-col rounded-2xl border border-[#e3000f]/70 dark:border-[#e3000f]/70 overflow-hidden bg-white dark:bg-[#111]">
+    <div className="w-full flex flex-col rounded-2xl border border-[#e3000f]/70 dark:border-[#e3000f]/30 overflow-hidden bg-white dark:bg-[#111]">
       <Link href="/breaking-news" className="flex items-center gap-2 mb-4 mt-3 ml-3 group w-max cursor-pointer z-10 relative">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>

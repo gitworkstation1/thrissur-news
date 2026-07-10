@@ -48,7 +48,7 @@ export default function LiveTVSection() {
         </div>
 
         {/* --- RIGHT SIDE: The Schedule Panel (30% on Desktop) --- */}
-        <div className="w-full rounded-2xl border border-[#e3000f]/70 lg:w-[30%] flex flex-col mt-2 lg:mt-[68px]">
+        <div className="w-full rounded-2xl border border-[#e3000f]/30 lg:w-[30%] flex flex-col mt-2 lg:mt-[68px]">
           
           <div className="bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/10 p-5 md:p-6 shadow-sm flex flex-col h-full">
 
