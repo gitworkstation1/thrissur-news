@@ -24,7 +24,8 @@ const anek = Anek_Malayalam({
 
 const mukta = Mukta_Malar({
   weight: ['400', '500', '600', '700', '800'],
-  subsets: ['malayalam'],
+  // ⚡ THE FIX: Changed 'malayalam' to 'latin' to satisfy TypeScript
+  subsets: ['latin'], 
   variable: '--font-mukta',
   display: 'swap',
 });
