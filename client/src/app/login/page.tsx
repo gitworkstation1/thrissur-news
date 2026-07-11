@@ -51,7 +51,7 @@ export default function LoginPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-1">
-            Integrity<span className="text-red-600">News</span>
+            Fides<span className="text-red-600">News</span>
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             CCA - For Admin Use Only

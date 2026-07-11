@@ -7,19 +7,19 @@ export const revalidate = 60; // <-- Phase 2: ISR Caching
 
 // <-- Phase 3: Enhanced SEO & Social Media Metadata
 export const metadata = {
-  title: 'Search | Integrity News',
+  title: 'Search | Fides News',
   description: 'Search hyperlocal news and live updates in Thrissur.',
   openGraph: {
-    title: 'Search | Integrity News',
+    title: 'Search | Fides News',
     description: 'Search hyperlocal news and live updates in Thrissur.',
     url: 'https://yourdomain.com/search',
-    siteName: 'Integrity News',
+    siteName: 'Fides News',
     images: [
       {
         url: 'https://picsum.photos/1200/630', // TODO: Swap with your actual website logo/banner URL!
         width: 1200,
         height: 630,
-        alt: 'Integrity News Search',
+        alt: 'Fides News Search',
       },
     ],
     locale: 'en_IN',

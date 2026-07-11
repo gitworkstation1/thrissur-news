@@ -19,19 +19,19 @@ export const revalidate = 60; // <-- PHASE 2: ISR Caching added. Database protec
 
 // <-- PHASE 3: Global SEO added for social media sharing
 export const metadata = {
-  title: 'Integrity News | Thrissur Local Updates',
+  title: 'Fides News | Thrissur Local Updates',
   description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
   openGraph: {
-    title: 'Integrity News | Thrissur Local Updates',
+    title: 'Fides News | Thrissur Local Updates',
     description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
     url: 'https://yourdomain.com',
-    siteName: 'Integrity News',
+    siteName: 'Fides News',
     images: [
       {
         url: 'https://picsum.photos/1200/630', // TODO: Swap with your main website banner URL
         width: 1200,
         height: 630,
-        alt: 'Integrity News Banner',
+        alt: 'Fides News Banner',
       },
     ],
     locale: 'en_IN',

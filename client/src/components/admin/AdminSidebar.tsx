@@ -96,7 +96,7 @@ export default function AdminSidebar({
         <div className="p-6 mb-2 flex items-start justify-between shrink-0">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
-              Integrity<span className="text-red-600">News</span>
+              Fides<span className="text-red-600">News</span>
             </h2>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
               Command Center

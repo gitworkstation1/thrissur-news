@@ -8,19 +8,19 @@ import AdCard from "@/components/ad/AdCard";
 export const revalidate = 60;
 
 export const metadata = {
-  title: 'Shorts | Integrity News',
+  title: 'Shorts | Fides News',
   description: 'Swipe through the latest breaking news shorts and updates.',
   openGraph: {
-    title: 'Shorts | Integrity News',
+    title: 'Shorts | Fides News',
     description: 'Swipe through the latest breaking news shorts and updates.',
     url: 'https://yourdomain.com/shorts',
-    siteName: 'Integrity News',
+    siteName: 'Fides News',
     images: [
       {
         url: 'https://picsum.photos/1200/630', 
         width: 1200,
         height: 630,
-        alt: 'Integrity News Shorts',
+        alt: 'Fides News Shorts',
       },
     ],
     locale: 'en_IN',

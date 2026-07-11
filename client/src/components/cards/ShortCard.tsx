@@ -30,7 +30,7 @@ export default function ShortCard({ short }: { short: any }) {
       try {
         await navigator.share({
           title: short.headline,
-          text: 'Check out this news short from IntegrityNews',
+          text: 'Check out this news short from FidesNews',
           url: url
         });
       } catch (err) {
@@ -65,7 +65,7 @@ export default function ShortCard({ short }: { short: any }) {
         {/* Left Side: Headline */}
         <div className="flex-1 pr-4 pointer-events-auto">
           <span className="inline-block px-3 py-1 mb-3 text-[10px] font-black uppercase tracking-widest bg-red-600 text-white rounded-full">
-            IntegrityNews
+            FidesNews
           </span>
           <h2 className="text-white text-xl font-bold leading-snug drop-shadow-lg">
             {short.headline}
