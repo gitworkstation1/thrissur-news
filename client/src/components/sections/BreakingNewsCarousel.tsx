@@ -56,11 +56,9 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
   };
 
   return (
-    <div className="w-full flex flex-col">
-      {/* FIXED: Added mt-3 and ml-3 to give the text and the ping animation 
-        enough clearance from the parent's overflow-hidden boundary. 
-      */}
-      <Link href="/breaking-news" className="flex items-center gap-2 mb-4 mt-3 ml-3 group w-max cursor-pointer">
+    // ⚡ FIX: Added rounded-2xl, border-[#e3000f]/30, and overflow-hidden to the parent container
+    <div className="w-full flex flex-col rounded-2xl border border-[#e3000f]/70 dark:border-[#e3000f]/30 overflow-hidden bg-white dark:bg-[#111]">
+      <Link href="/breaking-news" className="flex items-center gap-2 mb-4 mt-3 ml-3 group w-max cursor-pointer z-10 relative">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#e3000f] opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-[#e3000f]"></span>
@@ -76,7 +74,7 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
       </Link>
 
       <div
-        className={`relative w-full group touch-pan-y select-none bg-white dark:bg-[#111] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`relative w-full flex-1 group touch-pan-y select-none bg-white dark:bg-[#111] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         onTouchStart={(e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); setIsSwiping(false); }}
         onTouchMove={(e) => { setTouchEnd(e.targetTouches[0].clientX); setIsSwiping(true); }}
         onTouchEnd={handleSwipe}
@@ -102,11 +100,10 @@ export default function BreakingNewsCarousel({ articles }: { articles: Article[]
                     sizes="(max-width: 768px) 100vw, 65vw"
                     className="object-cover"
                     draggable="false"
-                    
                   />
                 </div>
 
-                <div className="flex flex-col gap-1 px-4 py-3">
+                <div className="flex flex-col gap-1 px-4 py-3 pb-5">
                   <span className="inline-block text-[#e3000f] text-[10px] font-black uppercase tracking-widest">
                     {item.data.category || "Alert"} • {item.data.location?.ward || "Latest"}
                   </span>

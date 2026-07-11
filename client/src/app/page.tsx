@@ -15,9 +15,8 @@ import HomeAdCard from "@/components/ad/HomeAdCard";
 import ShowsSection from "@/components/sections/ShowsSection";
 import LiveTVSection from "@/components/sections/LiveTVSection";
 
-export const revalidate = 60; // <-- PHASE 2: ISR Caching added. Database protected!
+export const revalidate = 60; 
 
-// <-- PHASE 3: Global SEO added for social media sharing
 export const metadata = {
   title: 'Fides News | Thrissur Local Updates',
   description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
@@ -28,7 +27,7 @@ export const metadata = {
     siteName: 'Fides News',
     images: [
       {
-        url: 'https://picsum.photos/1200/630', // TODO: Swap with your main website banner URL
+        url: 'https://picsum.photos/1200/630', 
         width: 1200,
         height: 630,
         alt: 'Fides News Banner',
@@ -73,7 +72,6 @@ export default async function Home({
       "All Places",
     );
 
-    // --- FETCH LIVE ADS ---
     adsData = await fetchArticles(
       "Advertisement",
       "",
@@ -99,7 +97,6 @@ export default async function Home({
     console.error(err);
   }
 
-  // --- FILTER ADS FOR HOMEPAGE HERO ZONE ---
   const activeAds = adsData.articles || [];
   const heroAds = activeAds.filter(
     (ad) => ad.location?.landmark === "Homepage Hero",
@@ -132,7 +129,6 @@ export default async function Home({
   const mainArticle = topTenNews[0];
   const scrollingArticles = topTenNews.slice(1);
 
-  // Check if main article has video
   const mainHasVideo =
     mainArticle?.body?.includes("<iframe") ||
     mainArticle?.media?.some(
@@ -148,7 +144,6 @@ export default async function Home({
   let moreStoriesArticles: Article[] = [];
   let editorsPickArticles: Article[] = [];
 
-  // --- 3-COLUMN DATA SPLIT LOGIC ---
   if (selectedWard && selectedWard !== "All Places") {
     localFeedArticles = localData.articles
       ? localData.articles.slice(0, 15)
@@ -180,7 +175,8 @@ export default async function Home({
         >
           {/* CAROUSEL & DESKTOP AD CONTAINER */}
           <div className="w-full lg:w-[65%] shrink-0 flex flex-col h-full min-h-0">
-            <div className="w-full flex-1 min-h-0 relative rounded-2xl overflow-hidden shadow-sm">
+            {/* ⚡ THE FIX: Removed shadow-sm from this wrapper so it doesn't bleed under the carousel border! */}
+            <div className="w-full flex-1 min-h-0 relative rounded-2xl overflow-hidden">
               <BreakingNewsCarousel articles={carouselArticles} />
             </div>
 
@@ -276,7 +272,8 @@ export default async function Home({
               TOP TEN NEWS
             </h2>
 
-            <div className="border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#111] overflow-hidden flex flex-col flex-1 min-h-0 shadow-sm">
+            {/* ⚡ THE FIX: Removed shadow-sm here too, making it completely flat and perfectly matching the carousel box! */}
+            <div className="border border-[#e3000f]/70 dark:border-[#e3000f]/30 rounded-2xl bg-white dark:bg-[#111] overflow-hidden flex flex-col flex-1 min-h-0">
               {/* Main Article */}
               {mainArticle && (
                 <Link
@@ -300,7 +297,7 @@ export default async function Home({
                         className="w-full h-44 object-cover shadow-sm group-hover:scale-105 transition-transform duration-500"
                         alt="Thumbnail"
                       />
-                      {/* MAIN ARTICLE PLAY ICON (FIXED SHADOW) */}
+                      {/* MAIN ARTICLE PLAY ICON */}
                       {mainHasVideo && (
                         <div className="absolute bottom-3 left-3 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-[#e3000f] shadow-[0_4px_10px_rgba(0,0,0,0.25)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.4)] transform group-hover:scale-110 transition-transform duration-300">
                           <Play className="w-5 h-5 text-white fill-white ml-1" />
@@ -328,8 +325,8 @@ export default async function Home({
                 </Link>
               )}
 
-              {/* ⚡ THE ULTIMATE SCROLLBAR KILLER FOR THIS SECTION ⚡ */}
-              <style dangerouslySetInnerHTML={{__html: `
+              <style dangerouslySetInnerHTML={{
+                __html: `
                 .hide-top10-scroll::-webkit-scrollbar {
                   display: none !important;
                   width: 0 !important;
@@ -411,8 +408,7 @@ export default async function Home({
       </PageTransition>
 
       {/* --- WIDE DIVIDER (Doesn't touch corners) --- */}
-      <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/10 my-10"></div>
-
+      <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/80 my-10"></div>
 
       {/* --- INJECTED LIVE TV SECTION --- */}
       <LiveTVSection />

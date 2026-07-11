@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation"; // <-- IMPORT ROUTER
+import { useRouter } from "next/navigation"; 
 import { ChevronLeft, Share2 } from "lucide-react";
 import BookmarkButton from "@/components/ui/BookmarkButton";
-import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; // <-- IMPORT YOUR NEW GLASS BUTTON
+import LiquidGlassButton from "@/components/ui/LiquidGlassButton"; 
 
 export default function ArticleNavbar({ article }: { article: any }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false); 
-  const router = useRouter(); // <-- INITIALIZE ROUTER
+  const router = useRouter(); 
 
   useEffect(() => {
     setMounted(true);
@@ -39,6 +39,15 @@ export default function ArticleNavbar({ article }: { article: any }) {
     }
   };
 
+  // ⚡ THE FIX: Smart Back Function
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      router.back(); // Restores scroll position natively
+    } else {
+      router.push("/"); // Safe fallback if they opened the link in a new tab
+    }
+  };
+
   const fullNavbar = (
     <div 
       className={`fixed top-0 inset-x-0 z-[90] bg-white/95 dark:bg-[#111]/95 backdrop-blur-md border-b border-gray-200 dark:border-white/10 px-4 h-14 flex items-center justify-between transition-transform duration-300 ease-in-out ${
@@ -47,7 +56,7 @@ export default function ArticleNavbar({ article }: { article: any }) {
     >
       {/* 1. LIQUID GLASS MAIN BACK BUTTON */}
       <LiquidGlassButton 
-        onClick={() => router.push('/')} 
+        onClick={handleBack} // ⚡ Updated to use handleBack
         className="flex items-center gap-2 p-2 -ml-2 text-black dark:text-white"
       >
         <ChevronLeft className="w-5 h-5" />
@@ -76,7 +85,7 @@ export default function ArticleNavbar({ article }: { article: any }) {
     >
       {/* 2. LIQUID GLASS FLOATING BACK BUTTON */}
       <LiquidGlassButton 
-        onClick={() => router.push('/')} 
+        onClick={handleBack} // ⚡ Updated to use handleBack
         className="flex items-center justify-center w-11 h-11 text-black dark:text-white"
       >
         <ChevronLeft className="w-6 h-6 -ml-0.5 text-gray-800 dark:text-gray-200" />
