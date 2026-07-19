@@ -216,6 +216,21 @@ export default function AdminComposer({
     setMediaList([...mediaList, { file: null, url: "", credit: "" }]);
   const removeMediaSlot = (index: number) =>
     setMediaList(mediaList.filter((_, i) => i !== index));
+  
+  const handleKeyPointChange = (index: number, value: string) => {
+    const updatedPoints = [...(formData.keyPoints || [])];
+    updatedPoints[index] = value;
+    setFormData({ ...formData, keyPoints: updatedPoints });
+  };
+
+  const addKeyPoint = () => {
+    setFormData({ ...formData, keyPoints: [...(formData.keyPoints || []), ""] });
+  };
+
+  const removeKeyPoint = (index: number) => {
+    const updatedPoints = (formData.keyPoints || []).filter((_: any, i: number) => i !== index);
+    setFormData({ ...formData, keyPoints: updatedPoints });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -224,6 +239,12 @@ export default function AdminComposer({
 
     try {
       let articlePayload: any = { ...formData };
+      
+      // ⚡ ADD THIS CLEANUP: Remove any empty key points before sending to DB
+      if (articlePayload.keyPoints) {
+        articlePayload.keyPoints = articlePayload.keyPoints.filter((p: string) => p.trim() !== "");
+      }
+      
       let finalMedia: { type: string; url: string; credit?: string }[] = [];
       let finalCredits = { ...articlePayload.credits };
 
@@ -601,6 +622,7 @@ export default function AdminComposer({
                 </div>
               </div>
 
+              {/* EXISTING ARTICLE BODY */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 mt-2">
                   Article Body
@@ -613,6 +635,49 @@ export default function AdminComposer({
                   placeholder="Write the full story here with formatting..."
                 />
               </div>
+
+              {/* ⚡ NEW: KEY TAKEAWAYS SECTION */}
+              {editorMode === "news" && (
+                <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5 mt-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                      Key Takeaways
+                    </label>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-3">
+                      Add bullet points to summarize the article (displays at the top of the detailed view).
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {(formData.keyPoints || []).map((point: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={point}
+                          onChange={(e) => handleKeyPointChange(index, e.target.value)}
+                          className="flex-1 p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                          placeholder="e.g., The protest enters its fifth consecutive day..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeKeyPoint(index)}
+                          className="p-3 text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-100 dark:border-red-500/10"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addKeyPoint}
+                    className="flex items-center gap-2 px-4 py-2 mt-2 text-sm font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors border border-blue-100 dark:border-blue-800/50"
+                  >
+                    <Plus className="w-4 h-4" /> Add Bullet Point
+                  </button>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">

@@ -5,7 +5,7 @@ import { Article } from "@/lib/types";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import Link from "next/link";
 
-export default function InteractiveShortCard({ article }: { article: Article }) {
+export default function InteractiveShortCard({ article, summaryText }: { article: Article, summaryText: string }) {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,8 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
       try {
         await navigator.share({
           title: article.headline,
-          text: article.body ? article.body.slice(0, 100) + "..." : article.headline,
+          // ⚡ Use summaryText here for a much cleaner share preview!
+          text: summaryText ? summaryText.slice(0, 100) + "..." : article.headline,
           url: `${window.location.origin}/article/${article._id}`
         });
       } catch (err) {
@@ -96,9 +97,9 @@ export default function InteractiveShortCard({ article }: { article: Article }) 
           </h2>
 
           {/* 3. CONSTRAINED TEXT AREA */}
-          {/* ⚡ Added font-body */}
           <div className="font-body max-h-[30vh] overflow-y-auto text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 hide-scrollbar">
-            <p>{article.body || "Swipe to read more..."}</p>
+            {/* ⚡ Replaced article.body with the clean summaryText here */}
+            <p>{summaryText || "Swipe to read more..."}</p>
           </div>
 
           {/* 4. VISIBLE BUTTON - Positioned relative to content, not fixed to screen */}

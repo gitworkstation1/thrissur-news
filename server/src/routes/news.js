@@ -201,6 +201,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
+    console.log("BACKEND RECEIVED KEYPOINTS:", req.body.keyPoints);
+
     // 3. Update the document, ensuring new schema fields (like isTicker) are validated
     const updatedDoc = await ModelToUse.findByIdAndUpdate(id, req.body, { 
       new: true,

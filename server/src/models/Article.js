@@ -14,6 +14,11 @@ const articleSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50000, 'Article body cannot exceed 50,000 characters']
   },
+  // ⚡ NEW: Key Takeaways array
+  keyPoints: {
+    type: [String],
+    default: []
+  },
   isBreaking: { 
     type: Boolean, 
     default: false 

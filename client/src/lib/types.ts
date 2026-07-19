@@ -4,6 +4,7 @@ export interface Article {
   _id: string;
   headline: string;
   body: string;
+  quickSummary?: string;
   isBreaking: boolean;
   category: string;
   location: {
@@ -14,18 +15,18 @@ export interface Article {
     type: string;
     url: string;
   }>;
-  // --- NEW: Added optional credits for reporter and photographer ---
   credits?: {
     reporter?: {
       name: string;
-      avatarUrl?: string; // Optional image for the reporter
+      avatarUrl?: string; 
     };
     photographer?: {
       name: string;
-      avatarUrl?: string; // Optional image for the photographer
+      avatarUrl?: string; 
     };
   };
   createdAt: string;
   updatedAt: string;
   status?: 'published' | 'draft';
+  keyPoints?: string[];
 }

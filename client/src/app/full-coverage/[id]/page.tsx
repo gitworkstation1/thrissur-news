@@ -238,13 +238,23 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
           </article>
 
           <aside className="lg:col-span-6 space-y-8">
-            <div className="bg-white/50 dark:bg-[#111]/50 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl shadow-sm">
-              <h3 className="font-black text-lg uppercase tracking-widest mb-6 border-b-2 border-red-600 pb-2">Key Takeaways</h3>
-              <ul className="space-y-4 text-gray-700 dark:text-gray-300">
-                <li className="flex gap-3"><span className="text-red-600 font-bold">•</span> Summary points here.</li>
-                <li className="flex gap-3"><span className="text-red-600 font-bold">•</span> Key editorial context.</li>
-              </ul>
-            </div>
+            
+            {/* ⚡ DYNAMIC KEY TAKEAWAYS SECTION */}
+            {article.keyPoints && article.keyPoints.length > 0 && (
+              <div className="bg-white/50 dark:bg-[#111]/50 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl shadow-sm">
+                <h3 className="font-black text-lg uppercase tracking-widest mb-6 border-b-2 border-red-600 pb-2 inline-block">
+                  Key Takeaways
+                </h3>
+                <ul className="space-y-4 text-gray-700 dark:text-gray-300">
+                  {article.keyPoints.map((point: string, index: number) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-red-600 font-black mt-1 text-lg leading-none">•</span> 
+                      <span className="text-base leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             
             <div className="flex justify-center w-full sticky top-24">
               {sidebarAd ? (
