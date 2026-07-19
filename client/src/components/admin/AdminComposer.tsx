@@ -99,25 +99,67 @@ export default function AdminComposer({
     index: number;
   } | null>(null);
 
-  // ⚡ NEW: Staff Directory States
-  const [staffDirectory, setStaffDirectory] = useState<{
-    reporters: any[];
-    photographers: any[];
-  }>({ reporters: [], photographers: [] });
+  // ⚡ MASTER DIRECTORY STATES
+  const [staffDirectory, setStaffDirectory] = useState<{ reporters: any[]; photographers: any[] }>({ reporters: [], photographers: [] });
   const [isCustomReporter, setIsCustomReporter] = useState(false);
   const [isCustomPhotographer, setIsCustomPhotographer] = useState(false);
 
-  // ⚡ NEW: Fetch staff on load
+  // ⚡ COMBINED INITIALIZATION & HYDRATION EFFECT
+  // This completely eliminates race conditions by validating custom names immediately after the fetch resolves.
   useEffect(() => {
+    // 1. Normalize the incoming article data immediately
+    const normalizedCredits = {
+      reporter: {
+        name: initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
+        avatarUrl: initialData?.credits?.reporter?.avatarUrl || "",
+      },
+      photographer: {
+        name: initialData?.credits?.photographer?.name || initialData?.photographedBy || "",
+        avatarUrl: initialData?.credits?.photographer?.avatarUrl || "",
+      },
+    };
+
+    // 2. Set all local form state
+    setFormData({
+      ...initialData,
+      credits: normalizedCredits,
+    });
+    setEditorMode(defaultMode);
+    setShortUrl(initialShortUrl);
+
+    // 3. Set Media
+    const existingImages = initialData?.media?.filter((m: any) => m.type === "image") || [];
+    if (existingImages.length > 0) {
+      setMediaList(
+        existingImages.map((img: any) => ({
+          file: null,
+          url: img.url,
+          credit: img.credit || "",
+        }))
+      );
+    } else {
+      setMediaList([{ file: null, url: "", credit: "" }]);
+    }
+
+    // 4. Fetch the staff directory, THEN cross-reference the normalized data synchronously
     fetchStaff()
       .then((data) => {
-        setStaffDirectory({
-          reporters: data.filter((s: any) => s.role === "Reporter"),
-          photographers: data.filter((s: any) => s.role === "Photographer"),
-        });
+        const reporters = data.filter((s: any) => s.role === "Reporter");
+        const photographers = data.filter((s: any) => s.role === "Photographer");
+        
+        setStaffDirectory({ reporters, photographers });
+
+        // If a name exists in the legacy data but IS NOT in the database, snap the custom input open!
+        if (normalizedCredits.reporter.name && !reporters.some((s: any) => s.name === normalizedCredits.reporter.name)) {
+          setIsCustomReporter(true);
+        }
+        if (normalizedCredits.photographer.name && !photographers.some((s: any) => s.name === normalizedCredits.photographer.name)) {
+          setIsCustomPhotographer(true);
+        }
       })
       .catch((err) => console.error("Failed to load staff", err));
-  }, []);
+
+  }, [initialData, defaultMode, initialShortUrl]);
 
   // ⚡ LIVE REGION DATA STATE
   const [regionData, setRegionData] = useState<any[]>([]);
@@ -126,22 +168,16 @@ export default function AdminComposer({
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        // 1. Clean the URL exactly like we did in the Navbar
-        let baseUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
-
         const res = await fetch(`${baseUrl}/api/regions`);
-
         if (!res.ok) throw new Error("Failed to fetch regions");
         const data = await res.json();
-
         if (data && Array.isArray(data)) {
           setRegionData(data);
         }
       } catch (error) {
         console.error("Composer region fetch bypassed safely:", error);
-        // Fallback so the dropdown is never completely empty
         setRegionData([
           {
             state: "Kerala",
@@ -156,15 +192,11 @@ export default function AdminComposer({
   useEffect(() => {
     const normalizedCredits = {
       reporter: {
-        name:
-          initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
+        name: initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
         avatarUrl: initialData?.credits?.reporter?.avatarUrl || "",
       },
       photographer: {
-        name:
-          initialData?.credits?.photographer?.name ||
-          initialData?.photographedBy ||
-          "",
+        name: initialData?.credits?.photographer?.name || initialData?.photographedBy || "",
         avatarUrl: initialData?.credits?.photographer?.avatarUrl || "",
       },
     };
@@ -177,39 +209,19 @@ export default function AdminComposer({
     setEditorMode(defaultMode);
     setShortUrl(initialShortUrl);
 
-    const existingImages =
-      initialData?.media?.filter((m: any) => m.type === "image") || [];
+    const existingImages = initialData?.media?.filter((m: any) => m.type === "image") || [];
     if (existingImages.length > 0) {
       setMediaList(
         existingImages.map((img: any) => ({
           file: null,
           url: img.url,
           credit: img.credit || "",
-        })),
+        }))
       );
     } else {
       setMediaList([{ file: null, url: "", credit: "" }]);
     }
   }, [initialData, defaultMode, initialShortUrl]);
-
-  // ⚡ NEW: Hydration check for Edit Mode
-  // Ensures saved names map correctly to the dropdowns, and pops open the custom input if they are a freelancer.
-  useEffect(() => {
-    if (formData.credits?.reporter?.name) {
-      const isStaff = staffDirectory.reporters.some(
-        (s) => s.name === formData.credits.reporter.name,
-      );
-      if (!isStaff && staffDirectory.reporters.length > 0)
-        setIsCustomReporter(true);
-    }
-    if (formData.credits?.photographer?.name) {
-      const isStaff = staffDirectory.photographers.some(
-        (s) => s.name === formData.credits.photographer.name,
-      );
-      if (!isStaff && staffDirectory.photographers.length > 0)
-        setIsCustomPhotographer(true);
-    }
-  }, [formData.credits, staffDirectory]);
 
   const handleChange = (
     e: React.ChangeEvent<
