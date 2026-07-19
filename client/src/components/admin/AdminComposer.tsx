@@ -192,6 +192,25 @@ export default function AdminComposer({
     }
   }, [initialData, defaultMode, initialShortUrl]);
 
+  // ⚡ NEW: Hydration check for Edit Mode
+  // Ensures saved names map correctly to the dropdowns, and pops open the custom input if they are a freelancer.
+  useEffect(() => {
+    if (formData.credits?.reporter?.name) {
+      const isStaff = staffDirectory.reporters.some(
+        (s) => s.name === formData.credits.reporter.name,
+      );
+      if (!isStaff && staffDirectory.reporters.length > 0)
+        setIsCustomReporter(true);
+    }
+    if (formData.credits?.photographer?.name) {
+      const isStaff = staffDirectory.photographers.some(
+        (s) => s.name === formData.credits.photographer.name,
+      );
+      if (!isStaff && staffDirectory.photographers.length > 0)
+        setIsCustomPhotographer(true);
+    }
+  }, [formData.credits, staffDirectory]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -630,42 +649,30 @@ export default function AdminComposer({
                         const val = e.target.value;
                         if (val === "custom") {
                           setIsCustomReporter(true);
-                          handleChange({
-                            target: {
-                              name: "credits.reporter.name",
-                              value: "",
-                              type: "text",
+                          // Safely reset the nested object for custom input
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              reporter: { name: "", avatarUrl: "" },
                             },
-                          } as any);
+                          }));
                         } else {
                           setIsCustomReporter(false);
                           const staffMatch = staffDirectory.reporters.find(
                             (s) => s.name === val,
                           );
-
-                          // Set name
-                          handleChange({
-                            target: {
-                              name: "credits.reporter.name",
-                              value: val,
-                              type: "text",
-                            },
-                          } as any);
-
-                          // Auto-fill avatar URL behind the scenes!
-                          if (staffMatch?.avatarUrl) {
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              credits: {
-                                ...prev.credits,
-                                reporter: {
-                                  ...prev.credits?.reporter,
-                                  name: val,
-                                  avatarUrl: staffMatch.avatarUrl,
-                                },
+                          // Foolproof deep-copy state update
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              reporter: {
+                                name: val,
+                                avatarUrl: staffMatch?.avatarUrl || "",
                               },
-                            }));
-                          }
+                            },
+                          }));
                         }
                       }}
                     >
@@ -683,6 +690,7 @@ export default function AdminComposer({
                       </option>
                     </select>
 
+                    {/* CUSTOM REPORTER INPUT */}
                     {(isCustomReporter ||
                       (formData.credits?.reporter?.name &&
                         !staffDirectory.reporters.find(
@@ -690,9 +698,20 @@ export default function AdminComposer({
                         ))) && (
                       <input
                         type="text"
-                        name="credits.reporter.name"
                         value={formData.credits?.reporter?.name || ""}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              reporter: {
+                                ...prev.credits?.reporter,
+                                name: val,
+                              },
+                            },
+                          }));
+                        }}
                         className="w-full p-2.5 mt-2 bg-white dark:bg-[#111] border border-blue-200 dark:border-blue-900/50 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none placeholder-blue-300"
                         placeholder="Type custom name here..."
                       />
@@ -716,40 +735,28 @@ export default function AdminComposer({
                         const val = e.target.value;
                         if (val === "custom") {
                           setIsCustomPhotographer(true);
-                          handleChange({
-                            target: {
-                              name: "credits.photographer.name",
-                              value: "",
-                              type: "text",
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              photographer: { name: "", avatarUrl: "" },
                             },
-                          } as any);
+                          }));
                         } else {
                           setIsCustomPhotographer(false);
                           const staffMatch = staffDirectory.photographers.find(
                             (s) => s.name === val,
                           );
-
-                          handleChange({
-                            target: {
-                              name: "credits.photographer.name",
-                              value: val,
-                              type: "text",
-                            },
-                          } as any);
-
-                          if (staffMatch?.avatarUrl) {
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              credits: {
-                                ...prev.credits,
-                                photographer: {
-                                  ...prev.credits?.photographer,
-                                  name: val,
-                                  avatarUrl: staffMatch.avatarUrl,
-                                },
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              photographer: {
+                                name: val,
+                                avatarUrl: staffMatch?.avatarUrl || "",
                               },
-                            }));
-                          }
+                            },
+                          }));
                         }
                       }}
                     >
@@ -767,6 +774,7 @@ export default function AdminComposer({
                       </option>
                     </select>
 
+                    {/* CUSTOM PHOTOGRAPHER INPUT */}
                     {(isCustomPhotographer ||
                       (formData.credits?.photographer?.name &&
                         !staffDirectory.photographers.find(
@@ -775,9 +783,20 @@ export default function AdminComposer({
                         ))) && (
                       <input
                         type="text"
-                        name="credits.photographer.name"
                         value={formData.credits?.photographer?.name || ""}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            credits: {
+                              ...prev.credits,
+                              photographer: {
+                                ...prev.credits?.photographer,
+                                name: val,
+                              },
+                            },
+                          }));
+                        }}
                         className="w-full p-2.5 mt-2 bg-white dark:bg-[#111] border border-blue-200 dark:border-blue-900/50 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none placeholder-blue-300"
                         placeholder="Type custom name here..."
                       />
