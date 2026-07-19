@@ -8,6 +8,8 @@ const rateLimit = require('express-rate-limit');
 // Import routes
 const regionRoutes = require('./routes/regions');
 
+const staffRoutes = require('./routes/staff');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -57,7 +59,8 @@ mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
 // --- 5. ROUTES (MUST BE AFTER MIDDLEWARE) ---
 app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
-app.use('/api/regions', regionRoutes); // ⚡ MOVED HERE!
+app.use('/api/regions', regionRoutes);
+app.use('/api/staff', staffRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend Engine running on port ${PORT}`);

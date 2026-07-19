@@ -18,13 +18,14 @@ import {
   Globe,
   Zap,
   Database,
-  Megaphone,
   ChevronLeft,
   ChevronRight,
+  Users // ⚡ NEW ICON
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminComposer from "@/components/admin/AdminComposer";
 import VisualAdManager from "@/components/admin/VisualAdManager";
+import StaffManager from "@/components/admin/StaffManager"; // ⚡ NEW IMPORT
 
 const CATEGORIES = [
   "News",
@@ -43,6 +44,7 @@ export const dynamic = 'force-dynamic';
 const INITIAL_FORM_STATE = {
   headline: "",
   body: "",
+  keyPoints: [], 
   isBreaking: false,
   isTicker: false,
   category: "News",
@@ -55,12 +57,10 @@ const INITIAL_FORM_STATE = {
 };
 
 export default function AdminDashboard() {
-  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads" | "obituary">("library");
-  // UPDATED: Added "obituary" to the content tabs
+  // ⚡ UPDATED: Added "staff" to currentView state
+  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads" | "obituary" | "staff">("library");
   const [contentTab, setContentTab] = useState<"news" | "shorts" | "obituary">("news");
-  const [activeView, setActiveView] = useState<"published" | "draft">(
-    "published",
-  );
+  const [activeView, setActiveView] = useState<"published" | "draft">("published");
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [articles, setArticles] = useState<any[]>([]);
@@ -107,8 +107,13 @@ export default function AdminDashboard() {
       if (currentView === "ads") fetchCat = "Advertisement";
       else if (currentView === "library") {
         if (contentTab === "shorts") fetchCat = "Shorts";
-        // UPDATED: Automatically fetch Obituaries when on the Obituary tab
         else if (contentTab === "obituary") fetchCat = "Obituary";
+      }
+
+      // Skip fetching articles if we are just looking at the staff manager
+      if (currentView === "staff") {
+        setIsLoading(false);
+        return;
       }
 
       const data = await fetchArticles(
@@ -117,10 +122,10 @@ export default function AdminDashboard() {
         targetPage,
         12,
         activeView,
-        "All Places", // ward
-        undefined,    // isBreaking
-        undefined,    // date
-        true          // ⚡ ADD THIS TRUE FLAG (isAdmin)
+        "All Places", 
+        undefined,    
+        undefined,    
+        true          
       );
       setArticles(data.articles || []);
       setTotalPages(data.totalPages || 1);
@@ -175,6 +180,7 @@ export default function AdminDashboard() {
     setComposeData({
       headline: article.headline,
       body: article.body,
+      keyPoints: article.keyPoints || [],
       isBreaking: article.isBreaking || false,
       isTicker: article.isTicker || false, 
       category: article.category || "News",
@@ -212,7 +218,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // UPDATED: Filtering logic to isolate Obituaries
   const displayedArticles = articles.filter((article) => {
     if (currentView === "ads") return article.category === "Advertisement";
     if (currentView === "library") {
@@ -222,7 +227,7 @@ export default function AdminDashboard() {
         return (
           article.category !== "Shorts" && 
           article.category !== "Advertisement" &&
-          article.category !== "Obituary" // Hide obituaries from the main Written News feed
+          article.category !== "Obituary" 
         );
     }
     return true;
@@ -256,38 +261,44 @@ export default function AdminDashboard() {
             />
           ) : (
             <>
-              {/* HEADER */}
+              {/* ⚡ UPDATED: HEADER DYNAMICS */}
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                     {currentView === "ads"
                       ? "Ads Manager"
+                      : currentView === "staff"
+                      ? "Staff Directory"
                       : "Content Management"}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
                     {currentView === "ads"
                       ? "Visually map and manage your sponsored campaigns."
+                      : currentView === "staff"
+                      ? "Manage your reporters, photographers, and team profiles."
                       : "Manage and publish news to your community."}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-gray-200 dark:border-white/5 w-full sm:w-auto">
-                    <button
-                      onClick={() => setActiveView("published")}
-                      className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "published" ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
-                    >
-                      <Globe className="w-3.5 h-3.5" /> Published
-                    </button>
-                    <button
-                      onClick={() => setActiveView("draft")}
-                      className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "draft" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
-                    >
-                      <EyeOff className="w-3.5 h-3.5" /> Drafts
-                    </button>
-                  </div>
+                  {currentView !== "staff" && (
+                    <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-gray-200 dark:border-white/5 w-full sm:w-auto">
+                      <button
+                        onClick={() => setActiveView("published")}
+                        className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "published" ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+                      >
+                        <Globe className="w-3.5 h-3.5" /> Published
+                      </button>
+                      <button
+                        onClick={() => setActiveView("draft")}
+                        className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "draft" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+                      >
+                        <EyeOff className="w-3.5 h-3.5" /> Drafts
+                      </button>
+                    </div>
+                  )}
 
-                  {currentView !== "ads" && (
+                  {currentView === "library" && (
                     <button
                       onClick={() => startNewPost("news")}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full active:scale-[0.98] transition-all shadow-md shrink-0"
@@ -298,7 +309,13 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* VISUAL AD MANAGER */}
+              {/* ⚡ NEW: STAFF MANAGER */}
+              {currentView === "staff" && (
+                <div className="mb-12">
+                  <StaffManager />
+                </div>
+              )}
+
               {currentView === "ads" && (
                 <div className="mb-12">
                   <VisualAdManager
@@ -313,7 +330,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* QUICK STATS */}
               {currentView === "library" && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <div className="bg-white dark:bg-[#121212] p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-3">
@@ -364,7 +380,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* SEARCH & FILTERS */}
               {currentView === "library" && (
                 <div className="flex flex-col sm:flex-row gap-4 mb-6 bg-white dark:bg-[#121212] p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5">
                   <div className="relative flex-1">
@@ -397,7 +412,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* UPDATED: LIBRARY TABS */}
               {currentView === "library" && (
                 <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl w-full sm:w-max mb-8 border border-gray-200 dark:border-white/5 overflow-x-auto hide-scroll">
                   <button
@@ -421,7 +435,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* DATA GRID */}
               {currentView === "library" && (
                 <>
                   {isLoading ? (
@@ -433,7 +446,6 @@ export default function AdminDashboard() {
                       <Newspaper className="w-12 h-12 text-gray-300 mb-4" />
                       <p className="text-gray-500 font-medium">
                         No {activeView}{" "}
-                        {/* UPDATED: Dynamic Empty State Text */}
                         {contentTab === "news" ? "written articles" : contentTab === "shorts" ? "shorts" : "obituaries"}{" "}
                         found.
                       </p>

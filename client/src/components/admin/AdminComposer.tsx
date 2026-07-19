@@ -11,7 +11,12 @@ import {
   Trash2,
   UserCircle,
 } from "lucide-react";
-import { createArticle, updateArticle, uploadImage } from "@/lib/api";
+import {
+  createArticle,
+  updateArticle,
+  uploadImage,
+  fetchStaff,
+} from "@/lib/api";
 
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 
@@ -89,7 +94,30 @@ export default function AdminComposer({
     photographer: null,
   });
 
-  const [croppingImage, setCroppingImage] = useState<{ src: string; index: number } | null>(null);
+  const [croppingImage, setCroppingImage] = useState<{
+    src: string;
+    index: number;
+  } | null>(null);
+
+  // ⚡ NEW: Staff Directory States
+  const [staffDirectory, setStaffDirectory] = useState<{
+    reporters: any[];
+    photographers: any[];
+  }>({ reporters: [], photographers: [] });
+  const [isCustomReporter, setIsCustomReporter] = useState(false);
+  const [isCustomPhotographer, setIsCustomPhotographer] = useState(false);
+
+  // ⚡ NEW: Fetch staff on load
+  useEffect(() => {
+    fetchStaff()
+      .then((data) => {
+        setStaffDirectory({
+          reporters: data.filter((s: any) => s.role === "Reporter"),
+          photographers: data.filter((s: any) => s.role === "Photographer"),
+        });
+      })
+      .catch((err) => console.error("Failed to load staff", err));
+  }, []);
 
   // ⚡ LIVE REGION DATA STATE
   const [regionData, setRegionData] = useState<any[]>([]);
@@ -99,21 +127,27 @@ export default function AdminComposer({
     const fetchRegions = async () => {
       try {
         // 1. Clean the URL exactly like we did in the Navbar
-        let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-        baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+        let baseUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
         const res = await fetch(`${baseUrl}/api/regions`);
-        
+
         if (!res.ok) throw new Error("Failed to fetch regions");
         const data = await res.json();
-        
+
         if (data && Array.isArray(data)) {
           setRegionData(data);
         }
       } catch (error) {
         console.error("Composer region fetch bypassed safely:", error);
         // Fallback so the dropdown is never completely empty
-        setRegionData([{ state: "Kerala", districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }] }]);
+        setRegionData([
+          {
+            state: "Kerala",
+            districts: [{ name: "Thrissur", locals: ["Irinjalakuda"] }],
+          },
+        ]);
       }
     };
     fetchRegions();
@@ -175,8 +209,8 @@ export default function AdminComposer({
       }));
     } else if (name.startsWith("credits.")) {
       const parts = name.split(".");
-      const role = parts[1]; 
-      const field = parts[2]; 
+      const role = parts[1];
+      const field = parts[2];
       setFormData((prev: any) => ({
         ...prev,
         credits: {
@@ -200,7 +234,10 @@ export default function AdminComposer({
     setMediaList(newList);
   };
 
-  const handleFileSelectForCrop = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelectForCrop = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -209,14 +246,14 @@ export default function AdminComposer({
       };
       reader.readAsDataURL(file);
     }
-    e.target.value = ''; 
+    e.target.value = "";
   };
 
   const addMediaSlot = () =>
     setMediaList([...mediaList, { file: null, url: "", credit: "" }]);
   const removeMediaSlot = (index: number) =>
     setMediaList(mediaList.filter((_, i) => i !== index));
-  
+
   const handleKeyPointChange = (index: number, value: string) => {
     const updatedPoints = [...(formData.keyPoints || [])];
     updatedPoints[index] = value;
@@ -224,11 +261,16 @@ export default function AdminComposer({
   };
 
   const addKeyPoint = () => {
-    setFormData({ ...formData, keyPoints: [...(formData.keyPoints || []), ""] });
+    setFormData({
+      ...formData,
+      keyPoints: [...(formData.keyPoints || []), ""],
+    });
   };
 
   const removeKeyPoint = (index: number) => {
-    const updatedPoints = (formData.keyPoints || []).filter((_: any, i: number) => i !== index);
+    const updatedPoints = (formData.keyPoints || []).filter(
+      (_: any, i: number) => i !== index,
+    );
     setFormData({ ...formData, keyPoints: updatedPoints });
   };
 
@@ -239,12 +281,14 @@ export default function AdminComposer({
 
     try {
       let articlePayload: any = { ...formData };
-      
+
       // ⚡ ADD THIS CLEANUP: Remove any empty key points before sending to DB
       if (articlePayload.keyPoints) {
-        articlePayload.keyPoints = articlePayload.keyPoints.filter((p: string) => p.trim() !== "");
+        articlePayload.keyPoints = articlePayload.keyPoints.filter(
+          (p: string) => p.trim() !== "",
+        );
       }
-      
+
       let finalMedia: { type: string; url: string; credit?: string }[] = [];
       let finalCredits = { ...articlePayload.credits };
 
@@ -514,21 +558,34 @@ export default function AdminComposer({
                   {(mediaList[0]?.url || mediaList[0]?.file) && (
                     <div className="mb-4 relative w-full h-24 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
                       <img
-                        src={mediaList[0].file ? URL.createObjectURL(mediaList[0].file) : mediaList[0].url}
+                        src={
+                          mediaList[0].file
+                            ? URL.createObjectURL(mediaList[0].file)
+                            : mediaList[0].url
+                        }
                         alt="Current Ad"
                         className="w-full h-full object-cover opacity-80"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
                         <span className="text-white text-[10px] font-bold uppercase tracking-widest bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
-                          {mediaList[0].file ? "Ready for Upload" : "Current Image"}
+                          {mediaList[0].file
+                            ? "Ready for Upload"
+                            : "Current Image"}
                         </span>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center gap-3">
-                    <label htmlFor="ad-media-upload" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm">
-                      {mediaList[0]?.file ? "Re-Crop New Image" : mediaList[0]?.url ? "Replace Ad Image" : "Choose Image"}
+                    <label
+                      htmlFor="ad-media-upload"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm"
+                    >
+                      {mediaList[0]?.file
+                        ? "Re-Crop New Image"
+                        : mediaList[0]?.url
+                          ? "Replace Ad Image"
+                          : "Choose Image"}
                     </label>
                     <input
                       id="ad-media-upload"
@@ -550,74 +607,181 @@ export default function AdminComposer({
             <>
               <div className="p-5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl space-y-4">
                 <h3 className="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                  <UserCircle className="w-5 h-5 text-red-500" /> Article Credits
+                  <UserCircle className="w-5 h-5 text-red-500" /> Article
+                  Credits
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
+                  {/* REPORTER BLOCK */}
                   <div className="space-y-2">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                      {editorMode === "obituary" ? "Submitted By / Family Contact" : "Reporter Name"}
+                      {editorMode === "obituary"
+                        ? "Submitted By / Family Contact"
+                        : "Reporter Name"}
                     </label>
-                    <input
-                      type="text"
-                      name="credits.reporter.name"
-                      value={formData.credits?.reporter?.name || ""}
-                      onChange={handleChange}
-                      className="w-full p-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none"
-                      placeholder={editorMode === "obituary" ? "e.g., Family Member Name" : "e.g., Desk Reporter"}
-                    />
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 pt-1">
-                      Avatar / Photo (Optional)
-                    </label>
-                    
-                    <div className="flex items-center gap-3">
-                      <label htmlFor="reporter-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
-                        {creditFiles.reporter ? "Change Avatar" : "Choose Avatar"}
-                      </label>
+
+                    <select
+                      className="w-full p-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none cursor-pointer"
+                      value={
+                        isCustomReporter
+                          ? "custom"
+                          : formData.credits?.reporter?.name || ""
+                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "custom") {
+                          setIsCustomReporter(true);
+                          handleChange({
+                            target: {
+                              name: "credits.reporter.name",
+                              value: "",
+                              type: "text",
+                            },
+                          } as any);
+                        } else {
+                          setIsCustomReporter(false);
+                          const staffMatch = staffDirectory.reporters.find(
+                            (s) => s.name === val,
+                          );
+
+                          // Set name
+                          handleChange({
+                            target: {
+                              name: "credits.reporter.name",
+                              value: val,
+                              type: "text",
+                            },
+                          } as any);
+
+                          // Auto-fill avatar URL behind the scenes!
+                          if (staffMatch?.avatarUrl) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              credits: {
+                                ...prev.credits,
+                                reporter: {
+                                  ...prev.credits?.reporter,
+                                  name: val,
+                                  avatarUrl: staffMatch.avatarUrl,
+                                },
+                              },
+                            }));
+                          }
+                        }
+                      }}
+                    >
+                      <option value="">-- Select or leave blank --</option>
+                      {staffDirectory.reporters.map((staff) => (
+                        <option key={staff._id} value={staff.name}>
+                          {staff.name}
+                        </option>
+                      ))}
+                      <option
+                        value="custom"
+                        className="font-bold text-blue-600"
+                      >
+                        ➕ Add Freelancer / Custom
+                      </option>
+                    </select>
+
+                    {(isCustomReporter ||
+                      (formData.credits?.reporter?.name &&
+                        !staffDirectory.reporters.find(
+                          (s) => s.name === formData.credits?.reporter?.name,
+                        ))) && (
                       <input
-                        id="reporter-avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setCreditFiles((prev) => ({ ...prev, reporter: e.target.files?.[0] || null }))}
-                        className="hidden"
+                        type="text"
+                        name="credits.reporter.name"
+                        value={formData.credits?.reporter?.name || ""}
+                        onChange={handleChange}
+                        className="w-full p-2.5 mt-2 bg-white dark:bg-[#111] border border-blue-200 dark:border-blue-900/50 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none placeholder-blue-300"
+                        placeholder="Type custom name here..."
                       />
-                      {creditFiles.reporter && (
-                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Attached</span>
-                      )}
-                    </div>
+                    )}
                   </div>
 
+                  {/* PHOTOGRAPHER BLOCK */}
                   <div className="space-y-2">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Lead Photographer Name
                     </label>
-                    <input
-                      type="text"
-                      name="credits.photographer.name"
-                      value={formData.credits?.photographer?.name || ""}
-                      onChange={handleChange}
-                      className="w-full p-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none"
-                      placeholder="e.g., Staff Photographer"
-                    />
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 pt-1">
-                      Avatar / Photo (Optional)
-                    </label>
-                    
-                    <div className="flex items-center gap-3">
-                      <label htmlFor="photographer-avatar-upload" className="px-3 py-1.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold uppercase tracking-wider rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors shadow-sm">
-                        {creditFiles.photographer ? "Change Avatar" : "Choose Avatar"}
-                      </label>
+
+                    <select
+                      className="w-full p-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none cursor-pointer"
+                      value={
+                        isCustomPhotographer
+                          ? "custom"
+                          : formData.credits?.photographer?.name || ""
+                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "custom") {
+                          setIsCustomPhotographer(true);
+                          handleChange({
+                            target: {
+                              name: "credits.photographer.name",
+                              value: "",
+                              type: "text",
+                            },
+                          } as any);
+                        } else {
+                          setIsCustomPhotographer(false);
+                          const staffMatch = staffDirectory.photographers.find(
+                            (s) => s.name === val,
+                          );
+
+                          handleChange({
+                            target: {
+                              name: "credits.photographer.name",
+                              value: val,
+                              type: "text",
+                            },
+                          } as any);
+
+                          if (staffMatch?.avatarUrl) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              credits: {
+                                ...prev.credits,
+                                photographer: {
+                                  ...prev.credits?.photographer,
+                                  name: val,
+                                  avatarUrl: staffMatch.avatarUrl,
+                                },
+                              },
+                            }));
+                          }
+                        }
+                      }}
+                    >
+                      <option value="">-- Select or leave blank --</option>
+                      {staffDirectory.photographers.map((staff) => (
+                        <option key={staff._id} value={staff.name}>
+                          {staff.name}
+                        </option>
+                      ))}
+                      <option
+                        value="custom"
+                        className="font-bold text-blue-600"
+                      >
+                        ➕ Add Freelancer / Custom
+                      </option>
+                    </select>
+
+                    {(isCustomPhotographer ||
+                      (formData.credits?.photographer?.name &&
+                        !staffDirectory.photographers.find(
+                          (s) =>
+                            s.name === formData.credits?.photographer?.name,
+                        ))) && (
                       <input
-                        id="photographer-avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setCreditFiles((prev) => ({ ...prev, photographer: e.target.files?.[0] || null }))}
-                        className="hidden"
+                        type="text"
+                        name="credits.photographer.name"
+                        value={formData.credits?.photographer?.name || ""}
+                        onChange={handleChange}
+                        className="w-full p-2.5 mt-2 bg-white dark:bg-[#111] border border-blue-200 dark:border-blue-900/50 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none placeholder-blue-300"
+                        placeholder="Type custom name here..."
                       />
-                      {creditFiles.photographer && (
-                        <span className="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Attached</span>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -644,29 +808,34 @@ export default function AdminComposer({
                       Key Takeaways
                     </label>
                     <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-3">
-                      Add bullet points to summarize the article (displays at the top of the detailed view).
+                      Add bullet points to summarize the article (displays at
+                      the top of the detailed view).
                     </p>
                   </div>
-                  
+
                   <div className="space-y-3">
-                    {(formData.keyPoints || []).map((point: string, index: number) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={point}
-                          onChange={(e) => handleKeyPointChange(index, e.target.value)}
-                          className="flex-1 p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-red-600 outline-none"
-                          placeholder="e.g., The protest enters its fifth consecutive day..."
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeKeyPoint(index)}
-                          className="p-3 text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-100 dark:border-red-500/10"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    ))}
+                    {(formData.keyPoints || []).map(
+                      (point: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={point}
+                            onChange={(e) =>
+                              handleKeyPointChange(index, e.target.value)
+                            }
+                            className="flex-1 p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                            placeholder="e.g., The protest enters its fifth consecutive day..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeKeyPoint(index)}
+                            className="p-3 text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-100 dark:border-red-500/10"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ),
+                    )}
                   </div>
 
                   <button
@@ -702,17 +871,22 @@ export default function AdminComposer({
 
                       <div className="grid grid-cols-1 gap-4 items-center">
                         <div className="w-full">
-                          
                           {(media.url || media.file) && (
                             <div className="mb-4 relative w-full aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm bg-gray-100 dark:bg-gray-900">
-                              <img 
-                                src={media.file ? URL.createObjectURL(media.file) : media.url} 
-                                alt="Media Preview" 
-                                className="w-full h-full object-cover" 
+                              <img
+                                src={
+                                  media.file
+                                    ? URL.createObjectURL(media.file)
+                                    : media.url
+                                }
+                                alt="Media Preview"
+                                className="w-full h-full object-cover"
                               />
                               <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
                                 <span className="text-white text-[10px] font-bold uppercase tracking-widest bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
-                                  {media.file ? "Ready for Upload" : "Live Image"}
+                                  {media.file
+                                    ? "Ready for Upload"
+                                    : "Live Image"}
                                 </span>
                               </div>
                             </div>
@@ -723,13 +897,19 @@ export default function AdminComposer({
                               htmlFor={`media-upload-${index}`}
                               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors shadow-sm"
                             >
-                              {media.file ? "Re-Crop New Image" : media.url ? "Replace Existing Image" : "Choose Image"}
+                              {media.file
+                                ? "Re-Crop New Image"
+                                : media.url
+                                  ? "Replace Existing Image"
+                                  : "Choose Image"}
                             </label>
                             <input
                               id={`media-upload-${index}`}
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleFileSelectForCrop(index, e)}
+                              onChange={(e) =>
+                                handleFileSelectForCrop(index, e)
+                              }
                               className="hidden"
                             />
                             {media.file && (
@@ -738,7 +918,6 @@ export default function AdminComposer({
                               </span>
                             )}
                           </div>
-
                         </div>
                       </div>
                     </div>
@@ -773,7 +952,7 @@ export default function AdminComposer({
                     ))}
                   </select>
                 </div>
-                
+
                 {/* ⚡ THE DYNAMIC LOCATION OPTGROUP DROPDOWN */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
@@ -786,24 +965,24 @@ export default function AdminComposer({
                     className="w-full p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm outline-none cursor-pointer"
                   >
                     <option value="">-- Select Target --</option>
-                    {regionData.map((stateObj) => 
+                    {regionData.map((stateObj) =>
                       stateObj.districts.map((district: any) => (
-                        <optgroup 
-                          key={district.name} 
-                          label={`${district.name} District`} 
+                        <optgroup
+                          key={district.name}
+                          label={`${district.name} District`}
                           className="font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800"
                         >
                           {district.locals.map((local: string) => (
-                            <option 
-                              key={local} 
-                              value={local} 
+                            <option
+                              key={local}
+                              value={local}
                               className="font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#111]"
                             >
                               {local}
                             </option>
                           ))}
                         </optgroup>
-                      ))
+                      )),
                     )}
                   </select>
                 </div>
@@ -825,7 +1004,6 @@ export default function AdminComposer({
 
               {/* ⚡ PUBLISHING CONTROLS (Breaking & Ticker) */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-6 bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm">
-                
                 {/* Breaking News Toggle */}
                 <div className="flex items-center space-x-3">
                   <input
@@ -864,7 +1042,6 @@ export default function AdminComposer({
                     📌 Pin to News Ticker
                   </label>
                 </div>
-
               </div>
             </>
           )}

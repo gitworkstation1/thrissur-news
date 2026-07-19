@@ -72,19 +72,18 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
   const article = data;
   const imageMedia = article.media?.filter((m: any) => m.type === "image") || [];
 
+  // ⚡ NEW: Cleanly define credits and check if ANY exist before rendering the box
+  const reporterName = article.credits?.reporter?.name || article.reportedBy;
+  const photographerName = article.credits?.photographer?.name || article.photographedBy;
+  const showCreditsBox = reporterName || photographerName;
+
   return (
     <div className="w-full min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] pb-24 selection:bg-red-200 dark:selection:bg-red-900/50">
 
-      {/* ⚡ NEW: The Pop-Up Ad Component */}
       <ArticlePopUpAd ad={popUpAd} />
-
-      {/* Invisible component that forces scroll to top */}
       <AutoScrollToTop />
-
-      {/* Interactive Navbar handles back, share, and bookmark */}
       <ArticleNavbar article={article} />
 
-      {/* pt-20 ensures the headline clears the fixed navbar */}
       <main className="w-full pt-20">
         <header className="max-w-7xl mx-auto px-4 sm:px-6 pb-8">
           <div className="text-xs text-gray-500 mb-6 flex gap-2">
@@ -107,59 +106,64 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 mt-4">
           <article className="lg:col-span-6">
             
-            {/* Frosted Glass Credits Section */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 rounded-2xl bg-white/40 dark:bg-[#222]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
-              
-              <div className="flex items-center gap-3 flex-1">
-                {article.credits?.reporter?.avatarUrl ? (
-                  <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
-                    <Image src={article.credits.reporter.avatarUrl} alt={article.credits?.reporter?.name || article.reportedBy || "Anonymous"} fill className="object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
-                    <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
-                      {(article.credits?.reporter?.name || article.reportedBy || "A").charAt(0).toUpperCase()}
-                    </span>
+            {/* ⚡ UPDATED: Frosted Glass Credits Section - Only shows if credits exist */}
+            {showCreditsBox && (
+              <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 rounded-2xl bg-white/40 dark:bg-[#222]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+                
+                {reporterName && (
+                  <div className="flex items-center gap-3 flex-1">
+                    {article.credits?.reporter?.avatarUrl ? (
+                      <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
+                        <Image src={article.credits.reporter.avatarUrl} alt={reporterName} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                        <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
+                          {reporterName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Reporter</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{reporterName}</span>
+                    </div>
                   </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Reporter</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.reporter?.name || article.reportedBy || "Anonymous"}</span>
-                </div>
-              </div>
 
-              {(article.credits?.photographer?.name || article.photographedBy) && (
-                <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-gray-700/50"></div>
-              )}
+                {/* ⚡ UPDATED: Only show divider if BOTH exist */}
+                {reporterName && photographerName && (
+                  <div className="hidden sm:block w-px h-10 bg-gray-200 dark:bg-gray-700/50"></div>
+                )}
 
-              {(article.credits?.photographer?.name || article.photographedBy) && (
-                <div className="flex items-center gap-3 flex-1">
-                  {article.credits?.photographer?.avatarUrl ? (
-                    <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
-                      <Image src={article.credits.photographer.avatarUrl} alt={article.credits?.photographer?.name || article.photographedBy} fill className="object-cover" />
+                {photographerName && (
+                  <div className="flex items-center gap-3 flex-1">
+                    {article.credits?.photographer?.avatarUrl ? (
+                      <div className="w-10 h-10 relative rounded-full overflow-hidden shrink-0 shadow-sm">
+                        <Image src={article.credits.photographer.avatarUrl} alt={photographerName} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                        <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
+                          {photographerName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Photographer</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{photographerName}</span>
                     </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 shadow-sm border border-white/20">
-                      <span className="text-gray-500 dark:text-gray-400 font-bold text-sm">
-                        {(article.credits?.photographer?.name || article.photographedBy || "A").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Photographer</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{article.credits?.photographer?.name || article.photographedBy}</span>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {/* MULTIPLE PHOTOS WITH ANONYMOUS FALLBACK CREDITS */}
+            {/* ⚡ UPDATED: MULTIPLE PHOTOS WITH CONDITIONAL CREDITS */}
             {imageMedia.length > 0 && (
               <div className="space-y-8 mb-8">
                 {imageMedia.map((img: any, index: number) => {
                   
-                  // Determine the credit for this specific image, fallback to main photographer, then Anonymous
-                  const photoCredit = img.credit || article.credits?.photographer?.name || article.photographedBy || "Anonymous";
+                  // Determine the credit, fallback to main photographer. No Anonymous fallback.
+                  const photoCredit = img.credit || photographerName;
 
                   return (
                     <figure key={index} className="w-full flex flex-col gap-2">
@@ -174,9 +178,12 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
                         />
                       </div>
                       
-                      <figcaption className="text-xs font-semibold text-gray-500 uppercase tracking-widest text-right px-2">
-                        📸 Photo: <span className="text-gray-900 dark:text-gray-300">{photoCredit}</span>
-                      </figcaption>
+                      {/* Only render the figcaption if a credit exists */}
+                      {photoCredit && (
+                        <figcaption className="text-xs font-semibold text-gray-500 uppercase tracking-widest text-right px-2">
+                          📸 Photo: <span className="text-gray-900 dark:text-gray-300">{photoCredit}</span>
+                        </figcaption>
+                      )}
                     </figure>
                   );
                 })}
@@ -239,7 +246,6 @@ export default function FullCoveragePage({ params }: { params: Promise<{ id: str
 
           <aside className="lg:col-span-6 space-y-8">
             
-            {/* ⚡ DYNAMIC KEY TAKEAWAYS SECTION */}
             {article.keyPoints && article.keyPoints.length > 0 && (
               <div className="bg-white/50 dark:bg-[#111]/50 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-8 rounded-3xl shadow-sm">
                 <h3 className="font-black text-lg uppercase tracking-widest mb-6 border-b-2 border-red-600 pb-2 inline-block">

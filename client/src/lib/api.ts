@@ -156,3 +156,44 @@ export async function fetchStats(): Promise<{ total: number, published: number, 
   
   return await res.json();
 }
+
+// ==========================================
+// 🧑‍💼 STAFF DIRECTORY API
+// ==========================================
+
+// 8. Fetch All Staff (Public/Uncached for accurate dashboard)
+export async function fetchStaff(): Promise<any[]> {
+  const res = await fetch(`${API_URL}/api/staff`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch staff');
+  return await res.json();
+}
+
+// 9. Create Staff Member (Tunnel)
+export async function createStaffMember(staffData: { name: string; role: string; avatarUrl?: string }): Promise<any> {
+  const res = await fetch('/backend/staff', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(staffData)
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Failed to create staff member');
+  }
+  return await res.json();
+}
+
+// 10. Delete Staff Member (Tunnel)
+export async function deleteStaffMember(id: string): Promise<{ message: string }> {
+  const res = await fetch(`/backend/staff/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Failed to delete staff member');
+  }
+  return await res.json();
+}

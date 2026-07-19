@@ -18,9 +18,10 @@ import {
   X
 } from "lucide-react";
 
+// ⚡ UPDATED: Added "staff" to the typescript interfaces
 interface AdminSidebarProps {
-  currentView: "library" | "compose" | "ads" | "obituary";
-  setCurrentView: (view: "library" | "compose" | "ads" | "obituary") => void;
+  currentView: "library" | "compose" | "ads" | "obituary" | "staff";
+  setCurrentView: (view: "library" | "compose" | "ads" | "obituary" | "staff") => void;
   startNewPost: (mode: "news" | "ad" | "obituary") => void;
 }
 
@@ -33,7 +34,8 @@ export default function AdminSidebar({
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false); // ⚡ NEW: Track when it's safe to teleport
 
-  const handleSelectView = (view: "library" | "compose" | "ads" | "obituary") => {
+  // ⚡ UPDATED: Added "staff" here too
+  const handleSelectView = (view: "library" | "compose" | "ads" | "obituary" | "staff") => {
     setCurrentView(view);
     setIsOpen(false);
   };
@@ -160,6 +162,19 @@ export default function AdminSidebar({
             <span>Compose Obituary</span>
           </button>
 
+          {/* ⚡ UPDATED: Turned the Journalists placeholder into the active Staff Directory button */}
+          <button
+            onClick={() => handleSelectView("staff")}
+            className={`w-full flex items-center gap-3 px-4 py-3 font-medium rounded-xl transition-all ${
+              currentView === "staff"
+                ? "bg-red-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Users className="w-5 h-5 shrink-0" />
+            <span>Staff Directory</span>
+          </button>
+
           <Link
             href="/dashboard/regions"
             onClick={() => setIsOpen(false)}
@@ -174,11 +189,6 @@ export default function AdminSidebar({
           <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
             <LayoutDashboard className="w-5 h-5 shrink-0" />
             <span>Analytics Hub</span>
-          </button>
-          
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
-            <Users className="w-5 h-5 shrink-0" />
-            <span>Journalists</span>
           </button>
           
           <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
