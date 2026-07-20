@@ -27,6 +27,12 @@ import AdminComposer from "@/components/admin/AdminComposer";
 import VisualAdManager from "@/components/admin/VisualAdManager";
 import StaffManager from "@/components/admin/StaffManager"; // ⚡ NEW IMPORT
 
+const getYouTubeId = (urlStr: string) => {
+  if (!urlStr) return "";
+  if (!urlStr.startsWith("http")) return urlStr; 
+  return urlStr.split("/").pop()?.split("?")[0] || "";
+};
+
 const CATEGORIES = [
   "News",
   "Crime",
@@ -481,7 +487,8 @@ export default function AdminDashboard() {
                                         article.category === "Advertisement") &&
                                       article.media?.[0]?.type ===
                                         "youtube-short"
-                                        ? `https://img.youtube.com/vi/${article.media?.[0]?.url}/hqdefault.jpg`
+                                        // ⚡ WRAPPED THE URL IN OUR HELPER FUNCTION BELOW
+                                        ? `https://img.youtube.com/vi/${getYouTubeId(article.media?.[0]?.url)}/hqdefault.jpg`
                                         : article.media?.[0]?.url ||
                                           "https://picsum.photos/400/250"
                                     }

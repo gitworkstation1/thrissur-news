@@ -5,10 +5,21 @@ import { useRef, useState } from 'react';
 import { Share2, Volume2, VolumeX } from 'lucide-react';
 import BookmarkButton from '../ui/BookmarkButton';
 
+// ⚡ HELPER FUNCTION ADDED HERE
+const getYouTubeId = (urlStr: string) => {
+  if (!urlStr) return "";
+  // If it doesn't start with http, it's already a raw ID from your older posts
+  if (!urlStr.startsWith("http")) return urlStr; 
+  // Otherwise, extract the ID from the end of the full URL
+  return urlStr.split("/").pop()?.split("?")[0] || "";
+};
+
 export default function ShortCard({ short }: { short: any }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isMuted, setIsMuted] = useState(true);
-  const videoId = short.media?.[0]?.url;
+  
+  // ⚡ HELPER FUNCTION APPLIED HERE
+  const videoId = getYouTubeId(short.media?.[0]?.url);
 
   // Magically controls the YouTube iframe without reloading
   const toggleMute = () => {

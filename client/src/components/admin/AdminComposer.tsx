@@ -100,7 +100,10 @@ export default function AdminComposer({
   } | null>(null);
 
   // ⚡ MASTER DIRECTORY STATES
-  const [staffDirectory, setStaffDirectory] = useState<{ reporters: any[]; photographers: any[] }>({ reporters: [], photographers: [] });
+  const [staffDirectory, setStaffDirectory] = useState<{
+    reporters: any[];
+    photographers: any[];
+  }>({ reporters: [], photographers: [] });
   const [isCustomReporter, setIsCustomReporter] = useState(false);
   const [isCustomPhotographer, setIsCustomPhotographer] = useState(false);
 
@@ -110,11 +113,15 @@ export default function AdminComposer({
     // 1. Normalize the incoming article data immediately
     const normalizedCredits = {
       reporter: {
-        name: initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
+        name:
+          initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
         avatarUrl: initialData?.credits?.reporter?.avatarUrl || "",
       },
       photographer: {
-        name: initialData?.credits?.photographer?.name || initialData?.photographedBy || "",
+        name:
+          initialData?.credits?.photographer?.name ||
+          initialData?.photographedBy ||
+          "",
         avatarUrl: initialData?.credits?.photographer?.avatarUrl || "",
       },
     };
@@ -128,14 +135,15 @@ export default function AdminComposer({
     setShortUrl(initialShortUrl);
 
     // 3. Set Media
-    const existingImages = initialData?.media?.filter((m: any) => m.type === "image") || [];
+    const existingImages =
+      initialData?.media?.filter((m: any) => m.type === "image") || [];
     if (existingImages.length > 0) {
       setMediaList(
         existingImages.map((img: any) => ({
           file: null,
           url: img.url,
           credit: img.credit || "",
-        }))
+        })),
       );
     } else {
       setMediaList([{ file: null, url: "", credit: "" }]);
@@ -145,20 +153,31 @@ export default function AdminComposer({
     fetchStaff()
       .then((data) => {
         const reporters = data.filter((s: any) => s.role === "Reporter");
-        const photographers = data.filter((s: any) => s.role === "Photographer");
-        
+        const photographers = data.filter(
+          (s: any) => s.role === "Photographer",
+        );
+
         setStaffDirectory({ reporters, photographers });
 
         // If a name exists in the legacy data but IS NOT in the database, snap the custom input open!
-        if (normalizedCredits.reporter.name && !reporters.some((s: any) => s.name === normalizedCredits.reporter.name)) {
+        if (
+          normalizedCredits.reporter.name &&
+          !reporters.some(
+            (s: any) => s.name === normalizedCredits.reporter.name,
+          )
+        ) {
           setIsCustomReporter(true);
         }
-        if (normalizedCredits.photographer.name && !photographers.some((s: any) => s.name === normalizedCredits.photographer.name)) {
+        if (
+          normalizedCredits.photographer.name &&
+          !photographers.some(
+            (s: any) => s.name === normalizedCredits.photographer.name,
+          )
+        ) {
           setIsCustomPhotographer(true);
         }
       })
       .catch((err) => console.error("Failed to load staff", err));
-
   }, [initialData, defaultMode, initialShortUrl]);
 
   // ⚡ LIVE REGION DATA STATE
@@ -168,7 +187,8 @@ export default function AdminComposer({
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        let baseUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
         const res = await fetch(`${baseUrl}/api/regions`);
         if (!res.ok) throw new Error("Failed to fetch regions");
@@ -192,11 +212,15 @@ export default function AdminComposer({
   useEffect(() => {
     const normalizedCredits = {
       reporter: {
-        name: initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
+        name:
+          initialData?.credits?.reporter?.name || initialData?.reportedBy || "",
         avatarUrl: initialData?.credits?.reporter?.avatarUrl || "",
       },
       photographer: {
-        name: initialData?.credits?.photographer?.name || initialData?.photographedBy || "",
+        name:
+          initialData?.credits?.photographer?.name ||
+          initialData?.photographedBy ||
+          "",
         avatarUrl: initialData?.credits?.photographer?.avatarUrl || "",
       },
     };
@@ -209,14 +233,15 @@ export default function AdminComposer({
     setEditorMode(defaultMode);
     setShortUrl(initialShortUrl);
 
-    const existingImages = initialData?.media?.filter((m: any) => m.type === "image") || [];
+    const existingImages =
+      initialData?.media?.filter((m: any) => m.type === "image") || [];
     if (existingImages.length > 0) {
       setMediaList(
         existingImages.map((img: any) => ({
           file: null,
           url: img.url,
           credit: img.credit || "",
-        }))
+        })),
       );
     } else {
       setMediaList([{ file: null, url: "", credit: "" }]);
@@ -349,9 +374,16 @@ export default function AdminComposer({
         articlePayload = {
           ...articlePayload,
           body: "YouTube Short",
-          category: "Shorts",
-          location: { ward: "All Places" },
-          media: [{ type: "youtube-short", url: youtubeId }],
+          category: "Shorts", 
+          location: { 
+            ...(articlePayload.location || {}), 
+            ward: "All Places" 
+          },
+          // ⚡ THE FIX: Reconstruct the full URL using the clean ID!
+          media: [{ 
+            type: "youtube-short", 
+            url: `https://www.youtube.com/shorts/${youtubeId}` 
+          }],
         };
       } else if (editorMode === "ad") {
         if (shortUrl) {
