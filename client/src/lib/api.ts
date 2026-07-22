@@ -263,3 +263,33 @@ export const createCategory = async (name: string) => {
     throw error;
   }
 };
+
+// Delete a category
+export const deleteCategory = async (id: string) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error("Failed to delete category");
+    return await res.json();
+  } catch (error) {
+    console.error("Error in deleteCategory:", error);
+    throw error;
+  }
+};
+
+// Reorder categories (Drag & Drop)
+export const reorderCategories = async (categories: { _id: string, order: number }[]) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories/reorder/bulk`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categories })
+    });
+    if (!res.ok) throw new Error("Failed to reorder categories");
+    return await res.json();
+  } catch (error) {
+    console.error("Error in reorderCategories:", error);
+    throw error;
+  }
+};

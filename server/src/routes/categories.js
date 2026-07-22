@@ -65,3 +65,33 @@ router.post('/bulk', async (req, res) => {
 });
 
 module.exports = router;
+
+// ⚡ DELETE: Remove a category
+router.delete('/:id', async (req, res) => {
+  try {
+    await CategorySettings.findByIdAndDelete(req.params.id);
+    res.json({ message: "Category deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ⚡ PUT: Bulk update category orders (for drag and drop)
+router.put('/reorder/bulk', async (req, res) => {
+  try {
+    const { categories } = req.body; // Expects array of { _id, order }
+    
+    // Create an array of update operations for MongoDB
+    const bulkOps = categories.map((cat) => ({
+      updateOne: {
+        filter: { _id: cat._id },
+        update: { order: cat.order }
+      }
+    }));
+
+    await CategorySettings.bulkWrite(bulkOps);
+    res.json({ message: "Categories reordered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
