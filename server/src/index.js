@@ -7,10 +7,8 @@ const rateLimit = require('express-rate-limit');
 
 // Import routes
 const regionRoutes = require('./routes/regions');
-
 const staffRoutes = require('./routes/staff');
-
-const categoryRoutes = require('./categories');
+const categoryRoutes = require('./routes/categories'); // ⚡ FIXED IMPORT PATH
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,7 +61,7 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/regions', regionRoutes);
 app.use('/api/staff', staffRoutes);
-router.use('/categories', categoryRoutes);
+app.use('/api/categories', categoryRoutes); // ⚡ FIXED APP ROUTING
 
 
 app.listen(PORT, () => {
