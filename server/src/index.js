@@ -10,6 +10,8 @@ const regionRoutes = require('./routes/regions');
 
 const staffRoutes = require('./routes/staff');
 
+const categoryRoutes = require('./categories');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -61,6 +63,8 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/regions', regionRoutes);
 app.use('/api/staff', staffRoutes);
+router.use('/categories', categoryRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend Engine running on port ${PORT}`);

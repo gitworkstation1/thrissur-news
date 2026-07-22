@@ -197,3 +197,53 @@ export async function deleteStaffMember(id: string): Promise<{ message: string }
   }
   return await res.json();
 }
+
+
+// ⚡ CATEGORY API ENDPOINTS
+
+// Fetch all categories
+export const fetchCategories = async () => {
+  try {
+    // ⚡ Removed the extra /api here
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories`);
+    if (!res.ok) throw new Error("Failed to fetch categories");
+    return await res.json();
+  } catch (error) {
+    console.error("Error in fetchCategories:", error);
+    return [];
+  }
+};
+
+// Update a single category (e.g., toggle visibility)
+export const updateCategory = async (id: string, data: any) => {
+  try {
+    // ⚡ Removed the extra /api here
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Failed to update category");
+    return await res.json();
+  } catch (error) {
+    console.error("Error in updateCategory:", error);
+    throw error;
+  }
+};
+
+// Seed initial categories (useful for first-time setup)
+export const seedCategories = async (categories: any[]) => {
+  try {
+    // ⚡ Removed the extra /api here
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categories })
+    });
+    if (!res.ok) throw new Error("Failed to seed categories");
+    return await res.json();
+  } catch (error) {
+    console.error("Error in seedCategories:", error);
+    throw error;
+  }
+};

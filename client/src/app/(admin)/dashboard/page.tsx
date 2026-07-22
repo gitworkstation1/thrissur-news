@@ -25,7 +25,8 @@ import {
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminComposer from "@/components/admin/AdminComposer";
 import VisualAdManager from "@/components/admin/VisualAdManager";
-import StaffManager from "@/components/admin/StaffManager"; // ⚡ NEW IMPORT
+import StaffManager from "@/components/admin/StaffManager";
+import CategoryManager from "@/components/admin/CategoryManager";
 
 const getYouTubeId = (urlStr: string) => {
   if (!urlStr) return "";
@@ -63,8 +64,8 @@ const INITIAL_FORM_STATE = {
 };
 
 export default function AdminDashboard() {
-  // ⚡ UPDATED: Added "staff" to currentView state
-  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads" | "obituary" | "staff">("library");
+  // ⚡ UPDATED: Added "categories" to currentView state type
+  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads" | "obituary" | "staff" | "categories">("library");
   const [contentTab, setContentTab] = useState<"news" | "shorts" | "obituary">("news");
   const [activeView, setActiveView] = useState<"published" | "draft">("published");
 
@@ -116,8 +117,8 @@ export default function AdminDashboard() {
         else if (contentTab === "obituary") fetchCat = "Obituary";
       }
 
-      // Skip fetching articles if we are just looking at the staff manager
-      if (currentView === "staff") {
+      // Skip fetching articles if we are just looking at staff or categories manager
+      if (currentView === "staff" || currentView === "categories") {
         setIsLoading(false);
         return;
       }
@@ -275,6 +276,8 @@ export default function AdminDashboard() {
                       ? "Ads Manager"
                       : currentView === "staff"
                       ? "Staff Directory"
+                      : currentView === "categories"
+                      ? "Category Manager"
                       : "Content Management"}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
@@ -282,12 +285,15 @@ export default function AdminDashboard() {
                       ? "Visually map and manage your sponsored campaigns."
                       : currentView === "staff"
                       ? "Manage your reporters, photographers, and team profiles."
+                      : currentView === "categories"
+                      ? "Control navigation visibility and category structure."
                       : "Manage and publish news to your community."}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  {currentView !== "staff" && (
+                  {/* ⚡ Hide toggles on both staff and categories views */}
+                  {currentView !== "staff" && currentView !== "categories" && (
                     <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-gray-200 dark:border-white/5 w-full sm:w-auto">
                       <button
                         onClick={() => setActiveView("published")}
@@ -319,6 +325,13 @@ export default function AdminDashboard() {
               {currentView === "staff" && (
                 <div className="mb-12">
                   <StaffManager />
+                </div>
+              )}
+
+              {/* ⚡ NEW: CATEGORY MANAGER */}
+              {currentView === "categories" && (
+                <div className="mb-12">
+                  <CategoryManager />
                 </div>
               )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; // ⚡ NEW: Import React Portal
+import { createPortal } from "react-dom"; 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,13 +15,14 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  X
+  X,
+  Layers // ⚡ NEW: Imported Layers icon for the categories button
 } from "lucide-react";
 
-// ⚡ UPDATED: Added "staff" to the typescript interfaces
+// ⚡ UPDATED: Added "categories" to the typescript interfaces
 interface AdminSidebarProps {
-  currentView: "library" | "compose" | "ads" | "obituary" | "staff";
-  setCurrentView: (view: "library" | "compose" | "ads" | "obituary" | "staff") => void;
+  currentView: "library" | "compose" | "ads" | "obituary" | "staff" | "categories";
+  setCurrentView: (view: "library" | "compose" | "ads" | "obituary" | "staff" | "categories") => void;
   startNewPost: (mode: "news" | "ad" | "obituary") => void;
 }
 
@@ -32,10 +33,10 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false); // ⚡ NEW: Track when it's safe to teleport
+  const [mounted, setMounted] = useState(false); 
 
-  // ⚡ UPDATED: Added "staff" here too
-  const handleSelectView = (view: "library" | "compose" | "ads" | "obituary" | "staff") => {
+  // ⚡ UPDATED: Added "categories" here too
+  const handleSelectView = (view: "library" | "compose" | "ads" | "obituary" | "staff" | "categories") => {
     setCurrentView(view);
     setIsOpen(false);
   };
@@ -61,12 +62,10 @@ export default function AdminSidebar({
     return () => { document.body.style.overflow = "unset"; };
   }, [isOpen]);
 
-  // ⚡ NEW: Mount the portal safely on the client side
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // ⚡ NEW: We package the button up into a variable so we can teleport it!
   const mobileMenuButton = (
     <button
       onClick={() => setIsOpen(true)}
@@ -80,7 +79,6 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* ⚡ TELEPORT THE BUTTON DIRECTLY TO THE BROWSER BODY */}
       {mounted ? createPortal(mobileMenuButton, document.body) : null}
 
       {/* Frosted Glass Overlay */}
@@ -162,7 +160,6 @@ export default function AdminSidebar({
             <span>Compose Obituary</span>
           </button>
 
-          {/* ⚡ UPDATED: Turned the Journalists placeholder into the active Staff Directory button */}
           <button
             onClick={() => handleSelectView("staff")}
             className={`w-full flex items-center gap-3 px-4 py-3 font-medium rounded-xl transition-all ${
@@ -173,6 +170,19 @@ export default function AdminSidebar({
           >
             <Users className="w-5 h-5 shrink-0" />
             <span>Staff Directory</span>
+          </button>
+
+          {/* ⚡ NEW: Category Manager Menu Item */}
+          <button
+            onClick={() => handleSelectView("categories")}
+            className={`w-full flex items-center gap-3 px-4 py-3 font-medium rounded-xl transition-all ${
+              currentView === "categories"
+                ? "bg-red-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Layers className="w-5 h-5 shrink-0" />
+            <span>Category Manager</span>
           </button>
 
           <Link
