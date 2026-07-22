@@ -204,8 +204,7 @@ export async function deleteStaffMember(id: string): Promise<{ message: string }
 // Fetch all categories
 export const fetchCategories = async () => {
   try {
-    // ⚡ Removed the extra /api here
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`);
     if (!res.ok) throw new Error("Failed to fetch categories");
     return await res.json();
   } catch (error) {
@@ -214,11 +213,10 @@ export const fetchCategories = async () => {
   }
 };
 
-// Update a single category (e.g., toggle visibility)
+// Update a single category
 export const updateCategory = async (id: string, data: any) => {
   try {
-    // ⚡ Removed the extra /api here
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -231,11 +229,10 @@ export const updateCategory = async (id: string, data: any) => {
   }
 };
 
-// Seed initial categories (useful for first-time setup)
+// Seed initial categories
 export const seedCategories = async (categories: any[]) => {
   try {
-    // ⚡ Removed the extra /api here
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/categories/bulk`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories/bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ categories })
