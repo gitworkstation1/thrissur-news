@@ -37,20 +37,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT: Update a specific category (e.g., toggle visibility from Admin Dashboard)
-router.put('/:id', async (req, res) => {
-  try {
-    const updatedCategory = await CategorySettings.findByIdAndUpdate(
-      req.params.id, 
-      req.body, 
-      { new: true }
-    );
-    res.json(updatedCategory);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
 // POST: Bulk initialize/update categories (useful for initial setup)
 router.post('/bulk', async (req, res) => {
   try {
@@ -64,19 +50,8 @@ router.post('/bulk', async (req, res) => {
   }
 });
 
-module.exports = router;
-
-// ⚡ DELETE: Remove a category
-router.delete('/:id', async (req, res) => {
-  try {
-    await CategorySettings.findByIdAndDelete(req.params.id);
-    res.json({ message: "Category deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // ⚡ PUT: Bulk update category orders (for drag and drop)
+// PLACED ABOVE `/:id` SO IT DOES NOT GET INTERCEPTED
 router.put('/reorder/bulk', async (req, res) => {
   try {
     const { categories } = req.body; // Expects array of { _id, order }
@@ -95,3 +70,30 @@ router.put('/reorder/bulk', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+// PUT: Update a specific category (e.g., toggle visibility from Admin Dashboard)
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedCategory = await CategorySettings.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { new: true }
+    );
+    res.json(updatedCategory);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// ⚡ DELETE: Remove a category
+router.delete('/:id', async (req, res) => {
+  try {
+    await CategorySettings.findByIdAndDelete(req.params.id);
+    res.json({ message: "Category deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ⚡ EXPORT MUST ALWAYS BE AT THE VERY BOTTOM
+module.exports = router;
