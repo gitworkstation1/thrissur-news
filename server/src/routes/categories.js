@@ -12,6 +12,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ⚡ POST: Add a single new category
+router.post('/', async (req, res) => {
+  try {
+    const { name, isVisible, order } = req.body;
+    
+    // Prevent duplicates (case-sensitive check based on your schema)
+    const existingCategory = await CategorySettings.findOne({ name });
+    if (existingCategory) {
+      return res.status(400).json({ message: "Category already exists" });
+    }
+
+    const newCategory = new CategorySettings({ 
+      name, 
+      isVisible: isVisible !== undefined ? isVisible : true, 
+      order: order || 0 
+    });
+    
+    await newCategory.save();
+    res.status(201).json(newCategory);
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // PUT: Update a specific category (e.g., toggle visibility from Admin Dashboard)
 router.put('/:id', async (req, res) => {
   try {

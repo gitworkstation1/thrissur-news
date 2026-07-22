@@ -244,3 +244,22 @@ export const seedCategories = async (categories: any[]) => {
     throw error;
   }
 };
+
+// Create a new category
+export const createCategory = async (name: string) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, isVisible: true }) // Defaults to visible
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to create category");
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Error in createCategory:", error);
+    throw error;
+  }
+};
