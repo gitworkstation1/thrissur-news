@@ -15,26 +15,28 @@ import HomeAdCard from "@/components/ad/HomeAdCard";
 import ShowsSection from "@/components/sections/ShowsSection";
 import LiveTVSection from "@/components/sections/LiveTVSection";
 
-export const revalidate = 60; 
+export const revalidate = 60;
 
 export const metadata = {
-  title: 'Fides News | Thrissur Local Updates',
-  description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
+  title: "Fides News | Thrissur Local Updates",
+  description:
+    "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
   openGraph: {
-    title: 'Fides News | Thrissur Local Updates',
-    description: 'Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.',
-    url: 'https://yourdomain.com',
-    siteName: 'Fides News',
+    title: "Fides News | Thrissur Local Updates",
+    description:
+      "Your trusted source for hyper-local breaking news, politics, and live updates across Thrissur.",
+    url: "https://yourdomain.com",
+    siteName: "Fides News",
     images: [
       {
-        url: 'https://picsum.photos/1200/630', 
+        url: "https://picsum.photos/1200/630",
         width: 1200,
         height: 630,
-        alt: 'Fides News Banner',
+        alt: "Fides News Banner",
       },
     ],
-    locale: 'en_IN',
-    type: 'website',
+    locale: "en_IN",
+    type: "website",
   },
 };
 
@@ -268,6 +270,8 @@ export default async function Home({
 
           {/* TOP TEN NEWS CONTAINER */}
           <div className="w-full lg:w-[35%] flex flex-col h-full min-h-0 mt-8 lg:mt-0">
+            {/* ⚡ NEW COMPACT LIVE TV WIDGET */}
+            <LiveTVSection />
             <h2 className="text-black dark:text-white font-black text-lg tracking-wide uppercase mb-4 shrink-0">
               TOP TEN NEWS
             </h2>
@@ -325,8 +329,9 @@ export default async function Home({
                 </Link>
               )}
 
-              <style dangerouslySetInnerHTML={{
-                __html: `
+              <style
+                dangerouslySetInnerHTML={{
+                  __html: `
                 .hide-top10-scroll::-webkit-scrollbar {
                   display: none !important;
                   width: 0 !important;
@@ -336,7 +341,9 @@ export default async function Home({
                   -ms-overflow-style: none !important;
                   scrollbar-width: none !important;
                 }
-              `}} />
+              `,
+                }}
+              />
 
               {/* Scrolling List Container */}
               <div className="flex-1 max-h-[350px] lg:max-h-[none] overflow-y-auto relative min-h-0 hide-top10-scroll">
@@ -409,9 +416,6 @@ export default async function Home({
 
       {/* --- WIDE DIVIDER (Doesn't touch corners) --- */}
       <div className="w-[92%] lg:w-[96%] mx-auto border-b border-black-200 dark:border-white/80 my-10"></div>
-
-      {/* --- INJECTED LIVE TV SECTION --- */}
-      <LiveTVSection />
 
       <div className="max-w-[96%] mx-auto px-4 py-10 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
