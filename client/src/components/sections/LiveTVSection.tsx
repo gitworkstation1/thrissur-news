@@ -1,11 +1,12 @@
 "use client";
-import { X } from "lucide-react";
+import { X, Tv, Maximize2, Minimize2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
 export default function LiveTVSection() {
   const [isFloating, setIsFloating] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false); 
   const [mounted, setMounted] = useState(false); 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -13,68 +14,81 @@ export default function LiveTVSection() {
     setMounted(true);
     
     const checkLayoutAndScroll = () => {
-      if (!containerRef.current || isDismissed) return;
+      if (!containerRef.current) return; 
       
-      // ⚡ THE FIX: Check if we are on a mobile/tablet screen (< 1024px)
       const isMobileView = window.innerWidth < 1024;
       
       if (isMobileView) {
-        // Always float immediately on smaller screens
         setIsFloating(true);
       } else {
-        // Desktop behavior: Only float when scrolled past the container
         const rect = containerRef.current.getBoundingClientRect();
         setIsFloating(rect.top < -50);
       }
     };
 
     window.addEventListener("scroll", checkLayoutAndScroll, { passive: true });
-    window.addEventListener("resize", checkLayoutAndScroll, { passive: true }); // Catch device rotation
+    window.addEventListener("resize", checkLayoutAndScroll, { passive: true });
     
-    checkLayoutAndScroll(); // Initial check on load
+    checkLayoutAndScroll(); 
     
     return () => {
       window.removeEventListener("scroll", checkLayoutAndScroll);
       window.removeEventListener("resize", checkLayoutAndScroll);
     };
-  }, [isDismissed]);
+  }, []); 
 
-  if (isDismissed) return null;
+  // Broadcast TV state changes to the window so other UI elements (like Flash Read) can react dynamically
+  useEffect(() => {
+    if (!mounted) return;
+    const event = new CustomEvent('live-tv-state', {
+      detail: { isFloating, isDismissed, isExpanded }
+    });
+    window.dispatchEvent(event);
+  }, [isFloating, isDismissed, isExpanded, mounted]);
 
   // --- REUSABLE UI BLOCKS ---
   
   const headerContent = (
-    <div className={`flex items-center justify-between transition-colors duration-300 ${isFloating ? 'p-1.5 sm:p-2 bg-black border-b border-white/10 rounded-t-xl' : 'p-3 border-b border-gray-100 dark:border-white/5'}`}>
+    <div className={`flex items-center justify-between transition-colors duration-300 ${isFloating || isExpanded ? 'p-1.5 sm:p-2 bg-black border-b border-white/10 rounded-t-xl' : 'p-3 border-b border-gray-100 dark:border-white/5'}`}>
       <div className="flex items-center gap-1 sm:gap-2">
-        <div className={`relative flex ${isFloating ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}>
+        <div className={`relative flex ${isFloating || isExpanded ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}>
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-          <span className={`relative inline-flex rounded-full bg-[#e3000f] ${isFloating ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}></span>
+          <span className={`relative inline-flex rounded-full bg-[#e3000f] ${isFloating || isExpanded ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}></span>
         </div>
-        <h2 className={`font-black tracking-wide uppercase flex items-center gap-1 ${isFloating ? 'text-white text-[8px] sm:text-[10px] md:text-[11px]' : 'text-black dark:text-white text-sm'}`}>
+        <h2 className={`font-black tracking-wide uppercase flex items-center gap-1 ${isFloating && !isExpanded ? 'text-white text-[8px] sm:text-[10px] md:text-[11px]' : 'text-black dark:text-white text-sm'}`}>
           Live TV
         </h2>
       </div>
       
-      <div className="flex items-center">
-        {!isFloating ? (
+      <div className="flex items-center gap-1 sm:gap-1.5">
+        {!isFloating && !isExpanded ? (
           <span className="inline-flex items-center px-2 py-0.5 bg-red-50 dark:bg-red-500/10 text-[#e3000f] text-[9px] font-black uppercase tracking-widest rounded-full border border-red-200 dark:border-red-500/20">
             Streaming
           </span>
         ) : (
-          <button 
-            onClick={() => setIsDismissed(true)}
-            className="p-0.5 sm:p-1 rounded-md bg-white/10 text-gray-300 hover:text-white hover:bg-[#e3000f] transition-colors"
-            title="Close Live TV"
-          >
-            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          </button>
+          <>
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-0.5 sm:p-1 rounded-md bg-white/10 text-gray-300 hover:text-white hover:bg-[#e3000f] transition-colors"
+              title={isExpanded ? "Minimize" : "Expand"}
+            >
+              {isExpanded ? <Minimize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Maximize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+            </button>
+            <button 
+              onClick={() => { setIsDismissed(true); setIsExpanded(false); }}
+              className="p-0.5 sm:p-1 rounded-md bg-white/10 text-gray-300 hover:text-white hover:bg-[#e3000f] transition-colors"
+              title="Close Live TV"
+            >
+              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            </button>
+          </>
         )}
       </div>
     </div>
   );
 
   const playerContent = (
-    <div className={`w-full aspect-video bg-black relative transition-all duration-300 ${isFloating ? 'rounded-b-xl overflow-hidden' : 'rounded-b-2xl overflow-hidden'}`}>
+    <div className={`w-full bg-black relative transition-all duration-300 ${isExpanded ? 'flex-1 rounded-b-xl overflow-hidden' : isFloating ? 'aspect-video rounded-b-xl overflow-hidden' : 'aspect-video rounded-b-2xl overflow-hidden'}`}>
       <iframe
         className="absolute inset-0 w-full h-full relative z-10"
         src="https://www.youtube.com/embed/live_stream?channel=UCf8w5m0YsRa8MHQ5bwSGmbw&autoplay=1&mute=1"
@@ -87,41 +101,58 @@ export default function LiveTVSection() {
     </div>
   );
 
-  // FLOATING PLAYER PORTAL (Rendered exactly the same, but now triggers instantly on mobile)
+  // ⚡ YOUR POSITIONING APPLIED + SMOOTH TRANSITION
+  const widgetClasses = isExpanded
+    ? "fixed inset-4 sm:inset-10 md:inset-20 z-[99999] bg-black rounded-xl border border-[#e3000f]/80 flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-100 ease-out"
+    : `fixed bottom-24 md:bottom-24 right-4 w-40 sm:w-52 md:w-80 shadow-[0_10px_40px_rgba(227,0,15,0.3)] rounded-xl border border-[#e3000f]/80 bg-black z-[9999] transition-all duration-500 ease-out origin-bottom-right ${
+        isDismissed ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'
+      }`;
+
+  // Keep widget in DOM when floating (even if dismissed) to prevent reload and allow transition
   const floatingWidget = mounted && isFloating ? createPortal(
-    <div className="fixed bottom-[140px] md:bottom-[180px] right-2 md:right-4 w-[160px] sm:w-[200px] md:w-[320px] shadow-[0_10px_40px_rgba(227,0,15,0.3)] rounded-xl border border-[#e3000f]/80 bg-black z-[9999] animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-500 ease-out">
-      {headerContent}
-      {playerContent}
-    </div>,
+    <>
+      {isExpanded && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998] animate-in fade-in" onClick={() => setIsExpanded(false)} />}
+      <div className={widgetClasses}>
+        {headerContent}
+        {playerContent}
+      </div>
+    </>,
+    document.body
+  ) : null;
+
+  // ⚡ YOUR POSITIONING APPLIED + SMOOTH TRANSITION
+  const collapsedBubble = mounted && isFloating ? createPortal(
+    <button
+      onClick={() => setIsDismissed(false)}
+      className={`fixed bottom-24 md:bottom-24 right-4 w-12 h-12 bg-[#e3000f] text-white rounded-full shadow-[0_4px_14px_rgba(227,0,15,0.5)] flex items-center justify-center z-[9998] transition-all duration-500 ease-out origin-center ${
+        isDismissed ? 'opacity-100 scale-100 hover:scale-110 hover:bg-red-700' : 'opacity-0 scale-50 pointer-events-none'
+      }`}
+      title="Open Live TV"
+    >
+      <Tv className="w-5 h-5" />
+    </button>,
     document.body
   ) : null;
 
   return (
-    // ⚡ THE FIX: Removed margin-bottom on mobile (`lg:mb-6`) so it doesn't leave an empty gap above the Top Ten News
     <div ref={containerRef} className="w-full relative lg:mb-6">
-      
-      {/* 1. INLINE PLAYER */}
-      {!isFloating && (
-        // ⚡ THE FIX: Added `hidden lg:flex` so this block physically doesn't exist on mobile layouts
+      {!isFloating && !isDismissed && (
         <div className="hidden lg:flex relative w-full rounded-2xl border border-[#e3000f]/30 bg-white dark:bg-[#111] shadow-sm flex-col z-10 animate-in fade-in duration-500">
           {headerContent}
           {playerContent}
         </div>
       )}
-
-      {/* 2. FLOATING PLAYER PORTAL */}
-      {floatingWidget}
       
-      {/* 3. GHOST PLACEHOLDER */}
-      {isFloating && (
-        // ⚡ THE FIX: Added `hidden lg:flex` so the ghost placeholder is only shown on Desktop when scrolling
+      {floatingWidget}
+      {collapsedBubble}
+
+      {isFloating && !isDismissed && (
         <div className="hidden lg:flex w-full aspect-video bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl border border-dashed border-gray-200 dark:border-white/10 items-center justify-center animate-in fade-in duration-500">
            <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-center px-4">
              Live TV Playing in Mini-Player
            </span>
         </div>
       )}
-      
     </div>
   );
 }
