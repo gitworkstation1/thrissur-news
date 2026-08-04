@@ -16,6 +16,7 @@ import {
   updateArticle,
   uploadImage,
   fetchStaff,
+  fetchCategories,
 } from "@/lib/api";
 
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
@@ -29,17 +30,6 @@ const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), {
   ),
 });
 
-const CATEGORIES = [
-  "News",
-  "Crime",
-  "Politics",
-  "Sports",
-  "Business",
-  "Education",
-  "Local",
-  "Health",
-  "Obituary",
-];
 const AD_ZONES = [
   "Global (Anywhere)",
   "Top Leaderboard",
@@ -81,6 +71,8 @@ export default function AdminComposer({
   const [shortUrl, setShortUrl] = useState(initialShortUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
 
   const [mediaList, setMediaList] = useState<MediaItem[]>([
     { file: null, url: "", credit: "" },
@@ -182,6 +174,27 @@ export default function AdminComposer({
 
   // ⚡ LIVE REGION DATA STATE
   const [regionData, setRegionData] = useState<any[]>([]);
+
+  // ⚡ DYNAMIC CATEGORIES FETCH (MUST BE ITS OWN TOP-LEVEL EFFECT)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        if (data && Array.isArray(data)) {
+          // Sort by order just like in CategoryManager, then extract only the names
+          const sortedNames = data
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((cat: any) => cat.name);
+          setDynamicCategories(sortedNames);
+        }
+      } catch (error) {
+        console.error("Composer category fetch failed:", error);
+        // Fallback in case of database error
+        setDynamicCategories(["News", "Local"]);
+      }
+    };
+    loadCategories();
+  }, []);
 
   // ⚡ FETCH REGIONS ON LOAD (BULLETPROOF VERSION)
   useEffect(() => {
@@ -374,16 +387,18 @@ export default function AdminComposer({
         articlePayload = {
           ...articlePayload,
           body: "YouTube Short",
-          category: "Shorts", 
-          location: { 
-            ...(articlePayload.location || {}), 
-            ward: "All Places" 
+          category: "Shorts",
+          location: {
+            ...(articlePayload.location || {}),
+            ward: "All Places",
           },
           // ⚡ THE FIX: Reconstruct the full URL using the clean ID!
-          media: [{ 
-            type: "youtube-short", 
-            url: `https://www.youtube.com/shorts/${youtubeId}` 
-          }],
+          media: [
+            {
+              type: "youtube-short",
+              url: `https://www.youtube.com/shorts/${youtubeId}`,
+            },
+          ],
         };
       } else if (editorMode === "ad") {
         if (shortUrl) {
@@ -1008,7 +1023,8 @@ export default function AdminComposer({
                     disabled={editorMode === "obituary"}
                     className={`w-full p-3 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm outline-none ${editorMode === "obituary" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                   >
-                    {CATEGORIES.map((cat) => (
+                    {/* ⚡ USE DYNAMIC CATEGORIES HERE */}
+                    {dynamicCategories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>
