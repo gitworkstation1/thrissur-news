@@ -15,6 +15,7 @@ import HomeAdCard from "@/components/ad/HomeAdCard";
 import ShowsSection from "@/components/sections/ShowsSection";
 import LiveTVSection from "@/components/sections/LiveTVSection";
 
+
 export const revalidate = 60;
 
 export const metadata = {
