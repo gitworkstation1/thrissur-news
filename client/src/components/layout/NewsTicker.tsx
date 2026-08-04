@@ -3,6 +3,7 @@ import TickerClient from "./TickerClient"; // ⚡ Import our new client componen
 
 export default async function NewsTicker() {
   let articles: any[] = [];
+  let globalSpeed = 30; // ⚡ Fallback default speed
   
   try {
     // 1. Fetch a larger pool of recent articles
@@ -18,9 +19,21 @@ export default async function NewsTicker() {
 
     // 4. Fallback: If nothing is selected, show the 8 latest
     articles = combinedTicker.length > 0 ? combinedTicker : allArticles.slice(0, 8);
+
+    // ⚡ 5. Fetch the universal settings for the ticker speed
+    const settingsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/settings`, {
+      cache: 'no-store' // Ensure it always gets the freshest speed from MongoDB
+    });
+    
+    if (settingsRes.ok) {
+      const settings = await settingsRes.json();
+      if (settings?.tickerSpeed) {
+        globalSpeed = settings.tickerSpeed;
+      }
+    }
     
   } catch (error) {
-    console.error("Failed to fetch ticker news", error);
+    console.error("Failed to fetch ticker data", error);
   }
 
   // Hide the ticker if the database is completely empty
@@ -37,7 +50,8 @@ export default async function NewsTicker() {
       </div>
 
       {/* --- SCROLLING CONTENT DELEGATED TO CLIENT COMPONENT --- */}
-      <TickerClient articles={articles} />
+      {/* ⚡ Pass the global database speed into the client component */}
+      <TickerClient articles={articles} initialSpeed={globalSpeed} />
 
     </div>
   );

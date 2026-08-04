@@ -15,23 +15,29 @@ export default function AppSettings() {
     }
   }, []);
 
-  const handleSave = async () => {
+const handleSave = async () => {
     setIsSaving(true);
     try {
-      localStorage.setItem("fides_ticker_speed", tickerSpeed.toString());
-      
-      // Tell the TickerClient that the speed changed
+      // Send the universal speed to the MongoDB backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickerSpeed: tickerSpeed })
+      });
+
+      if (!response.ok) throw new Error('Failed to update settings');
+
+      // Keep this so the admin dashboard live-updates immediately
       window.dispatchEvent(new Event("tickerSpeedChanged"));
       
-      alert(`Settings saved! Ticker speed set to ${tickerSpeed}s.`);
+      alert(`Universal settings saved! Ticker speed set to ${tickerSpeed}s.`);
     } catch (error) {
-      alert("Failed to save settings.");
+      console.error(error);
+      alert("Failed to save universal settings.");
     } finally {
       setIsSaving(false);
     }
   };
-
-  
 
 
   return (

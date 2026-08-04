@@ -3,26 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function TickerClient({ articles }: { articles: any[] }) {
-  const [speed, setSpeed] = useState<number>(35); // Default speed
+// Accept initialSpeed as a prop
+export default function TickerClient({ articles, initialSpeed }: { articles: any[], initialSpeed: number }) {
+  // Initialize state with the database speed
+  const [speed, setSpeed] = useState<number>(initialSpeed);
 
-  // Read the saved speed from AppSettings
   useEffect(() => {
-    const updateSpeedFromStorage = () => {
+    // Listen for the live updates from the AppSettings admin panel
+    const handleSpeedChange = () => {
+      // You can either re-fetch here, or just let the dashboard use localStorage strictly for instant admin previews
       const savedSpeed = localStorage.getItem("fides_ticker_speed");
-      if (savedSpeed) {
-        setSpeed(Number(savedSpeed));
-      }
+      if (savedSpeed) setSpeed(Number(savedSpeed));
     };
 
-    updateSpeedFromStorage(); // Initial load
-
-    // Only listen for the final save event now!
-    window.addEventListener("tickerSpeedChanged", updateSpeedFromStorage);
-
-    return () => {
-      window.removeEventListener("tickerSpeedChanged", updateSpeedFromStorage);
-    };
+    window.addEventListener("tickerSpeedChanged", handleSpeedChange);
+    return () => window.removeEventListener("tickerSpeedChanged", handleSpeedChange);
   }, []);
 
   return (
