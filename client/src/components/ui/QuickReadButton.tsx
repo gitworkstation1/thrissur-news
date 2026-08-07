@@ -32,7 +32,6 @@ export default function QuickReadButton() {
     return () => window.removeEventListener("scroll", checkScroll, true);
   }, []);
 
-  // Hides beautifully on Search and the vertical Shorts view
   if (pathname === "/search" || pathname === "/quick-read" || pathname === "/shorts") {
     return null;
   }
@@ -41,12 +40,11 @@ export default function QuickReadButton() {
     <Link 
       href="/quick-read"
       className={`
-        /* ⚡ ULTIMATE FIX: Dropped to z-[5] so it mathematically cannot overlap menus ⚡ */
-        fixed right-4 bottom-24 z-[5] 
+        /* ⚡ Set to z-30 so it sits above content, but below menus */
+        fixed right-4 bottom-24 z-30 
         flex items-center justify-center rounded-full
         transition-all duration-300 ease-in-out overflow-hidden h-10 
         
-        /* SOLID RED POP EFFECT */
         bg-[#e3000f] text-white
         border border-[#ff4d58]
         shadow-[0_8px_20px_rgba(227,0,15,0.4)] hover:shadow-[0_12px_25px_rgba(227,0,15,0.6)]
