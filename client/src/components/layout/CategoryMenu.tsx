@@ -1,12 +1,10 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check, Layers, PlayCircle, Loader2 } from "lucide-react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import Link from "next/link";
-import { fetchArticles, fetchCategories } from "@/lib/api"; // You will also import fetchCategories here soon
 
-// ⚡ THESE ARE NOW JUST FALLBACKS.
-// The real list will be fetched from your database.
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Check, Layers, PlayCircle, Loader2, ArrowRight } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { fetchArticles, fetchCategories } from "@/lib/api";
+
 const DEFAULT_CATEGORIES = [
   "News",
   "Local",
@@ -66,21 +64,17 @@ export default function CategoryMenu() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // 👇 Removed the newCategoryName and isCreating states from here!
-
   let selectedCategory = searchParams.get("category") || "News";
   if (pathname === "/obituary") {
     selectedCategory = "Obituary";
   }
 
-  // Replace your existing useEffect with this one:
   useEffect(() => {
     const loadDynamicCategories = async () => {
       try {
         const activeCategories = await fetchCategories();
 
         if (activeCategories && activeCategories.length > 0) {
-          // Filter out hidden categories, sort by order, and extract the names
           const visibleCategoryNames = activeCategories
             .filter((cat: any) => cat.isVisible)
             .sort((a: any, b: any) => a.order - b.order)
@@ -99,6 +93,10 @@ export default function CategoryMenu() {
   }, []);
 
   const handleCategoryHover = async (cat: string) => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      return;
+    }
+
     setHoveredCategory(cat);
     if (categoryDataCache[cat]) return;
 
@@ -108,7 +106,7 @@ export default function CategoryMenu() {
         cat,
         "",
         1,
-        3,
+        5, 
         "published",
         "All Places",
       );
@@ -173,7 +171,7 @@ export default function CategoryMenu() {
 
   return (
     <div
-      className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-[9999] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+      className={`w-full bg-white dark:bg-[#111] border-b border-gray-100 dark:border-gray-800/60 sticky top-14 z-[95] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
         isScrolled
           ? "-translate-y-8 opacity-0 pointer-events-none"
           : "translate-y-0 opacity-100 pointer-events-auto"
@@ -183,37 +181,54 @@ export default function CategoryMenu() {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        .hide-scroll { -ms-overflow-style: none !important; scrollbar-width: none !important; }
       `,
         }}
       />
 
       <div className="w-full px-4 h-12 flex items-center justify-between relative max-w-[1600px] mx-auto">
+        {/* Horizontal Category List */}
         <div
           className="flex-1 flex items-center gap-6 overflow-x-auto pr-4 hide-scroll h-full"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryClick(cat)}
-              onMouseEnter={() => handleCategoryHover(cat)}
-              className={`whitespace-nowrap h-full flex items-center text-[11px] font-black tracking-widest uppercase transition-colors outline-none border-b-2
-                ${
-                  selectedCategory === cat
-                    ? "text-[#e3000f] border-[#e3000f]"
-                    : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-100 border-transparent"
-                }
-              `}
-            >
-              {cat}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            const isHovered = hoveredCategory === cat;
+
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategoryClick(cat)}
+                onMouseEnter={() => handleCategoryHover(cat)}
+                className={`relative whitespace-nowrap h-full flex items-center text-[11px] font-black tracking-widest uppercase transition-colors outline-none border-b-[3px]
+                  ${
+                    isSelected
+                      ? "text-[#e3000f] border-[#e3000f]"
+                      : isHovered
+                      ? "text-[#e3000f] border-transparent"
+                      : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-100 border-transparent"
+                  }
+                `}
+              >
+                {cat}
+
+                <div
+                  className={`absolute -bottom-[3px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#e3000f] transition-all duration-300 ${
+                    isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
+                  }`}
+                />
+              </button>
+            );
+          })}
         </div>
 
+        {/* Category Dropdown Wrapper */}
         <div
-          className="relative flex-shrink-0 pl-3 border-l border-gray-200 dark:border-gray-700 ml-1 h-full flex items-center"
+          className="relative flex-shrink-0 pl-3 border-l border-gray-200 dark:border-gray-700 ml-1 h-full flex items-center z-[10001]"
           ref={dropdownRef}
+          onMouseEnter={() => setHoveredCategory(null)}
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -227,15 +242,18 @@ export default function CategoryMenu() {
             />
           </button>
 
+          {/* All Categories Dropdown */}
           {isOpen && (
-            <div className="absolute top-[calc(100%+0px)] right-0 w-56 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-t-0 border-gray-200/60 dark:border-gray-700/50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="px-4 py-2 mb-1 border-b border-gray-100 dark:border-gray-800/80 flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="absolute top-[calc(100%+0px)] right-0 w-56 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-t-2 border-t-[#e3000f] border-gray-200/60 dark:border-gray-700/50 overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-[10050]">
+              <div className="px-4 py-2 mb-1 border-b border-gray-100 dark:border-gray-800/80 flex items-center gap-2 text-[#e3000f]">
                 <Layers className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   All Categories
                 </span>
               </div>
-              <div className="max-h-[60vh] overflow-y-auto hide-scroll">
+
+              {/* Capped at Automotive height with scroll support */}
+              <div className="max-h-[460px] overflow-y-auto hide-scroll">
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -243,7 +261,7 @@ export default function CategoryMenu() {
                     className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors outline-none
                       ${
                         selectedCategory === cat
-                          ? "text-[#e3000f] bg-red-50 dark:bg-red-900/10"
+                          ? "text-[#e3000f] bg-red-50/80 dark:bg-red-900/20"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60"
                       }
                     `}
@@ -258,69 +276,67 @@ export default function CategoryMenu() {
         </div>
       </div>
 
+      {/* Sub News Mega Menu */}
       {hoveredCategory && (
-        <div className="absolute top-full left-0 w-full bg-white dark:bg-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-t border-gray-100 dark:border-gray-800 hidden lg:block animate-in fade-in slide-in-from-top-1 duration-200 z-[10000]">
-          <div className="max-w-[1400px] mx-auto p-8">
+        <div className="absolute top-full left-0 w-full bg-white/98 dark:bg-[#111]/98 backdrop-blur-xl shadow-2xl border-t-2 border-t-[#e3000f] border-b border-gray-200 dark:border-gray-800 animate-in fade-in slide-in-from-top-1 duration-200 z-[10000]">
+          <div className="max-w-[1600px] mx-auto px-4 py-4 h-32 flex items-center gap-8">
             {isLoading && activeArticles.length === 0 ? (
-              <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
+              <div className="flex w-full items-center justify-center gap-2 text-gray-400">
                 <Loader2 className="w-5 h-5 animate-spin text-[#e3000f]" />
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Loading stories...
-                </span>
+                <span className="text-xs font-bold uppercase tracking-wider">Loading stories...</span>
               </div>
             ) : activeArticles.length === 0 ? (
-              <div className="text-center py-12 text-gray-400 text-sm font-semibold">
+              <div className="w-full text-center text-gray-400 text-sm font-semibold">
                 No recent stories found in {hoveredCategory}.
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-8">
-                <div className="flex flex-col justify-between border-r border-gray-100 dark:border-gray-800 pr-6">
-                  <div>
-                    <span className="text-[10px] font-bold text-[#e3000f] uppercase tracking-widest">
-                      Category
-                    </span>
-                    <h3 className="font-black text-2xl text-gray-900 dark:text-white uppercase tracking-tight mt-1">
-                      {hoveredCategory}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      Catch up on the latest local reports and updates for{" "}
-                      {hoveredCategory}.
-                    </p>
-                  </div>
-
+              <>
+                <div className="w-48 shrink-0 h-full flex flex-col justify-center border-r border-gray-200 dark:border-gray-800 pr-6 pl-3 border-l-2 border-l-[#e3000f] bg-gradient-to-r from-red-50/40 dark:from-red-950/10 to-transparent">
+                  <h3 className="font-black text-xl text-gray-900 dark:text-white uppercase tracking-tight truncate">
+                    {hoveredCategory}
+                  </h3>
                   <button
                     onClick={() => handleCategoryClick(hoveredCategory)}
-                    className="mt-6 w-full py-2.5 bg-gray-50 dark:bg-gray-800/60 hover:bg-[#e3000f] hover:text-white dark:hover:bg-[#e3000f] text-gray-900 dark:text-white text-xs font-bold uppercase tracking-widest rounded-lg transition-colors"
+                    className="mt-2 text-[#e3000f] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 hover:underline transition-all"
                   >
-                    View All {hoveredCategory}
+                    View All <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
 
-                {activeArticles.slice(0, 3).map((article: any) => (
-                  <div
-                    key={article._id}
-                    onClick={() => {
-                      router.push(`/full-coverage/${article._id}`);
-                      setHoveredCategory(null);
-                    }}
-                    className="flex flex-col gap-3 group cursor-pointer"
-                  >
-                    <div className="w-full h-36 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                      <img
-                        src={getMediaUrl(article)}
-                        alt={article.headline}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                <div className="flex-1 flex items-center gap-6 overflow-x-auto hide-scroll h-full pr-4">
+                  {activeArticles.slice(0, 5).map((article: any) => (
+                    <div
+                      key={article._id}
+                      onClick={() => {
+                        router.push(`/full-coverage/${article._id}`);
+                        setHoveredCategory(null);
+                      }}
+                      className="flex items-center gap-4 group cursor-pointer w-[280px] shrink-0"
+                    >
+                      <div className="w-24 h-16 shrink-0 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
+                        <img
+                          src={getMediaUrl(article)}
+                          alt={article.headline}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {(article.media?.some((m: any) => m.type === "video" || m.type === "youtube-short") || article.body?.includes("<iframe")) && (
+                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                             <PlayCircle className="w-6 h-6 text-white drop-shadow-md" />
+                           </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-center flex-1">
+                        <h4 className="font-bold text-xs leading-snug text-gray-900 dark:text-white group-hover:text-[#e3000f] transition-colors line-clamp-2">
+                          {article.headline}
+                        </h4>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase mt-1">
+                          {getTimeAgo(article.createdAt)}
+                        </span>
+                      </div>
                     </div>
-                    <h4 className="font-bold text-sm leading-snug text-gray-900 dark:text-white group-hover:text-[#e3000f] transition-colors line-clamp-2">
-                      {article.headline}
-                    </h4>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">
-                      {getTimeAgo(article.createdAt)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
