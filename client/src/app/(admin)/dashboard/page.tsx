@@ -20,17 +20,18 @@ import {
   Database,
   ChevronLeft,
   ChevronRight,
-  Users // ⚡ NEW ICON
+  Users, // ⚡ NEW ICON
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminComposer from "@/components/admin/AdminComposer";
 import VisualAdManager from "@/components/admin/VisualAdManager";
 import StaffManager from "@/components/admin/StaffManager";
 import CategoryManager from "@/components/admin/CategoryManager";
+import AppSettings from "@/components/admin/AppSettings";
 
 const getYouTubeId = (urlStr: string) => {
   if (!urlStr) return "";
-  if (!urlStr.startsWith("http")) return urlStr; 
+  if (!urlStr.startsWith("http")) return urlStr;
   return urlStr.split("/").pop()?.split("?")[0] || "";
 };
 
@@ -46,12 +47,12 @@ const CATEGORIES = [
   "Obituary",
 ];
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const INITIAL_FORM_STATE = {
   headline: "",
   body: "",
-  keyPoints: [], 
+  keyPoints: [],
   isBreaking: false,
   isTicker: false,
   category: "News",
@@ -65,9 +66,21 @@ const INITIAL_FORM_STATE = {
 
 export default function AdminDashboard() {
   // ⚡ UPDATED: Added "categories" to currentView state type
-  const [currentView, setCurrentView] = useState<"library" | "compose" | "ads" | "obituary" | "staff" | "categories">("library");
-  const [contentTab, setContentTab] = useState<"news" | "shorts" | "obituary">("news");
-  const [activeView, setActiveView] = useState<"published" | "draft">("published");
+  const [currentView, setCurrentView] = useState<
+    | "library"
+    | "compose"
+    | "ads"
+    | "obituary"
+    | "staff"
+    | "categories"
+    | "settings"
+  >("library");
+  const [contentTab, setContentTab] = useState<"news" | "shorts" | "obituary">(
+    "news",
+  );
+  const [activeView, setActiveView] = useState<"published" | "draft">(
+    "published",
+  );
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [articles, setArticles] = useState<any[]>([]);
@@ -86,7 +99,9 @@ export default function AdminDashboard() {
   // Composer State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composeData, setComposeData] = useState<any>(INITIAL_FORM_STATE);
-  const [composeMode, setComposeMode] = useState<"news" | "shorts" | "ad" | "obituary">("news");
+  const [composeMode, setComposeMode] = useState<
+    "news" | "shorts" | "ad" | "obituary"
+  >("news");
   const [composeShortUrl, setComposeShortUrl] = useState<string>("");
 
   useEffect(() => {
@@ -118,7 +133,12 @@ export default function AdminDashboard() {
       }
 
       // Skip fetching articles if we are just looking at staff or categories manager
-      if (currentView === "staff" || currentView === "categories") {
+      // ⚡ Skip fetching articles if we are just looking at staff, categories, or settings
+      if (
+        currentView === "staff" ||
+        currentView === "categories" ||
+        currentView === "settings"
+      ) {
         setIsLoading(false);
         return;
       }
@@ -129,10 +149,10 @@ export default function AdminDashboard() {
         targetPage,
         12,
         activeView,
-        "All Places", 
-        undefined,    
-        undefined,    
-        true          
+        "All Places",
+        undefined,
+        undefined,
+        true,
       );
       setArticles(data.articles || []);
       setTotalPages(data.totalPages || 1);
@@ -173,10 +193,11 @@ export default function AdminDashboard() {
   };
 
   const startNewPost = (mode: "news" | "ad" | "obituary" = "news") => {
-    const startingData = mode === "obituary" 
-      ? { ...INITIAL_FORM_STATE, category: "Obituary" } 
-      : INITIAL_FORM_STATE;
-      
+    const startingData =
+      mode === "obituary"
+        ? { ...INITIAL_FORM_STATE, category: "Obituary" }
+        : INITIAL_FORM_STATE;
+
     setComposeData(startingData);
     setEditingId(null);
     setComposeMode(mode);
@@ -189,7 +210,7 @@ export default function AdminDashboard() {
       body: article.body,
       keyPoints: article.keyPoints || [],
       isBreaking: article.isBreaking || false,
-      isTicker: article.isTicker || false, 
+      isTicker: article.isTicker || false,
       category: article.category || "News",
       location: article.location || { ward: "", landmark: "" },
       status: article.status || "published",
@@ -232,9 +253,9 @@ export default function AdminDashboard() {
       if (contentTab === "obituary") return article.category === "Obituary";
       if (contentTab === "news")
         return (
-          article.category !== "Shorts" && 
+          article.category !== "Shorts" &&
           article.category !== "Advertisement" &&
-          article.category !== "Obituary" 
+          article.category !== "Obituary"
         );
     }
     return true;
@@ -250,7 +271,6 @@ export default function AdminDashboard() {
 
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen relative pb-8">
         <main className="flex-1 p-6 sm:p-8 md:p-10">
-          
           {currentView === "compose" || currentView === "obituary" ? (
             <AdminComposer
               initialData={composeData}
@@ -275,40 +295,47 @@ export default function AdminDashboard() {
                     {currentView === "ads"
                       ? "Ads Manager"
                       : currentView === "staff"
-                      ? "Staff Directory"
-                      : currentView === "categories"
-                      ? "Category Manager"
-                      : "Content Management"}
+                        ? "Staff Directory"
+                        : currentView === "categories"
+                          ? "Category Manager"
+                          : currentView === "settings" // ⚡ ADDED THIS LINE
+                            ? "App Settings" // ⚡ ADDED THIS LINE
+                            : "Content Management"}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">
                     {currentView === "ads"
                       ? "Visually map and manage your sponsored campaigns."
                       : currentView === "staff"
-                      ? "Manage your reporters, photographers, and team profiles."
-                      : currentView === "categories"
-                      ? "Control navigation visibility and category structure."
-                      : "Manage and publish news to your community."}
+                        ? "Manage your reporters, photographers, and team profiles."
+                        : currentView === "categories"
+                          ? "Control navigation visibility and category structure."
+                          : currentView === "settings" // ⚡ ADDED THIS LINE
+                            ? "Manage global platform preferences and settings." // ⚡ ADDED THIS LINE
+                            : "Manage and publish news to your community."}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                   {/* ⚡ Hide toggles on both staff and categories views */}
-                  {currentView !== "staff" && currentView !== "categories" && (
-                    <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-gray-200 dark:border-white/5 w-full sm:w-auto">
-                      <button
-                        onClick={() => setActiveView("published")}
-                        className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "published" ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
-                      >
-                        <Globe className="w-3.5 h-3.5" /> Published
-                      </button>
-                      <button
-                        onClick={() => setActiveView("draft")}
-                        className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "draft" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
-                      >
-                        <EyeOff className="w-3.5 h-3.5" /> Drafts
-                      </button>
-                    </div>
-                  )}
+                  {/* ⚡ Hide toggles on staff, categories, and settings views */}
+                  {currentView !== "staff" &&
+                    currentView !== "categories" &&
+                    currentView !== "settings" && (
+                      <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-full shadow-inner border border-gray-200 dark:border-white/5 w-full sm:w-auto">
+                        <button
+                          onClick={() => setActiveView("published")}
+                          className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "published" ? "bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+                        >
+                          <Globe className="w-3.5 h-3.5" /> Published
+                        </button>
+                        <button
+                          onClick={() => setActiveView("draft")}
+                          className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 ${activeView === "draft" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+                        >
+                          <EyeOff className="w-3.5 h-3.5" /> Drafts
+                        </button>
+                      </div>
+                    )}
 
                   {currentView === "library" && (
                     <button
@@ -332,6 +359,13 @@ export default function AdminDashboard() {
               {currentView === "categories" && (
                 <div className="mb-12">
                   <CategoryManager />
+                </div>
+              )}
+
+              {/* ⚡ NEW: APP SETTINGS */}
+              {currentView === "settings" && (
+                <div className="mb-12">
+                  <AppSettings />
                 </div>
               )}
 
@@ -420,11 +454,13 @@ export default function AdminDashboard() {
                         className="py-3 px-4 bg-transparent text-sm font-medium outline-none cursor-pointer text-gray-700 dark:text-gray-300 min-w-40"
                       >
                         <option value="All">All Categories</option>
-                        {CATEGORIES.filter(cat => cat !== "Obituary").map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
+                        {CATEGORIES.filter((cat) => cat !== "Obituary").map(
+                          (cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ),
+                        )}
                       </select>
                     </>
                   )}
@@ -465,7 +501,11 @@ export default function AdminDashboard() {
                       <Newspaper className="w-12 h-12 text-gray-300 mb-4" />
                       <p className="text-gray-500 font-medium">
                         No {activeView}{" "}
-                        {contentTab === "news" ? "written articles" : contentTab === "shorts" ? "shorts" : "obituaries"}{" "}
+                        {contentTab === "news"
+                          ? "written articles"
+                          : contentTab === "shorts"
+                            ? "shorts"
+                            : "obituaries"}{" "}
                         found.
                       </p>
                     </div>
@@ -500,8 +540,8 @@ export default function AdminDashboard() {
                                         article.category === "Advertisement") &&
                                       article.media?.[0]?.type ===
                                         "youtube-short"
-                                        // ⚡ WRAPPED THE URL IN OUR HELPER FUNCTION BELOW
-                                        ? `https://img.youtube.com/vi/${getYouTubeId(article.media?.[0]?.url)}/hqdefault.jpg`
+                                        ? // ⚡ WRAPPED THE URL IN OUR HELPER FUNCTION BELOW
+                                          `https://img.youtube.com/vi/${getYouTubeId(article.media?.[0]?.url)}/hqdefault.jpg`
                                         : article.media?.[0]?.url ||
                                           "https://picsum.photos/400/250"
                                     }

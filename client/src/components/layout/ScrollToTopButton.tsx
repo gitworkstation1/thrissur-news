@@ -41,7 +41,7 @@ export default function ScrollToTopButton() {
         aria-label="Scroll back to top"
       >
         <ArrowUp className="w-4 h-4 text-[#e3000f] stroke-[3px]" />
-        Back to Top
+
       </button>
     </div>
   );

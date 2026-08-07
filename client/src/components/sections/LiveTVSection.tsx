@@ -1,104 +1,158 @@
-import { Radio, Calendar } from "lucide-react";
+"use client";
+import { X, Tv, Maximize2, Minimize2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 export default function LiveTVSection() {
-  // A sleek placeholder schedule to fill out the new right-hand column!
-  const schedule = [
-    { time: "08:00 AM", title: "Morning News Bulletin", active: false },
-    { time: "12:00 PM", title: "Mid-Day Kerala Updates", active: false },
-    { time: "03:00 PM", title: "Live from Thrissur Pooram Grounds", active: true },
-    { time: "06:00 PM", title: "Evening Debate", active: false },
-    { time: "09:00 PM", title: "Prime Time News", active: false },
-  ];
+  const [isFloating, setIsFloating] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false); 
+  const [mounted, setMounted] = useState(false); 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const checkLayoutAndScroll = () => {
+      if (!containerRef.current) return; 
+      
+      const isMobileView = window.innerWidth < 1024;
+      
+      if (isMobileView) {
+        setIsFloating(true);
+      } else {
+        const rect = containerRef.current.getBoundingClientRect();
+        setIsFloating(rect.top < -50);
+      }
+    };
+
+    window.addEventListener("scroll", checkLayoutAndScroll, { passive: true });
+    window.addEventListener("resize", checkLayoutAndScroll, { passive: true });
+    
+    checkLayoutAndScroll(); 
+    
+    return () => {
+      window.removeEventListener("scroll", checkLayoutAndScroll);
+      window.removeEventListener("resize", checkLayoutAndScroll);
+    };
+  }, []); 
+
+  // Broadcast TV state changes to the window so other UI elements (like Flash Read) can react dynamically
+  useEffect(() => {
+    if (!mounted) return;
+    const event = new CustomEvent('live-tv-state', {
+      detail: { isFloating, isDismissed, isExpanded }
+    });
+    window.dispatchEvent(event);
+  }, [isFloating, isDismissed, isExpanded, mounted]);
+
+  // --- REUSABLE UI BLOCKS ---
+  
+  const headerContent = (
+    <div className={`flex items-center justify-between transition-colors duration-300 ${isFloating || isExpanded ? 'p-1.5 sm:p-2 bg-black border-b border-white/10 rounded-t-xl' : 'p-3 border-b border-gray-100 dark:border-white/5'}`}>
+      <div className="flex items-center gap-1 sm:gap-2">
+        <div className={`relative flex ${isFloating || isExpanded ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+          <span className={`relative inline-flex rounded-full bg-[#e3000f] ${isFloating || isExpanded ? 'h-1.5 w-1.5' : 'h-2 w-2'}`}></span>
+        </div>
+        <h2 className={`font-black tracking-wide uppercase flex items-center gap-1 ${isFloating && !isExpanded ? 'text-white text-[8px] sm:text-[10px] md:text-[11px]' : 'text-black dark:text-white text-sm'}`}>
+          Live TV
+        </h2>
+      </div>
+      
+      <div className="flex items-center gap-1 sm:gap-1.5">
+        {!isFloating && !isExpanded ? (
+          <span className="inline-flex items-center px-2 py-0.5 bg-red-50 dark:bg-red-500/10 text-[#e3000f] text-[9px] font-black uppercase tracking-widest rounded-full border border-red-200 dark:border-red-500/20">
+            Streaming
+          </span>
+        ) : (
+          <>
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-0.5 sm:p-1 rounded-md bg-white/10 text-gray-300 hover:text-white hover:bg-[#e3000f] transition-colors"
+              title={isExpanded ? "Minimize" : "Expand"}
+            >
+              {isExpanded ? <Minimize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Maximize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+            </button>
+            <button 
+              onClick={() => { setIsDismissed(true); setIsExpanded(false); }}
+              className="p-0.5 sm:p-1 rounded-md bg-white/10 text-gray-300 hover:text-white hover:bg-[#e3000f] transition-colors"
+              title="Close Live TV"
+            >
+              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  const playerContent = (
+    <div className={`w-full bg-black relative transition-all duration-300 ${isExpanded ? 'flex-1 rounded-b-xl overflow-hidden' : isFloating ? 'aspect-video rounded-b-xl overflow-hidden' : 'aspect-video rounded-b-2xl overflow-hidden'}`}>
+      <iframe
+        className="absolute inset-0 w-full h-full relative z-10"
+        src="https://www.youtube.com/embed/live_stream?channel=UCf8w5m0YsRa8MHQ5bwSGmbw&autoplay=1&mute=1"
+        title="Asianet News Live TV"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        loading="lazy" 
+      ></iframe>
+    </div>
+  );
+
+  // ⚡ YOUR POSITIONING APPLIED + SMOOTH TRANSITION
+  const widgetClasses = isExpanded
+    ? "fixed inset-4 sm:inset-10 md:inset-20 z-[99999] bg-black rounded-xl border border-[#e3000f]/80 flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-100 ease-out"
+    : `fixed bottom-24 md:bottom-24 right-4 w-40 sm:w-52 md:w-80 shadow-[0_10px_40px_rgba(227,0,15,0.3)] rounded-xl border border-[#e3000f]/80 bg-black z-[9999] transition-all duration-500 ease-out origin-bottom-right ${
+        isDismissed ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'
+      }`;
+
+  // Keep widget in DOM when floating (even if dismissed) to prevent reload and allow transition
+  const floatingWidget = mounted && isFloating ? createPortal(
+    <>
+      {isExpanded && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998] animate-in fade-in" onClick={() => setIsExpanded(false)} />}
+      <div className={widgetClasses}>
+        {headerContent}
+        {playerContent}
+      </div>
+    </>,
+    document.body
+  ) : null;
+
+  // ⚡ YOUR POSITIONING APPLIED + SMOOTH TRANSITION
+  const collapsedBubble = mounted && isFloating ? createPortal(
+    <button
+      onClick={() => setIsDismissed(false)}
+      className={`fixed bottom-24 md:bottom-24 right-4 w-12 h-12 bg-[#e3000f] text-white rounded-full shadow-[0_4px_14px_rgba(227,0,15,0.5)] flex items-center justify-center z-[9998] transition-all duration-500 ease-out origin-center ${
+        isDismissed ? 'opacity-100 scale-100 hover:scale-110 hover:bg-red-700' : 'opacity-0 scale-50 pointer-events-none'
+      }`}
+      title="Open Live TV"
+    >
+      <Tv className="w-5 h-5" />
+    </button>,
+    document.body
+  ) : null;
 
   return (
-    <section className="max-w-[96%] mx-auto px-4 my-10">
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-
-        {/* --- LEFT SIDE: The Video Player (70% on Desktop) --- */}
-        <div className="w-full lg:w-[70%] flex flex-col">
-
-          <div className="flex flex-row items-center justify-between mb-4 md:mb-6">
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-3 w-3 md:h-4 md:w-4">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 md:h-4 md:w-4 bg-[#e3000f]"></span>
-              </div>
-              <h2 className="text-black dark:text-white font-black text-xl md:text-2xl tracking-wide uppercase flex items-center gap-2">
-                <Radio className="w-5 h-5 md:w-6 md:h-6 text-[#e3000f]" /> Live TV
-              </h2>
-            </div>
-
-            <span className="inline-flex items-center px-3 md:px-4 py-1.5 bg-red-50 dark:bg-red-500/10 text-[#e3000f] text-[10px] md:text-xs font-black uppercase tracking-widest rounded-full border border-red-200 dark:border-red-500/20">
-              Streaming Now
-            </span>
-          </div>
-
-          <div className="w-full  bg-black rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-white/10 aspect-video relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-[2rem] blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200 -z-10"></div>
-            <iframe
-              className="absolute inset-0 w-full h-full relative z-10"
-              src="https://www.youtube.com/embed/live_stream?channel=UCf8w5m0YsRa8MHQ5bwSGmbw&autoplay=1&mute=1"
-              title="Asianet News Live TV"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              loading="lazy" 
-            ></iframe>
-          </div>
+    <div ref={containerRef} className="w-full relative lg:mb-6">
+      {!isFloating && !isDismissed && (
+        <div className="hidden lg:flex relative w-full rounded-2xl border border-[#e3000f]/30 bg-white dark:bg-[#111] shadow-sm flex-col z-10 animate-in fade-in duration-500">
+          {headerContent}
+          {playerContent}
         </div>
+      )}
+      
+      {floatingWidget}
+      {collapsedBubble}
 
-        {/* --- RIGHT SIDE: The Schedule Panel (30% on Desktop) --- */}
-        <div className="w-full rounded-2xl border border-[#e3000f]/30 lg:w-[30%] flex flex-col mt-2 lg:mt-[68px]">
-          
-          <div className="bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/10 p-5 md:p-6 shadow-sm flex flex-col h-full">
-
-            <div className="flex items-center gap-2 mb-5 border-b border-gray-100 dark:border-white/5 pb-4">
-              <Calendar className="w-5 h-5 text-gray-400" />
-              <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
-                Today's Lineup
-              </h3>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {schedule.map((slot, i) => (
-                <div
-                  key={i}
-                  className={`flex items-start gap-4 p-3.5 rounded-xl transition-colors ${slot.active
-                      ? 'bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent'
-                    }`}
-                >
-                  <span className={`text-xs font-bold whitespace-nowrap pt-0.5 ${slot.active ? 'text-red-600' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {slot.time}
-                  </span>
-                  <div className="flex flex-col">
-                    <span className={`text-sm font-semibold leading-snug ${slot.active ? 'text-red-700 dark:text-red-400' : 'text-gray-800 dark:text-gray-200'}`}>
-                      {slot.title}
-                    </span>
-                    {slot.active && (
-                      <span className="text-[10px] text-red-600 font-black uppercase tracking-wider mt-1.5 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span> On Air
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ⚡ THE FIX: Mobile-first highlighting! Default classes are bold/visible, md: classes fade it back to subtle gray for desktop! */}
-            <button className="
-              w-full mt-6 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 border
-              text-gray-900 dark:text-white border-gray-900 dark:border-gray-500 bg-gray-50 dark:bg-white/5
-              md:text-gray-500 md:dark:text-gray-400 md:border-gray-200 md:dark:border-gray-800 md:bg-transparent md:dark:bg-transparent
-              hover:text-gray-900 dark:hover:text-white hover:border-gray-900 dark:hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-white/5
-            ">
-              Full Schedule
-            </button>
-
-          </div>
+      {isFloating && !isDismissed && (
+        <div className="hidden lg:flex w-full aspect-video bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl border border-dashed border-gray-200 dark:border-white/10 items-center justify-center animate-in fade-in duration-500">
+           <span className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-center px-4">
+             Live TV Playing in Mini-Player
+           </span>
         </div>
-
-      </div>
-    </section>
+      )}
+    </div>
   );
 }

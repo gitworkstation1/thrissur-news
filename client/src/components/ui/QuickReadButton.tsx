@@ -6,8 +6,10 @@ import Link from "next/link";
 export default function QuickReadButton() {
   const pathname = usePathname(); 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [tvState, setTvState] = useState({ isFloating: false, isDismissed: false });
 
   useEffect(() => {
+    // Scroll tracking logic
     const checkScroll = () => {
       const isWindowScrolled = window.scrollY > 50;
       let isSidebarScrolled = false;
@@ -19,31 +21,44 @@ export default function QuickReadButton() {
         }
       });
 
-      if (isWindowScrolled || isSidebarScrolled) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(isWindowScrolled || isSidebarScrolled);
     };
 
     window.addEventListener("scroll", checkScroll, true);
     checkScroll(); 
     
-    return () => window.removeEventListener("scroll", checkScroll, true);
+    // ⚡ THE FIX: Listen for Live TV widget state changes
+    const handleTvStateChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setTvState(customEvent.detail);
+    };
+    window.addEventListener('live-tv-state', handleTvStateChange);
+
+    return () => {
+      window.removeEventListener("scroll", checkScroll, true);
+      window.removeEventListener('live-tv-state', handleTvStateChange);
+    };
   }, []);
 
   if (pathname === "/search" || pathname === "/quick-read" || pathname === "/shorts") {
     return null;
   }
 
+  // ⚡ DYNAMIC POSITIONING LOGIC
+  // If the TV is showing as a mini-player (floating AND not dismissed), push Flash Read up high.
+  // Otherwise (if it's a bubble or completely static), let Flash Read rest near the bottom.
+  const dynamicSpacingClass = tvState.isFloating && !tvState.isDismissed 
+    ? 'bottom-56 md:bottom-[340px]' // High up to clear the mini-player
+    : 'bottom-38 md:bottom-40';     // Low down, resting just above the bubble
+
   return (
     <Link 
       href="/quick-read"
       className={`
-        /* ⚡ Set to z-30 so it sits above content, but below menus */
-        fixed right-4 bottom-24 z-30 
+        fixed right-4 z-[5] 
         flex items-center justify-center rounded-full
         transition-all duration-300 ease-in-out overflow-hidden h-10 
+        ${dynamicSpacingClass}
         
         bg-[#e3000f] text-white
         border border-[#ff4d58]

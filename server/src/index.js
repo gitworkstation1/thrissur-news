@@ -61,7 +61,8 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/regions', regionRoutes);
 app.use('/api/staff', staffRoutes);
-app.use('/api/categories', categoryRoutes); // ⚡ FIXED APP ROUTING
+app.use('/api/categories', categoryRoutes); 
+app.use('/api/settings', require('./routes/settings')); // ⚡ ADD THIS LINE
 
 
 app.listen(PORT, () => {

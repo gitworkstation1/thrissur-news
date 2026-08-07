@@ -21,9 +21,10 @@ import {
 
 // ⚡ UPDATED: Added "categories" to the typescript interfaces
 interface AdminSidebarProps {
-  currentView: "library" | "compose" | "ads" | "obituary" | "staff" | "categories";
-  setCurrentView: (view: "library" | "compose" | "ads" | "obituary" | "staff" | "categories") => void;
-  startNewPost: (mode: "news" | "ad" | "obituary") => void;
+  // ⚡ ADD "settings" to the end of both of these types:
+  currentView: "library" | "compose" | "ads" | "obituary" | "staff" | "categories" | "settings";
+  setCurrentView: (view: "library" | "compose" | "ads" | "obituary" | "staff" | "categories" | "settings") => void;
+  startNewPost: (mode?: "news" | "ad" | "obituary") => void;
 }
 
 export default function AdminSidebar({
@@ -201,10 +202,18 @@ export default function AdminSidebar({
             <span>Analytics Hub</span>
           </button>
           
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 font-medium rounded-xl transition-all opacity-60 cursor-not-allowed">
-            <Settings className="w-5 h-5 shrink-0" />
-            <span>App Settings</span>
-          </button>
+          <button
+  // ⚡ ADD THIS ONCLICK HANDLER
+  onClick={() => setCurrentView("settings")} 
+  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+    currentView === "settings"
+      ? "bg-red-600 text-white shadow-md" // Highlight red when active
+      : "text-gray-400 hover:text-white hover:bg-white/5" // Dim when inactive
+  }`}
+>
+  <Settings className="w-5 h-5" />
+  <span className="font-bold text-sm">App Settings</span>
+</button>
         </nav>
 
         <div className="p-4 border-t border-white/10 shrink-0">
