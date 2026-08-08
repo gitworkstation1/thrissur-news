@@ -7,12 +7,27 @@
 
   /* ... the rest of your CSS ... */
 
-  /* Custom View Transition for Dark Mode Ripple */
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-    mix-blend-mode: normal;
+  /* --- THEME TOGGLE VIEW TRANSITION --- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 9999; /* Guarantees the new theme always expands OVER the old one */
+  animation: theme-burst 0.4s ease-out forwards;
+}
+
+@keyframes theme-burst {
+  from {
+    clip-path: circle(0px at var(--click-x, 50%) var(--click-y, 50%));
   }
+  to {
+    /* 150vmax ensures the circle perfectly covers the screen no matter where you clicked */
+    clip-path: circle(150vmax at var(--click-x, 50%) var(--click-y, 50%));
+  }
+}
 
   /* Ensure dark mode has smooth background transitions */
   body {

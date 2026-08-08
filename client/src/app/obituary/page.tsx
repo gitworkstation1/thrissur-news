@@ -31,7 +31,6 @@ function ObituaryContent() {
   const [obituaries, setObituaries] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeObituary, setActiveObituary] = useState<any | null>(null);
-  const [hasLitCandle, setHasLitCandle] = useState(false);
   
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   
@@ -84,10 +83,6 @@ function ObituaryContent() {
     });
   };
 
-  const handleLightCandle = () => {
-    setHasLitCandle(true);
-  };
-
   return (
     <>
       <div className="min-h-screen bg-[#f8f8f8] dark:bg-[#050505] relative overflow-hidden">
@@ -128,10 +123,6 @@ function ObituaryContent() {
             20% { opacity: 0.4; }
             80% { opacity: 0.4; }
             100% { transform: translateY(-30vh) scale(1.2); opacity: 0; }
-          }
-          @keyframes candleGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); }
-            50% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.8); }
           }
         `}</style>
         
@@ -194,7 +185,6 @@ function ObituaryContent() {
                   </div>
                   
                   <div className="p-3 sm:p-6 relative flex flex-col flex-grow justify-between overflow-hidden">
-                    {/* ⚡ UPDATED: Changed from gray to a subtle red watermark */}
                     <Flower2
                       aria-hidden="true"
                       strokeWidth={1}
@@ -217,10 +207,9 @@ function ObituaryContent() {
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 touch-none">
           <div 
             className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity pointer-events-auto" 
-            onClick={() => { setActiveObituary(null); setHasLitCandle(false); }} 
+            onClick={() => setActiveObituary(null)} 
           />
           
-          {/* ⚡ UPDATED: Added hidden scrollbar classes to this container */}
           <div className="relative bg-[#fafafa] dark:bg-[#111] max-w-lg w-full max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-2xl sm:rounded-3xl p-0 shadow-2xl border border-gray-200 dark:border-white/10 animate-in fade-in zoom-in duration-300 pointer-events-auto">
             
             <div 
@@ -245,7 +234,6 @@ function ObituaryContent() {
                 onClick={(e) => { 
                   e.stopPropagation(); 
                   setActiveObituary(null); 
-                  setHasLitCandle(false); 
                 }} 
                 className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white rounded-full transition-all z-10"
               >
@@ -263,22 +251,6 @@ function ObituaryContent() {
                   </span>
                   <span className="text-gray-400 pl-[18px] sm:pl-5">{formatDate(activeObituary.createdAt)}</span>
                 </p>
-                
-                <div className="flex flex-col items-center gap-2">
-                  <button 
-                    onClick={handleLightCandle} 
-                    className={`p-3 sm:p-4 rounded-full transition-all duration-500 shadow-sm outline-none ${
-                      hasLitCandle 
-                        ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500 scale-110 animate-[candleGlow_2s_ease-in-out_infinite]' 
-                        : 'bg-white dark:bg-gray-800 text-gray-400 hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 border border-gray-100 dark:border-gray-700'
-                    }`}
-                  >
-                    <Flame className={`w-5 h-5 sm:w-6 sm:h-6 ${hasLitCandle ? 'fill-current animate-pulse' : ''}`} />
-                  </button>
-                  <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasLitCandle ? 'text-orange-500' : 'text-gray-400'}`}>
-                    {hasLitCandle ? "Candle Lit" : "Light a Candle"}
-                  </span>
-                </div>
               </div>
               
               <div className="prose dark:prose-invert font-sans text-gray-600 dark:text-gray-300 leading-relaxed text-sm md:text-base" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeObituary.body || '') }} />

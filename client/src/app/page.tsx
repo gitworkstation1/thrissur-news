@@ -168,7 +168,7 @@ export default async function Home({
   const localKey = `${selectedCategory || "News"}-${selectedWard || "AllPlaces"}`;
 
   return (
-    <div className="pb-24 relative w-full">
+    <div className="pb-24 relative w-full overflow-visible z-40 ">
       <CategoryMenu />
 
       <PageTransition transitionKey={globalKey}>

@@ -100,25 +100,45 @@ export default function Navbar() {
     };
   }, [showLocations]);
 
+  // ⚡ OPTIMIZED TOGGLE THEME FUNCTION ⚡
   const toggleTheme = (event: React.MouseEvent) => {
     const willBeDark = !isDarkMode;
+    
+    const x = event.clientX;
+    const y = event.clientY;
+
     if (!document.startViewTransition) {
       setIsDarkMode(willBeDark);
       localStorage.setItem('theme', willBeDark ? 'dark' : 'light');
       return;
     }
-    const x = event.clientX;
-    const y = event.clientY;
-    const endRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+
     const transition = document.startViewTransition(() => {
       flushSync(() => {
         setIsDarkMode(willBeDark);
         localStorage.setItem('theme', willBeDark ? 'dark' : 'light');
       });
     });
+
     transition.ready.then(() => {
-      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`];
-      document.documentElement.animate({ clipPath }, { duration: 600, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" });
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 400,
+          easing: "ease-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
     });
   };
 
@@ -126,24 +146,29 @@ export default function Navbar() {
 
   return (
     <>
-      {/* --- SIDE DRAWER --- */}
+      {/* --- SIDE DRAWER BACKDROP (z-[100]) --- */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-500 ease-out ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-500 ease-out ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Drawer Container */}
-      <div className={`fixed top-0 left-0 h-full w-[85vw] sm:w-[320px] max-w-[400px] bg-white dark:bg-[#111] z-[101] shadow-[30px_0_60px_rgba(0,0,0,0.15)] flex flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}>
+      {/* --- SIDE DRAWER CONTAINER (z-[101]) --- */}
+      <div
+        className={`fixed top-0 left-0 h-full w-[85vw] sm:w-[320px] max-w-[400px] bg-white dark:bg-[#111] z-[101] shadow-[30px_0_60px_rgba(0,0,0,0.15)] flex flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex items-center justify-between h-14 px-5 border-b border-gray-100 dark:border-gray-800/60">
           <span className="font-black tracking-tighter text-lg text-black dark:text-white">
             Fides<span className="text-[#e3000f]">Menu</span>
           </span>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`p-1.5 text-gray-400 hover:text-black dark:hover:text-white rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800 transition-all duration-500 transform ${isMobileMenuOpen ? "rotate-0 opacity-100 delay-300" : "-rotate-90 opacity-0"
-              }`}
+            className={`p-1.5 text-gray-400 hover:text-black dark:hover:text-white rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800 transition-all duration-500 transform ${
+              isMobileMenuOpen ? "rotate-0 opacity-100 delay-300" : "-rotate-90 opacity-0"
+            }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -153,8 +178,9 @@ export default function Navbar() {
           <Link
             href="/saved"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/10 text-[#e3000f] hover:bg-red-100 dark:hover:bg-red-900/20 group mb-2 transition-all duration-500 transform ${isMobileMenuOpen ? "translate-x-0 opacity-100 delay-100" : "-translate-x-8 opacity-0"
-              }`}
+            className={`flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/10 text-[#e3000f] hover:bg-red-100 dark:hover:bg-red-900/20 group mb-2 transition-all duration-500 transform ${
+              isMobileMenuOpen ? "translate-x-0 opacity-100 delay-100" : "-translate-x-8 opacity-0"
+            }`}
           >
             <Bookmark className="w-5 h-5 fill-current opacity-80 group-hover:opacity-100 transition-opacity" />
             <span className="font-bold text-sm tracking-wide">Saved News</span>
@@ -163,8 +189,9 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${isMobileMenuOpen ? "translate-x-0 opacity-100 delay-150" : "-translate-x-8 opacity-0"
-              }`}
+            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${
+              isMobileMenuOpen ? "translate-x-0 opacity-100 delay-150" : "-translate-x-8 opacity-0"
+            }`}
           >
             <Home className="w-5 h-5 text-gray-400" /> Home
           </Link>
@@ -172,8 +199,9 @@ export default function Navbar() {
           <Link
             href="/search"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${isMobileMenuOpen ? "translate-x-0 opacity-100 delay-200" : "-translate-x-8 opacity-0"
-              }`}
+            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${
+              isMobileMenuOpen ? "translate-x-0 opacity-100 delay-200" : "-translate-x-8 opacity-0"
+            }`}
           >
             <Search className="w-5 h-5 text-gray-400" /> Search
           </Link>
@@ -181,32 +209,40 @@ export default function Navbar() {
           <Link
             href="/shorts"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${isMobileMenuOpen ? "translate-x-0 opacity-100 delay-[250ms]" : "-translate-x-8 opacity-0"
-              }`}
+            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${
+              isMobileMenuOpen ? "translate-x-0 opacity-100 delay-[250ms]" : "-translate-x-8 opacity-0"
+            }`}
           >
             <PlaySquare className="w-5 h-5 text-gray-400" /> Shorts
           </Link>
 
-          <div className={`w-full h-px bg-gray-100 dark:bg-gray-800/60 my-2 transition-all duration-700 transform ${isMobileMenuOpen ? "scale-x-100 opacity-100 delay-300" : "scale-x-0 opacity-0"
-            }`} />
+          <div
+            className={`w-full h-px bg-gray-100 dark:bg-gray-800/60 my-2 transition-all duration-700 transform ${
+              isMobileMenuOpen ? "scale-x-100 opacity-100 delay-300" : "scale-x-0 opacity-0"
+            }`}
+          />
 
           <Link
             href="/dashboard"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${isMobileMenuOpen ? "translate-x-0 opacity-100 delay-[350ms]" : "-translate-x-8 opacity-0"
-              }`}
+            className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/60 text-[#002244] dark:text-gray-200 font-semibold text-sm transition-all duration-500 transform ${
+              isMobileMenuOpen ? "translate-x-0 opacity-100 delay-[350ms]" : "-translate-x-8 opacity-0"
+            }`}
           >
             <User className="w-5 h-5 text-gray-400" /> My Profile
           </Link>
         </div>
       </div>
-      {/* --- END DRAWER --- */}
 
-      <header className="sticky top-0 z-50 w-full h-14">
+      {/* --- HEADER ROOT (z-[90] keeps navbar & dropdowns above main page content) --- */}
+      <header className="sticky top-0 z-[90] w-full h-14">
 
         {/* SOLID BACKGROUND */}
-        <div className={`absolute inset-0 w-full h-full bg-white border-b border-gray-200 shadow-sm dark:bg-[#111] dark:border-gray-800 transition-all duration-500 ease-in-out origin-top ${isScrolled ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
-          }`} />
+        <div
+          className={`absolute inset-0 w-full h-full bg-white border-b border-gray-200 shadow-sm dark:bg-[#111] dark:border-gray-800 transition-all duration-500 ease-in-out origin-top ${
+            isScrolled ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
+          }`}
+        />
 
         <div className="w-full h-full relative flex items-center px-4">
 
@@ -214,11 +250,11 @@ export default function Navbar() {
           <div className="h-full flex items-center relative z-20">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`h-full flex items-center transition-all duration-500 outline-none group ${isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
-                }`}
+              className={`h-full flex items-center transition-all duration-500 outline-none group ${
+                isScrolled ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
+              }`}
               aria-label="Open Menu"
             >
-              {/* ⚡ ADDED: dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] to add white outline in dark mode */}
               <Image
                 src="/fides-logo.png"
                 alt="Fides Menu"
@@ -231,8 +267,11 @@ export default function Navbar() {
           </div>
 
           {/* 2. CENTER: PERMANENTLY CENTERED TEXT */}
-          <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 z-10 ${isScrolled ? '-translate-y-8 opacity-0' : 'translate-y-0 opacity-100'
-            }`}>
+          <div
+            className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 z-10 ${
+              isScrolled ? '-translate-y-8 opacity-0' : 'translate-y-0 opacity-100'
+            }`}
+          >
             <Link
               href="/"
               className="pointer-events-auto text-xl md:text-2xl font-black tracking-tighter whitespace-nowrap"
@@ -246,8 +285,11 @@ export default function Navbar() {
           <div className="ml-auto flex items-center gap-4 xl:gap-6 relative z-20">
 
             {/* Nav Links */}
-            <div className={`hidden md:flex items-center gap-4 xl:gap-6 font-bold text-sm tracking-wide transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isScrolled ? '-translate-y-8 opacity-0 pointer-events-none scale-95' : 'translate-y-0 opacity-100 scale-100'
-              }`}>
+            <div
+              className={`hidden md:flex items-center gap-4 xl:gap-6 font-bold text-sm tracking-wide transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                isScrolled ? '-translate-y-8 opacity-0 pointer-events-none scale-95' : 'translate-y-0 opacity-100 scale-100'
+              }`}
+            >
               <Link href="/" className={`flex items-center gap-1.5 p-1 transition-colors ${pathname === '/' ? 'text-[#e3000f]' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}>
                 <Home className="w-5 h-5 xl:w-4 xl:h-4" />
                 <span className="hidden xl:block">Home</span>
@@ -262,19 +304,20 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* SOLID MENU PILL & ANIMATED THEME SWITCHER */}
+            {/* GLASS PILL & ANIMATED THEME SWITCHER */}
             <div
               ref={dropdownRef}
-              className={`flex items-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-20 ${isScrolled ? 'absolute top-1 right-4' : 'relative gap-4 xl:gap-6'
-                }`}
+              className={`flex items-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-20 ${
+                isScrolled ? 'absolute top-1 right-4' : 'relative gap-4 xl:gap-6'
+              }`}
             >
 
-              {/* ⚡ SINGLE UNIFIED GLASS PILL ⚡ */}
+              {/* SINGLE UNIFIED GLASS PILL (z-50) */}
               <LiquidGlassButton
                 glassOptions={{ scale: -40, border: 0.15, mapBlur: 8 }}
                 className="flex items-center gap-1 rounded-full p-1 shadow-md cursor-default relative z-50"
               >
-                {/* Location Div */}
+                {/* Location Button */}
                 <div
                   onClick={(e) => { 
                     e.preventDefault(); 
@@ -283,10 +326,9 @@ export default function Navbar() {
                   }}
                   role="button"
                   tabIndex={0}
-                  className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors relative z-50 rounded-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${showLocations
-                    ? 'text-[#e3000f]'
-                    : 'text-[#002244] dark:text-gray-200'
-                    }`}
+                  className={`flex flex-col items-center justify-center w-[48px] sm:w-[64px] py-1 transition-colors relative z-50 rounded-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${
+                    showLocations ? 'text-[#e3000f]' : 'text-[#002244] dark:text-gray-200'
+                  }`}
                 >
                   <MapPin className="h-5 w-5 mb-0.5" />
                   <span className="text-[8px] font-extrabold tracking-wider uppercase w-full text-center truncate px-1">
@@ -297,7 +339,7 @@ export default function Navbar() {
                 {/* Subtle Divider Line */}
                 <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 rounded-full" />
 
-                {/* Animated Theme Div */}
+                {/* Animated Theme Toggle */}
                 <div
                   onClick={(e) => { e.stopPropagation(); toggleTheme(e); }}
                   aria-label="Toggle Theme"
@@ -305,28 +347,32 @@ export default function Navbar() {
                   className="relative z-10 w-9 h-9 flex items-center justify-center overflow-hidden rounded-full transition-colors cursor-pointer text-[#002244] dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10"
                 >
                   <Sun
-                    className={`absolute h-5 w-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isDarkMode ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
-                      }`}
+                    className={`absolute h-5 w-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      isDarkMode ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
+                    }`}
                   />
                   <Moon
-                    className={`absolute h-5 w-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isDarkMode ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-                      }`}
+                    className={`absolute h-5 w-5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      isDarkMode ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
+                    }`}
                   />
                 </div>
 
               </LiquidGlassButton>
 
-              <Link href="/dashboard" className={`text-[#002244] dark:text-gray-200 rounded-full transition-all duration-400 hidden sm:flex items-center justify-center overflow-hidden ${isScrolled
-                ? 'w-0 h-0 opacity-0 scale-0 p-0 m-0'
-                : 'w-9 h-9 opacity-100 scale-100 p-1.5 ml-1 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}>
+              <Link href="/dashboard" className={`text-[#002244] dark:text-gray-200 rounded-full transition-all duration-400 hidden sm:flex items-center justify-center overflow-hidden ${
+                isScrolled
+                  ? 'w-0 h-0 opacity-0 scale-0 p-0 m-0'
+                  : 'w-9 h-9 opacity-100 scale-100 p-1.5 ml-1 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}>
                 <User className="h-6 w-6 flex-shrink-0" />
               </Link>
 
-              {/* FOOLPROOF MOBILE OVERLAY */}
+              {/* OVERLAY FOR CLOSING DROPDOWN ON MOBILE TAP (z-40) */}
               <div
-                className={`fixed inset-0 z-40 transition-opacity duration-300 ${showLocations ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                  }`}
+                className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+                  showLocations ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowLocations(false);
@@ -337,12 +383,13 @@ export default function Navbar() {
                 }}
               />
 
-              {/* DRILL-DOWN HIERARCHICAL DROPDOWN CONTAINER */}
+              {/* REGION ACCORDION DROPDOWN CONTAINER (z-[60] keeps dropdown above pill & overlay) */}
               <div
-                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#1a1a1a] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[75vh] overflow-y-auto z-50 transition-all duration-[600ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-[80%_-10%] custom-scrollbar ${showLocations 
+                className={`absolute top-[calc(100%+12px)] right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#1a1a1a] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-[75vh] overflow-y-auto z-[60] transition-all duration-[600ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-[80%_-10%] custom-scrollbar ${
+                  showLocations 
                     ? "opacity-100 scale-100 translate-y-0 rounded-xl blur-0 pointer-events-auto" 
                     : "opacity-0 scale-75 scale-y-50 -translate-y-8 rounded-[4rem] blur-sm pointer-events-none"
-                  }`}
+                }`}
               >
                 <div className="bg-gray-50 dark:bg-[#111] px-4 py-3 border-b border-gray-100 dark:border-gray-800/50 sticky top-0 z-10 flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Select Region</span>
@@ -367,7 +414,7 @@ export default function Navbar() {
                           <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedState === stateObj.state ? "rotate-180" : ""}`} />
                         </button>
 
-                        {/* District Level (Accordion) */}
+                        {/* District Level */}
                         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedState === stateObj.state ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}>
                           {stateObj.districts.map((district: any) => (
                             <div key={district.name} className="flex flex-col">
@@ -385,7 +432,7 @@ export default function Navbar() {
                                 <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${expandedDistrict === district.name ? "rotate-90" : ""}`} />
                               </button>
 
-                              {/* Locals Level (Accordion) */}
+                              {/* Locals Level */}
                               <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50/50 dark:bg-black/20 ${expandedDistrict === district.name ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"}`}>
                                 {district.locals.map((local: string) => {
                                   const isSelected = selectedLocation === local;

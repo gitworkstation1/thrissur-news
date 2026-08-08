@@ -6,7 +6,6 @@ import Link from "next/link";
 export default function QuickReadButton() {
   const pathname = usePathname(); 
   const [isScrolled, setIsScrolled] = useState(false);
-  const [tvState, setTvState] = useState({ isFloating: false, isDismissed: false });
 
   useEffect(() => {
     // Scroll tracking logic
@@ -26,17 +25,9 @@ export default function QuickReadButton() {
 
     window.addEventListener("scroll", checkScroll, true);
     checkScroll(); 
-    
-    // ⚡ THE FIX: Listen for Live TV widget state changes
-    const handleTvStateChange = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      setTvState(customEvent.detail);
-    };
-    window.addEventListener('live-tv-state', handleTvStateChange);
 
     return () => {
       window.removeEventListener("scroll", checkScroll, true);
-      window.removeEventListener('live-tv-state', handleTvStateChange);
     };
   }, []);
 
@@ -44,23 +35,15 @@ export default function QuickReadButton() {
     return null;
   }
 
-  // ⚡ DYNAMIC POSITIONING LOGIC
-  // If the TV is showing as a mini-player (floating AND not dismissed), push Flash Read up high.
-  // Otherwise (if it's a bubble or completely static), let Flash Read rest near the bottom.
-  const dynamicSpacingClass = tvState.isFloating && !tvState.isDismissed 
-    ? 'bottom-56 md:bottom-[340px]' // High up to clear the mini-player
-    : 'bottom-38 md:bottom-40';     // Low down, resting just above the bubble
-
   return (
     <Link 
       href="/quick-read"
       className={`
-        fixed right-4 z-[5] 
+        fixed left-4 z-30 
         flex items-center justify-center rounded-full
         transition-all duration-300 ease-in-out overflow-hidden h-10 
-        ${dynamicSpacingClass}
+        bottom-23 md:bottom-25
         
-        /* SOLID RED POP EFFECT */
         bg-[#e3000f] text-white
         border border-[#ff4d58]
         shadow-[0_8px_20px_rgba(227,0,15,0.4)] hover:shadow-[0_12px_25px_rgba(227,0,15,0.6)]
