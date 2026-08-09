@@ -9,6 +9,7 @@ export default function LiveTVSection() {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hideForMenu, setHideForMenu] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,6 +37,14 @@ export default function LiveTVSection() {
       window.removeEventListener("scroll", checkLayoutAndScroll);
       window.removeEventListener("resize", checkLayoutAndScroll);
     };
+  }, []);
+
+  // Listen for category menu open/close so we can hide the mini-player
+  // (fixes YouTube iframe compositing layer always rendering on top)
+  useEffect(() => {
+    const handler = (e: any) => setHideForMenu(!!e.detail?.isOpen);
+    window.addEventListener("category-menu-state", handler);
+    return () => window.removeEventListener("category-menu-state", handler);
   }, []);
 
   // Broadcast TV state changes so other UI elements (like Flash Read) can react dynamically
@@ -140,11 +149,11 @@ export default function LiveTVSection() {
     </div>
   );
 
-  // ⚡ z-index lowered so nav-level dropdowns (e.g. category dropdown) render above the mini-player
+  // Widget positioning adjusted to bottom-24/bottom-28 to clear mobile nav
   const widgetClasses = isExpanded
     ? "fixed inset-4 sm:inset-10 md:inset-20 z-[1000] bg-black rounded-xl border border-[#e3000f]/80 flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-300 ease-out"
-    : `fixed bottom-20 sm:bottom-24 right-4 w-44 sm:w-56 md:w-80 shadow-[0_10px_40px_rgba(227,0,15,0.3)] rounded-xl border border-[#e3000f]/80 bg-black z-[70] transition-all duration-500 ease-out origin-bottom-right ${
-        isDismissed
+    : `fixed bottom-24 sm:bottom-28 right-4 w-44 sm:w-56 md:w-80 shadow-[0_10px_40px_rgba(227,0,15,0.3)] rounded-xl border border-[#e3000f]/80 bg-black z-[40] transition-all duration-500 ease-out origin-bottom-right ${
+        isDismissed || hideForMenu
           ? "opacity-0 scale-50 pointer-events-none"
           : "opacity-100 scale-100 pointer-events-auto"
       }`;
@@ -176,8 +185,8 @@ export default function LiveTVSection() {
           <button
             type="button"
             onClick={() => setIsDismissed(false)}
-            className={`fixed bottom-20 sm:bottom-24 right-4 w-12 h-12 bg-[#e3000f] text-white rounded-full shadow-[0_4px_14px_rgba(227,0,15,0.5)] flex items-center justify-center z-[69] transition-all duration-500 ease-out origin-center outline-none ${
-              isDismissed
+            className={`fixed bottom-24 sm:bottom-28 right-4 w-12 h-12 bg-[#e3000f] text-white rounded-full shadow-[0_4px_14px_rgba(227,0,15,0.5)] flex items-center justify-center z-[39] transition-all duration-500 ease-out origin-center outline-none ${
+              isDismissed && !hideForMenu
                 ? "opacity-100 scale-100 hover:scale-110 hover:bg-red-700 pointer-events-auto"
                 : "opacity-0 scale-50 pointer-events-none"
             }`}

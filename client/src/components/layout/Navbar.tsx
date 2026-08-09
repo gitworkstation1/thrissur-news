@@ -10,6 +10,96 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import LiquidGlassButton from "@/components/ui/LiquidGlassButton";
 
+type WavePoint = { x: number; y: number };
+
+/**
+ * Threads a smooth Catmull-Rom -> cubic-bezier curve through a series of
+ * points, instead of connecting them with straight lines. This is what
+ * turns a jagged sine "polygon" into a soft, rounded liquid edge.
+ * Returns SVG path commands (assumes the pen is already at points[0]).
+ */
+function smoothCurveThrough(points: WavePoint[]) {
+  const n = points.length;
+  if (n < 2) return "";
+
+  let d = "";
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2 < n ? i + 2 : n - 1];
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += `C${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} `;
+  }
+  return d;
+}
+
+/**
+ * Builds a rounded, blob-like "liquid wave" clip-path (an SVG path, in
+ * viewport pixels — clip-path: path() doesn't support percentages).
+ *
+ * The shape covers the viewport from y=0 down to a soft, curvy line made
+ * of two overlapping sine waves (a big lazy swell + a small fast ripple,
+ * like a real liquid surface instead of one perfect sine). As `progress`
+ * goes 0 -> 1 that line sweeps from above the screen to below it.
+ *
+ * A gaussian "bias" pulls the wave down faster near `originX` (the click
+ * position), so it reads as pouring out from the toggle, then leveling out.
+ */
+function generateLiquidClipPath(
+  progress: number,
+  vw: number,
+  vh: number,
+  {
+    originX = vw / 2,
+    amplitude = vh * 0.05,
+    amplitude2 = vh * 0.02,
+    waveCount = 1.6,
+    waveCount2 = 4.2,
+    steps = 30,
+    biasAmplitude = vh * 0.13,
+    sigma = vw * 0.3,
+    phase = 0,
+  }: {
+    originX?: number;
+    amplitude?: number;
+    amplitude2?: number;
+    waveCount?: number;
+    waveCount2?: number;
+    steps?: number;
+    biasAmplitude?: number;
+    sigma?: number;
+    phase?: number;
+  } = {}
+) {
+  const baseline = progress * (vh + amplitude * 2) - amplitude;
+  const pts: WavePoint[] = [];
+
+  for (let i = steps; i >= 0; i--) {
+    const x = (i / steps) * vw;
+    const wobble =
+      amplitude * Math.sin((x / vw) * Math.PI * 2 * waveCount + phase) +
+      amplitude2 * Math.sin((x / vw) * Math.PI * 2 * waveCount2 - phase * 1.4 + 1.1);
+    const dist = x - originX;
+    const bias =
+      biasAmplitude * (1 - progress) * Math.exp(-(dist * dist) / (2 * sigma * sigma));
+    pts.push({ x, y: baseline + wobble - bias });
+  }
+
+  const curve = smoothCurveThrough(pts);
+  return `path('M0 0 L${vw.toFixed(2)} 0 L${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} ${curve}L0 0 Z')`;
+}
+
+/** Eases a 0-1 progress value for a softer, more viscous "pour" feel. */
+function easeInOutCubic(p: number) {
+  return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [showLocations, setShowLocations] = useState(false);
@@ -100,18 +190,22 @@ export default function Navbar() {
     };
   }, [showLocations]);
 
-  // ⚡ OPTIMIZED TOGGLE THEME FUNCTION ⚡
+  // 🌊 LIQUID WAVE THEME TOGGLE 🌊
   const toggleTheme = (event: React.MouseEvent) => {
     const willBeDark = !isDarkMode;
-    
-    const x = event.clientX;
-    const y = event.clientY;
 
     if (!document.startViewTransition) {
       setIsDarkMode(willBeDark);
       localStorage.setItem('theme', willBeDark ? 'dark' : 'light');
       return;
     }
+
+    // Where the wave should appear to "pour" from, in viewport pixels
+    // (clip-path: path() coordinates are px, not %).
+    const originX = event.clientX;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const maxBlur = 14; // px, how hazy the liquid looks as it's moving
 
     const transition = document.startViewTransition(() => {
       flushSync(() => {
@@ -121,24 +215,30 @@ export default function Navbar() {
     });
 
     transition.ready.then(() => {
-      const endRadius = Math.hypot(
-        Math.max(x, window.innerWidth - x),
-        Math.max(y, window.innerHeight - y)
-      );
+      const frameCount = 16;
+      const keyframes = Array.from({ length: frameCount + 1 }, (_, f) => {
+        const rawP = f / frameCount;
+        const p = easeInOutCubic(rawP);
+        // The wave's phase keeps evolving as it sweeps, so the swell
+        // travels and wobbles instead of just growing in place.
+        const phase = rawP * Math.PI * 1.6;
+        // Blur is strongest while the liquid is still in motion, and
+        // eases out to fully sharp by the time it finishes settling.
+        const blur = maxBlur * Math.pow(1 - p, 2);
 
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 400,
-          easing: "ease-out",
-          pseudoElement: "::view-transition-new(root)",
-        }
-      );
+        return {
+          clipPath: generateLiquidClipPath(p, vw, vh, { originX, phase }),
+          filter: `blur(${blur.toFixed(2)}px)`,
+          offset: rawP,
+        };
+      });
+
+      document.documentElement.animate(keyframes, {
+        duration: 1100,
+        easing: "linear", // easing is already baked into each frame above
+        pseudoElement: "::view-transition-new(root)",
+        fill: "forwards",
+      });
     });
   };
 

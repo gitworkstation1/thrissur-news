@@ -27,6 +27,7 @@ const DEFAULT_CATEGORIES = [
   "Agriculture",
   "Lottery",
   "Obituary",
+  "Games",
 ];
 
 const getTimeAgo = (dateStr: string) => {
@@ -81,7 +82,7 @@ export default function CategoryMenu() {
             .map((cat: any) => cat.name);
 
           if (visibleCategoryNames.length > 0) {
-            setCategories(visibleCategoryNames);
+            setCategories([...visibleCategoryNames, "Games"]);
           }
         }
       } catch (error) {
@@ -92,8 +93,19 @@ export default function CategoryMenu() {
     loadDynamicCategories();
   }, []);
 
+  // Broadcast dropdown open/close so other floating widgets (e.g. Live TV
+  // mini-player) can hide themselves and avoid the iframe stacking-context bug
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("category-menu-state", { detail: { isOpen } })
+    );
+  }, [isOpen]);
+
   const handleCategoryHover = async (cat: string) => {
     if (typeof window !== "undefined" && window.innerWidth < 640) {
+      return;
+    }
+    if (cat === "Games") {
       return;
     }
 
@@ -126,6 +138,8 @@ export default function CategoryMenu() {
       router.push("/");
     } else if (cat === "Obituary") {
       router.push("/obituary");
+    } else if (cat === "Games") {
+      router.push("/games/sudoku");
     } else {
       router.push(`/?category=${cat}`);
     }
