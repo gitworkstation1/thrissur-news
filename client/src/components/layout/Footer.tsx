@@ -71,7 +71,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                <a href="mailto:editor@fidesnews.com" className="hover:text-[#e3000f] transition-colors">editor@fidesnews.com</a>
+                <a href="mailto:editor@fidesnews.com" className="hover:text-[#e3000f] transition-colors">networkcontactofficial@gmail.com</a>
               </li>
             </ul>
           </div>
@@ -84,9 +84,9 @@ export default function Footer() {
         <div className="pt-8 border-t border-gray-100 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-gray-500 dark:text-gray-500">
           <p>© {currentYear} Fides News. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">Privacy Policy</Link>
+            <Link href="/privacy-policy" className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">Terms of Service</Link>
-            <Link href="/about" className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">About Us</Link>
+            {/* <Link href="/about" className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">About Us</Link> */}
           </div>
         </div>
         
